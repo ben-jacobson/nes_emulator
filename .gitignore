@@ -7,6 +7,9 @@
 *.o
 *.obj
 
+# Output binaries
+output/**
+
 # Precompiled Headers
 *.gch
 *.pch
