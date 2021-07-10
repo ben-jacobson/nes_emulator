@@ -10,6 +10,10 @@ ram::ram(bus* bus_ptr, uint16_t ram_size, uint16_t address_space_lower, uint16_t
     _ram_data = new uint8_t[ram_size]; // allocate the RAM within heap memory to a specified size
     // I'm happy to just use a C style array, the needs of this are really simple. 
 
+    // initialize the ram content to all zeros
+    for (uint16_t i = 0; i < ram_size; i++) {
+        _ram_data[i] = 0;
+    }
 }
 
 ram::~ram() {
