@@ -1,17 +1,19 @@
 #pragma once
 
-#include "bus.h"
 #include "bus_device.h"
+#include "bus.h"
+#include "ram.h"
 
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 
 class cpu : public bus_device
 {
 public:
-	cpu(bus* bus_ptr);
+	cpu(bus *bus_ptr, ram *ram_ptr);
 	~cpu() = default;
 
     // CPU main functions
+    void cycle(void);
     void clock(void);   // main CPU clocking
     void reset(void);   // reset CPU back to original state. 
     void IRQ(void);     // Interrupt request
@@ -19,6 +21,8 @@ public:
     uint8_t fetch_data(void);    
 
 private:
+    ram* _ram_ptr;  // store a pointer to ram so that we can initialise it, sorta like how the CPU controls the chip enables
+
     // clock generator - maybe showing the two phases as shown in datasheet
     // Timing control unit - monitors the instruction currently being executed, and counts up as the clock phases increase
 

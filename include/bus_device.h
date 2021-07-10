@@ -5,7 +5,7 @@
 class bus_device
 {
     public:
-        bus_device(bus* bus_ptr);
+        bus_device(bus *bus_ptr);
         ~bus_device() = default;
 
     protected: 

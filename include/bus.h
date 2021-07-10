@@ -1,13 +1,16 @@
 #pragma once
+
 #include <stdint.h>
 
 class bus
 {
 	public:
 		bus();
+				
 		void set_address(uint16_t address);
 		void write_data(uint8_t data);
 		uint8_t read_data(void);
+			
 		~bus() = default;
 
 	private:

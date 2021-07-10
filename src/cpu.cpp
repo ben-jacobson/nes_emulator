@@ -1,10 +1,16 @@
 #include "cpu.h"
 
-cpu::cpu(bus* bus_ptr) 
+cpu::cpu(bus *bus_ptr, ram *ram_ptr) 
 :   bus_device(bus_ptr)
 {
-    this->reset();
+    _ram_ptr = ram_ptr; 
+    reset();
 } 
+
+void cpu::cycle(void) {
+    // fetch data
+    // a cycle can have multiple clock cycles, this is affected by how the instructions are morphed by the addressing modes. 
+}
 
 void cpu::clock(void) {
 
