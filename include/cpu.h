@@ -13,8 +13,7 @@ public:
 	~cpu() = default;
 
     // CPU main functions
-    void cycle(void);
-    void clock(void);   // main CPU clocking
+    void cycle(void);   // main CPU clocking, called cycle because a cycle can have multiple clock pulses, e.g in multi clock instructions
     void reset(void);   // reset CPU back to original state. 
     void IRQ(void);     // Interrupt request
     void NMI(void);     // non maskable interrupt
@@ -43,7 +42,7 @@ private:
     // Functions are for setting the addressing modes
     uint8_t addr_mode_ACCUM(void);
     uint8_t addr_mode_IMM(void);
-    uint8_t addr_mode_ABSOLUTE(void);
+    uint8_t addr_mode_ABS(void);
     uint8_t addr_mode_ZP(void);
     uint8_t addr_mode_ZPX(void);
     uint8_t addr_mode_ZPY(void);
@@ -51,9 +50,9 @@ private:
     uint8_t addr_mode_ABSY(void);
     uint8_t addr_mode_IMPLIED(void);
     uint8_t addr_mode_RELATIVE(void);
-    uint8_t addr_mode_INDIRECT(void);
-    uint8_t addr_mode_INDIRECTX(void);
-    uint8_t addr_mode_INDIRECTY(void);
+    uint8_t addr_mode_INDI(void);
+    uint8_t addr_mode_INDX(void);
+    uint8_t addr_mode_INDY(void);
 
     // Instruction set in alphabetical order
     uint8_t instr_ADC(void);

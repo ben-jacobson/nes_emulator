@@ -12,10 +12,6 @@ void cpu::cycle(void) {
     // a cycle can have multiple clock cycles, this is affected by how the instructions are morphed by the addressing modes. 
 }
 
-void cpu::clock(void) {
-
-}
-
 void cpu::reset(void) {
 
 } 
@@ -36,7 +32,7 @@ uint8_t cpu::addr_mode_IMM(void) {
     return 0;
 }
 
-uint8_t cpu::addr_mode_ABSOLUTE(void) {
+uint8_t cpu::addr_mode_ABS(void) {
     return 0;
 }
 
@@ -68,15 +64,15 @@ uint8_t cpu::addr_mode_RELATIVE(void) {
     return 0;
 }
 
-uint8_t cpu::addr_mode_INDIRECT(void) {
+uint8_t cpu::addr_mode_INDI(void) {
     return 0;
 }
 
-uint8_t cpu::addr_mode_INDIRECTX(void) {
+uint8_t cpu::addr_mode_INDX(void) {
     return 0;
 }
 
-uint8_t cpu::addr_mode_INDIRECTY(void) {
+uint8_t cpu::addr_mode_INDY(void) {
     return 0;
 }
 
