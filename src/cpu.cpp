@@ -290,3 +290,7 @@ uint8_t cpu::instr_TXS(void) {
 uint8_t cpu::instr_TYA(void) {
     return 0;
 }
+
+uint8_t cpu::instr_ZZZ(void) {
+    return 0;
+}

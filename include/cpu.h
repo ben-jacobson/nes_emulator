@@ -23,9 +23,6 @@ public:
 private:
     ram* _ram_ptr;  // store a pointer to ram so that we can initialise it, sorta like how the CPU controls the chip enables
 
-    // clock generator - maybe showing the two phases as shown in datasheet
-    // Timing control unit - monitors the instruction currently being executed, and counts up as the clock phases increase
-
     uint16_t program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t accumulator_reg; 
     uint8_t x_index_reg, y_index_reg;     
@@ -58,7 +55,7 @@ private:
     uint8_t addr_mode_INDIRECTX(void);
     uint8_t addr_mode_INDIRECTY(void);
 
-    // Instruction set
+    // Instruction set in alphabetical order
     uint8_t instr_ADC(void);
     uint8_t instr_AND(void);
     uint8_t instr_ASL(void);
@@ -129,5 +126,5 @@ private:
     uint8_t instr_TXS(void);
     uint8_t instr_TYA(void);
 
-    uint8_t instr_xxx(void); // for any illegal opcodes
+    uint8_t instr_ZZZ(void); // for any illegal opcodes
 };
