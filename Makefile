@@ -22,6 +22,9 @@ OUTPUT	:= output
 # define source directory
 SRC		:= src
 
+# define the tests directory
+TESTS	:= tests
+
 # define include directory
 INCLUDE	:= include
 
@@ -30,7 +33,9 @@ LIB		:= lib
 
 ifeq ($(OS),Windows_NT)
 MAIN	:= $(PROJECT_NAME).exe
+TEST_OUT := tests.exe
 SOURCEDIRS	:= $(SRC)
+TEST_SOURCE_DIRS := $(TESTS)
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
 FIXPATH = $(subst /,\,$1)
@@ -39,7 +44,9 @@ RM			:= rm -f
 MD	:= mkdir
 else
 MAIN	:= $(PROJECT_NAME)
+TEST_OUT := tests
 SOURCEDIRS	:= $(shell find $(SRC) -type d)
+TEST_SOURCE_DIRS $(shell find $(TESTS) -type d)
 INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)
 LIBDIRS		:= $(shell find $(LIB) -type d)
 FIXPATH = $1
@@ -55,10 +62,13 @@ LIBS		:= $(patsubst %,-L%, $(LIBDIRS:%/=%))
 
 # define the C source files
 SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
-TEST_OBJECTS = $(filter-out src/main.o, $(OBJECTS))						# create a separate set of objects that exclude main.o for compiling tests.cpp
+TEST_SOURCES := SOURCES
+TEST_SOURCES := $(filter-out src/main.cpp, $(SOURCES))						# create a separate set of objects that exclude main.cpp for compiling tests
+TEST_SOURCES += $(wildcard $(patsubst %,%/*.cpp, $(TEST_SOURCE_DIRS)))
 
 # define the C object files 
 OBJECTS		:= $(SOURCES:.cpp=.o)
+TEST_OBJECTS := $(TEST_SOURCES:.cpp=.o) 
 
 #
 # The following part of the makefile is generic; it can be used to 
@@ -67,6 +77,7 @@ OBJECTS		:= $(SOURCES:.cpp=.o)
 #
 
 OUTPUTMAIN	:= $(call FIXPATH,$(OUTPUT)/$(MAIN))
+OUTPUT_TESTS := $(call FIXPATH,$(OUTPUT)/$(MAIN))
 
 all: $(OUTPUT) $(MAIN)
 	@echo Executing 'all' complete!
@@ -87,17 +98,14 @@ $(MAIN): $(OBJECTS)
 .PHONY: clean
 clean:
 	$(RM) $(OUTPUTMAIN)
-	$(RM) tests/tests
+	$(RM) $(TEST_SOURCE_DIRS)/$(TEST_OUT)
 	$(RM) $(call FIXPATH,$(OBJECTS))
+	$(RM) $(call FIXPATH,$(TEST_OBJECTS))
 	@echo Cleanup complete!
 
 run: all
 	./$(OUTPUTMAIN)
 	@echo Executing 'run: all' complete!
 
-catch: 
-	@echo Building tests.cpp
-	make all
-	$(CXX) tests/tests.cpp $(CXXFLAGS) $(INCLUDES) -o tests/tests $(TEST_OBJECTS) $(LFLAGS) $(LIBS)	
-
- 	
+$(TESTS): $(TEST_OBJECTS) 
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(TEST_SOURCE_DIRS)/$(TEST_OUT) $(TEST_OBJECTS) $(LFLAGS) $(LIBS)
