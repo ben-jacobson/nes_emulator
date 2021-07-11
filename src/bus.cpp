@@ -15,7 +15,3 @@ void bus::write_data(uint8_t data) {
 uint8_t bus::read_data(void) {
     return _data;
 }
-
-unsigned int Factorial(unsigned int number) {
-    return number <= 1 ? number : Factorial(number-1)*number;
-}

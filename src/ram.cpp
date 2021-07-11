@@ -20,11 +20,10 @@ ram::~ram() {
     delete[] _ram_data; // free the memory. 
 }
 
-uint8_t ram::debug_read(uint8_t address) {
-    // notice there is no address space checking, we simply output whatever at zero address
-    return _ram_data[address];
+uint8_t ram::debug_read(uint16_t relative_address) {
+    // notice there is no address space checking, we simply output whatever is at the relative address, e.g 0 is the start and MAX_SIZE is the end
+    return _ram_data[relative_address];
 }
-
 
 void ram::read(void) {
     uint16_t address = _bus_ptr->read_address();
