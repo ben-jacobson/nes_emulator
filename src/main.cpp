@@ -1,3 +1,6 @@
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+
 #include <iostream>
 #include <iomanip>
 
@@ -5,10 +8,30 @@
 #include "cpu.h"
 #include "ram.h"
 
+constexpr uint16_t SCREEN_WIDTH = 800;
+constexpr uint16_t SCREEN_HEIGHT = 600;
+
 constexpr uint16_t RAM_SIZE_BYTES = 2048; // 2Kb of RAM
 
-int main() 
+SDL_Window *test_window = NULL;
+
+
+int main(int argc, char* argv[])
 {
+	// Attempt to init SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {        
+		std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
+		return 0;
+    }
+
+    // On success, setup SDL
+	SDL_Window* window = SDL_CreateWindow("Hello SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+	SDL_RenderClear(renderer);
+	SDL_RenderPresent(renderer);
+	SDL_Delay(3000);
+
 	bus nes_bus;
 	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, 0x000, 0x7FF); // temporarily mapped to 0x000 through to 0x7FF for now
 	cpu nes_cpu(&nes_bus, &nes_ram);  // todo, add the PPU

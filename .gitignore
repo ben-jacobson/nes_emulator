@@ -38,3 +38,10 @@ tests/tests.exe
 *.exe
 *.out
 *.app
+
+# DLLs
+*.dll
+
+# We don't want to include SDL2 in our repo
+lib/**
+include/SDL2/**

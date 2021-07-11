@@ -14,7 +14,8 @@ CXXFLAGS	:= -std=c++17 -Wall -Wextra -g
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS =
+LFLAGS = -lmingw32 -lSDL2main -lSDL2 -mwindows -Llib/SDL2
+
 
 # define output directory
 OUTPUT	:= output
@@ -26,7 +27,7 @@ SRC		:= src
 TESTS	:= tests
 
 # define include directory
-INCLUDE	:= include
+INCLUDE	:= include include/SDL2
 
 # define lib directory
 LIB		:= lib
@@ -46,7 +47,7 @@ else
 MAIN	:= $(PROJECT_NAME)
 TEST_OUT := tests
 SOURCEDIRS	:= $(shell find $(SRC) -type d)
-TEST_SOURCE_DIRS $(shell find $(TESTS) -type d)
+TEST_SOURCE_DIRS := $(shell find $(TESTS) -type d)
 INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)
 LIBDIRS		:= $(shell find $(LIB) -type d)
 FIXPATH = $1
@@ -86,7 +87,7 @@ $(OUTPUT):
 	$(MD) $(OUTPUT)
 
 $(MAIN): $(OBJECTS) 
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(LFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS)
 
 # this is a suffix replacement rule for building .o's from .c's
 # it uses automatic variables $<: the name of the prerequisite of
@@ -108,4 +109,4 @@ run: all
 	@echo Executing 'run: all' complete!
 
 $(TESTS): $(TEST_OBJECTS) 
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(TEST_SOURCE_DIRS)/$(TEST_OUT) $(TEST_OBJECTS) $(LFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(LFLAGS) $(INCLUDES) -o $(TEST_SOURCE_DIRS)/$(TEST_OUT) $(TEST_OBJECTS) $(LIBS)
