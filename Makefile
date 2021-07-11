@@ -34,7 +34,8 @@ SOURCEDIRS	:= $(SRC)
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
 FIXPATH = $(subst /,\,$1)
-RM			:= del /q /f
+# RM			:= del /q /f
+RM			:= rm -f
 MD	:= mkdir
 else
 MAIN	:= $(PROJECT_NAME)
