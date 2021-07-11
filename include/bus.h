@@ -18,3 +18,5 @@ class bus
 		uint16_t _address;
 		uint8_t _data;
 };
+
+unsigned int Factorial(unsigned int number);

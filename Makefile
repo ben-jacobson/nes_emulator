@@ -3,6 +3,8 @@
 # 'make clean'  removes all .o and executable files
 #
 
+PROJECT_NAME = nes_emulator
+
 # define the Cpp compiler to use
 CXX = g++
 
@@ -27,7 +29,7 @@ INCLUDE	:= include
 LIB		:= lib
 
 ifeq ($(OS),Windows_NT)
-MAIN	:= main.exe
+MAIN	:= $(PROJECT_NAME).exe
 SOURCEDIRS	:= $(SRC)
 INCLUDEDIRS	:= $(INCLUDE)
 LIBDIRS		:= $(LIB)
@@ -35,7 +37,7 @@ FIXPATH = $(subst /,\,$1)
 RM			:= del /q /f
 MD	:= mkdir
 else
-MAIN	:= main
+MAIN	:= $(PROJECT_NAME)
 SOURCEDIRS	:= $(shell find $(SRC) -type d)
 INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)
 LIBDIRS		:= $(shell find $(LIB) -type d)
@@ -52,6 +54,7 @@ LIBS		:= $(patsubst %,-L%, $(LIBDIRS:%/=%))
 
 # define the C source files
 SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
+SOURCES 	:= $(filter-out src/tests.cpp, $(SOURCES))				# exclude the tests.cpp as this is it's own source file
 
 # define the C object files 
 OBJECTS		:= $(SOURCES:.cpp=.o)
@@ -89,3 +92,8 @@ clean:
 run: all
 	./$(OUTPUTMAIN)
 	@echo Executing 'run: all' complete!
+
+catch: 
+	@echo Building tests.cpp
+	make all
+	$(CXX) tests/tests.cpp $(CXXFLAGS) $(INCLUDES) -o tests/tests $(OBJECTS) $(LFLAGS) $(LIBS)
