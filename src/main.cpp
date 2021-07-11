@@ -15,7 +15,6 @@ constexpr uint16_t RAM_SIZE_BYTES = 2048; // 2Kb of RAM
 
 SDL_Window *test_window = NULL;
 
-
 int main(int argc, char* argv[])
 {
 	// Attempt to init SDL
@@ -55,4 +54,3 @@ int main(int argc, char* argv[])
 		// nes_cpu.cycle(); // the cpu will manage it's own clock pulses, and will fetch / decode data as needed. It will also prompt the other devices on the bus to do their thing, e.g just like a real CPU can trigger SS/CE on devices via address bus decoding
 //	}
 }
-

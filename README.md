@@ -10,7 +10,8 @@ For the mean time, this is just a simple 6502 emulator, designed to output the v
 
 # Compile instructions
 
-This project uses symbolic links to link the project to the SDL library. Once you have downloaded SDL 2.0.14, create these with the following commands: 
+For Linux, smply install SDL2 as per the vendor instructions. 
+For Windows 10, it's best to use a symbolic links to link the project to the SDL library. Once you have downloaded SDL library for Mingw, create these with the following commands: 
 
 >  ln -s /Path/To/SDL2/Lib/Folder lib/SDL2
 >  ln -s /Path/To/SDL2/Include/Folder include/SDL2
