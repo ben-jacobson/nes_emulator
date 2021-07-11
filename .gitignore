@@ -9,6 +9,8 @@
 
 # Output binaries
 output/**
+tests/tests
+tests/tests.exe
 
 # Precompiled Headers
 *.gch

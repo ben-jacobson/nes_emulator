@@ -54,7 +54,7 @@ LIBS		:= $(patsubst %,-L%, $(LIBDIRS:%/=%))
 
 # define the C source files
 SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
-SOURCES 	:= $(filter-out src/tests.cpp, $(SOURCES))				# exclude the tests.cpp as this is it's own source file
+TEST_OBJECTS = $(filter-out src/main.o, $(OBJECTS))						# create a separate set of objects that exclude main.o for compiling tests.cpp
 
 # define the C object files 
 OBJECTS		:= $(SOURCES:.cpp=.o)
@@ -86,6 +86,7 @@ $(MAIN): $(OBJECTS)
 .PHONY: clean
 clean:
 	$(RM) $(OUTPUTMAIN)
+	$(RM) tests/tests
 	$(RM) $(call FIXPATH,$(OBJECTS))
 	@echo Cleanup complete!
 
@@ -96,4 +97,6 @@ run: all
 catch: 
 	@echo Building tests.cpp
 	make all
-	$(CXX) tests/tests.cpp $(CXXFLAGS) $(INCLUDES) -o tests/tests $(OBJECTS) $(LFLAGS) $(LIBS)
+	$(CXX) tests/tests.cpp $(CXXFLAGS) $(INCLUDES) -o tests/tests $(TEST_OBJECTS) $(LFLAGS) $(LIBS)	
+
+ 	
