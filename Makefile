@@ -15,7 +15,7 @@ CXXFLAGS	:= -std=c++17 -Wall -Wextra -g
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
 # LFLAGS = -lmingw32 -lSDL2main -lSDL2 -Llib/SDL2
-LFLAGS = -lSDL2main -lSDL2 -Llib/SDL2
+LFLAGS = -lSDL2
 
 
 # define output directory
@@ -88,7 +88,7 @@ $(OUTPUT):
 	$(MD) $(OUTPUT)
 
 $(MAIN): $(OBJECTS) 
-	$(CXX) $(CXXFLAGS) $(LFLAGS) $(INCLUDES) -o $(OUTPUTMAIN) $(OBJECTS) $(LIBS)
+	$(CXX) $(OBJECTS) $(CXXFLAGS) $(INCLUDES) $(LFLAGS) $(LIBS) -o $(OUTPUTMAIN) 
 
 # this is a suffix replacement rule for building .o's from .c's
 # it uses automatic variables $<: the name of the prerequisite of
@@ -110,4 +110,4 @@ run: all
 	@echo Executing 'run: all' complete!
 
 $(TESTS): $(TEST_OBJECTS) 
-	$(CXX) $(CXXFLAGS) $(LFLAGS) $(INCLUDES) -o $(TEST_SOURCE_DIRS)/$(TEST_OUT) $(TEST_OBJECTS) $(LIBS)
+	$(CXX) $(TEST_OBJECTS) $(CXXFLAGS) $(INCLUDES) $(LFLAGS) $(LIBS) -o $(TEST_SOURCE_DIRS)/$(TEST_OUT) 
