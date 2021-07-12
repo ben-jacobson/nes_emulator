@@ -5,7 +5,7 @@ This will eventually be worked into a nes emulator, in due time. For the mean ti
 
 - C++ 17, to be compiled with G++
 - SDL Version 2.0.14 
-- For Windows, the SDL.dll files. Either place these in the same directory as the exe, or alternatively place the 32 bit DLL into your /System32 folder and the 64 bit DLL into the Syswow64 folder  
+- For Windows, the 32 bit version of SDL.dll. Place this into the same directory as nes_emulator.exe. Alternatively, you can place this into 32 bit DLL into your /System32 folder and the 64 bit DLL into the Syswow64 folder however I have noticed issues when doing this. If the application first encounters the 64 bit version in it's path, it can crash on startup. Therefore try to avoid doing this for the time being.  
 
 # Compile instructions
 
