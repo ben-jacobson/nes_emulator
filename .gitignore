@@ -11,7 +11,7 @@
 *.obj
 
 # Output binaries
-output/**
+output/*.exe
 tests/tests
 tests/tests.exe
 
@@ -45,3 +45,4 @@ tests/tests.exe
 # We don't want to include SDL2 in our repo
 lib/**
 include/SDL2/**
+include/SDL2TTF/**
