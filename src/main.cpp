@@ -5,20 +5,20 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <math.h>       /* use of floor */
+
 
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"
 
-constexpr uint16_t SCREEN_WIDTH = 1280;
-constexpr uint16_t SCREEN_HEIGHT = 720;
-
-constexpr uint16_t RAM_SIZE_BYTES = 2048; // 2Kb of RAM
-
-SDL_Window *test_window = NULL;
-
 int main()
 {
+	constexpr uint16_t SCREEN_WIDTH = 1280;
+	constexpr uint16_t SCREEN_HEIGHT = 720;
+
+	constexpr uint16_t RAM_SIZE_BYTES = 2048; // 2Kb of RAM for emulator
+
 	// initialize our bus, ram and cpu
 	bus nes_bus;
 	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, 0x000, 0x7FF); // temporarily mapped to 0x000 through to 0x7FF for now
@@ -48,29 +48,34 @@ int main()
 	SDL_RenderPresent(renderer);
 
 	// initialize our TTF font
+	uint8_t font_size = 14;
 	TTF_Init();
-	std::string font_file_name = ((std::string)base_path).append("FreeSans.ttf");		// a bit of a casting nightmare to say the least, but it works. 
-	TTF_Font* Sans_font = TTF_OpenFont(font_file_name.c_str(), 24);
+	std::string font_file_name = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf");		// a bit of a casting nightmare to say the least, but it works. 
+	TTF_Font* Sans_font = TTF_OpenFont(font_file_name.c_str(), font_size);
 
     if (Sans_font == NULL) {
 		std::cout << "error - font not found, error code: " << TTF_GetError() << std::endl;    	 
 	    exit(EXIT_FAILURE);
     }
 
+	uint8_t font_width = font_size, font_height = font_size; 
 	SDL_Color White = {255, 255, 255, 255}; // full white, full alpha
-	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans_font, "Hello SDL!", White); 
-	
+	std::string text_to_render = "Hello SDL, 0x1D53 0x7F";
+	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans_font, text_to_render.c_str(), White); 
+
 	// Convert the message into a texture
 	SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
 
 	SDL_Rect Message_rect; //create a rect
-	Message_rect.x = 10;  //controls the rect's x coordinate 
-	Message_rect.y = 10; // controls the rect's y coordinte
-	Message_rect.w = 110; // controls the width of the rect
-	Message_rect.h = 110; // controls the height of the rect
+	Message_rect.x = 100;  //controls the rect's x coordinate 
+	Message_rect.y = 100; // controls the rect's y coordinte			
+	Message_rect.w = text_to_render.length() * font_width; // controls the width of the rect
+	Message_rect.h = font_height; // controls the height of the rect
 
 	bool quit = false; //Main loop flag
 	SDL_Event event_handler; //Event handler
+
+	int8_t x_speed = 2, y_speed = 2; 
 
 	//While application is running
 	while (!quit) {
@@ -80,9 +85,25 @@ int main()
 			}
 		}
 
-		SDL_RenderClear( renderer );
-		SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-		SDL_RenderPresent(renderer);
+		text_to_render = "x: " + std::to_string(Message_rect.x) + ", y: " + std::to_string(Message_rect.y); 
+		surfaceMessage = TTF_RenderText_Solid(Sans_font, text_to_render.c_str(), White);
+		Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+		Message_rect.x += x_speed;  //controls the rect's x coordinate 
+		Message_rect.y += y_speed;  // controls the rect's y coordinate		
+
+		if (Message_rect.x <= 0 || Message_rect.x + Message_rect.w >= SCREEN_WIDTH) {
+			x_speed = -x_speed;
+		}
+
+		if (Message_rect.y <= 0 || Message_rect.y + Message_rect.h >= SCREEN_HEIGHT) {
+			y_speed = -y_speed;
+		}		
+
+		SDL_RenderClear(renderer); // clear the screen
+		SDL_RenderCopy(renderer, Message, NULL, &Message_rect); // copy any new textures to the renderer
+		SDL_RenderPresent(renderer);	// update the display1
+
+		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 	}
 
     /* std::system("clear");
