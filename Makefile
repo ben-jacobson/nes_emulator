@@ -14,7 +14,7 @@ CXXFLAGS	:= -std=c++17 -Wall -Wextra -g
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -Llib/SDL2 -Llib/SDL2TTF -lSDL2 -lSDL2_ttf 
+LFLAGS = -Llib/SDL2 -lSDL2 -lSDL2_ttf 
 
 # define output directory
 OUTPUT	:= output
@@ -26,7 +26,7 @@ SRC		:= src
 TESTS	:= tests
 
 # define include directory
-INCLUDE	:= include include/SDL2 include/SDL2TTF
+INCLUDE	:= include include/SDL2
 
 # define lib directory
 LIB		:= lib

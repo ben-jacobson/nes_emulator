@@ -15,8 +15,8 @@ For Windows 10, our makefile relies on using a symbolic links to link the projec
 
 >  ln -s /Path/To/SDL2/Lib/Folder lib/SDL2
 >  ln -s /Path/To/SDL2/Include/Folder include/SDL2
->  ln -s /Path/To/SDL2TTF/Lib/Folder lib/SDL2TTF
->  ln -s /Path/To/SDL2TTF/Include/Folder include/SDLTTF
+
+My installation in Linux defaulted to putting the libs and includes from SDL2_TTF into the same folder as SDL2, so let's do the same in Windows. Simply download SDL_TTF files and copy these files into your SDL2 lib and include folders.
 
 Once that's set up, simply use the makefile to compile to your chosen platform. 
 > make

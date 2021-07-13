@@ -1,6 +1,6 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <SDL2TTF/SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <iostream>
 #include <iomanip>
