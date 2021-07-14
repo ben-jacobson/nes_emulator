@@ -24,14 +24,15 @@ class emulator_status_graphics
 		void draw_to_buffer(std::string text_to_render);
 
 	private:
-		SDL_Surface* _text_surface; 	// Surface to paint text onto
-		SDL_Texture* _text_texture;  	// The surface with text on it converted into a texture
-		SDL_Rect _text_texture_rect;	// A rectangle blitting region containing the texture rendered onto a rectangle
-		SDL_Renderer* _renderer; 		// Pointer to main renderer
+		SDL_Renderer* _renderer; 			// Pointer to main renderer
+		SDL_Surface* _text_surface; 		// Surface to paint text onto
+		SDL_Texture* _text_texture;  		// The surface with text on it converted into a texture
+		SDL_Rect _text_texture_rect;		// A rectangle blitting region containing the texture rendered onto a rectangle
 
-	    uint16_t _x_pos, _y_pos; 		// x and y coords of text to be displayed
-		TTF_Font* _font;				// font TTF ffile
-		int _font_size; 				// font point size
-		uint8_t _font_width, _font_height;
-		SDL_Color _colour; 				// text colour, can be changed at any time.
+	    uint16_t _x_pos, _y_pos; 			// x and y coords of text to be displayed
+		TTF_Font* _font;					// font TTF ffile
+		int _font_size; 					// font point size
+		uint8_t _font_width, _font_height;	// font width and height
+		SDL_Color _colour; 					// text colour, can be changed at any time.
+
 };
