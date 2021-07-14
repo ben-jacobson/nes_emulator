@@ -24,6 +24,30 @@ void cpu::NMI(void) {
 
 }
 
+uint16_t cpu::get_program_counter(void) {
+    return program_counter;
+}
+
+uint8_t cpu::get_accumulator_reg_content(void) {
+    return accumulator_reg;
+}
+
+uint8_t cpu::get_x_index_reg_content(void) {
+    return x_index_reg;
+}
+
+uint8_t cpu::get_y_index_reg_content(void) {
+    return y_index_reg;
+}
+
+uint8_t cpu::get_stack_pointer_reg_content(void) {
+    return stack_pointer_reg;
+}
+
+status_flags_reg cpu::get_status_reg_contents(void) {
+    return status_reg;
+}
+
 uint8_t cpu::addr_mode_ACCUM(void) {
     return 0;
 }

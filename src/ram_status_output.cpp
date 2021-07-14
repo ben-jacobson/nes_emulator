@@ -6,7 +6,6 @@ ram_status_output::ram_status_output(SDL_Renderer* renderer, const char* font_fi
     _ram_ptr = ram_ptr;
 }
 
-
 void ram_status_output::display_ram_contents(uint16_t x, uint16_t y) {
     uint16_t rows = 0; 
     std::stringstream memory_contents_line;

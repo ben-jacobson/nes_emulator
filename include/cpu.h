@@ -6,6 +6,17 @@
 
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 
+struct status_flags_reg {
+    uint8_t n : 1;          // negative flag, 1 = negative.
+    uint8_t v : 1;          // overflow flag. 
+    uint8_t u : 1;          // unused, should be 1 at all times.
+    uint8_t b : 1;          // break command flag, 1 = break.
+    uint8_t d : 1;          // decimal mode.   
+    uint8_t i : 1;          // IRQ disable flag, 1 = disable.
+    uint8_t z : 1;          // zero flag, 1 = result zero.
+    uint8_t c : 1;          // carry flag.
+};
+
 class cpu : public bus_device
 {
 public:
@@ -19,25 +30,21 @@ public:
     void NMI(void);     // non maskable interrupt
     uint8_t fetch_data(void);    
 
+    uint16_t get_program_counter(void);
+    uint8_t get_accumulator_reg_content(void);
+    uint8_t get_x_index_reg_content(void);
+    uint8_t get_y_index_reg_content(void);
+    uint8_t get_stack_pointer_reg_content(void); 
+    status_flags_reg get_status_reg_contents(void);
+
 private:
-    ram* _ram_ptr;  // store a pointer to ram so that we can initialise it, sorta like how the CPU controls the chip enables
+    ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
 
     uint16_t program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t accumulator_reg; 
     uint8_t x_index_reg, y_index_reg;     
     uint8_t stack_pointer_reg;      
-    uint8_t status_flags_reg;    
-
-    struct status_flags_reg {
-        uint8_t n : 1;          // negative flag, 1 = negative.
-        uint8_t v : 1;          // overflow flag. 
-        uint8_t u : 1;          // unused, should be 1 at all times.
-        uint8_t b : 1;          // break command flag, 1 = break.
-        uint8_t d : 1;          // decimal mode.   
-        uint8_t i : 1;          // IRQ disable flag, 1 = disable.
-        uint8_t z : 1;          // zero flag, 1 = result zero.
-        uint8_t c : 1;          // carry flag.
-    };
+    status_flags_reg status_reg; 
 
     // Functions are for setting the addressing modes
     uint8_t addr_mode_ACCUM(void);
