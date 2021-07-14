@@ -13,10 +13,12 @@ class emulator_status_graphics
 		void set_position(uint16_t x_pos, uint16_t y_pos);
 		void draw_to_buffer(std::string text_to_render);
 
-		uint16_t get_latest_x_pos(void);
-		uint16_t get_latest_y_pos(void);
-		uint16_t get_latest_text_width(void);
-		uint16_t get_latest_text_height(void);
+		uint16_t get_x_pos(void);
+		uint16_t get_y_pos(void);
+		uint16_t get_text_width(std::string test);
+		uint16_t get_text_height(std::string test);
+		uint16_t get_last_rendered_text_width(void);
+		uint16_t get_last_rendered_text_height(void);
 
 	private:
 		SDL_Surface* _text_surface; 	// Surface to paint text onto

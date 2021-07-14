@@ -6,7 +6,7 @@ emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, const
     _x_pos = 0; 
     _y_pos = 0;
 
-    if(!TTF_WasInit() && TTF_Init()== -1) {
+    if(!TTF_WasInit() && TTF_Init() != 0) {
         std::cout << "TTF_Init unsuccessful: " << TTF_GetError() << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -24,8 +24,8 @@ emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, const
 
 emulator_status_graphics::~emulator_status_graphics() {
 	TTF_CloseFont(_font);
-	SDL_FreeSurface(_text_surface);
 	SDL_DestroyTexture(_text_texture);    
+	SDL_FreeSurface(_text_surface);
     TTF_Quit();
 }
 
@@ -38,22 +38,34 @@ void emulator_status_graphics::set_position(uint16_t x_pos, uint16_t y_pos) {
     _y_pos = y_pos;  
 }
 
-uint16_t emulator_status_graphics::get_latest_x_pos(void) {
+uint16_t emulator_status_graphics::get_x_pos(void) {
     // this will only work after you have called draw_to_buffer at least once
     return _x_pos;       
 }
 
-uint16_t emulator_status_graphics::get_latest_y_pos(void) {
+uint16_t emulator_status_graphics::get_y_pos(void) {
     // this will only work after you have called draw_to_buffer at least once
 	return _y_pos; 
 }
 
-uint16_t emulator_status_graphics::get_latest_text_width(void) {
+uint16_t emulator_status_graphics::get_text_width(std::string text) {
+    int width = 0; 
+    TTF_SizeText(_font, text.c_str(), &width, nullptr);
+    return (uint16_t)width; 
+}   
+
+uint16_t emulator_status_graphics::get_text_height(std::string text) {
+    int height = 0; 
+    TTF_SizeText(_font, text.c_str(), nullptr, &height);
+    return (uint16_t)height; 
+}
+
+uint16_t emulator_status_graphics::get_last_rendered_text_width(void) {
     // this will only work after you have called draw_to_buffer at least once
     return _text_texture_rect.w;       
 }
 
-uint16_t emulator_status_graphics::get_latest_text_height(void) {
+uint16_t emulator_status_graphics::get_last_rendered_text_height(void) {
     // this will only work after you have called draw_to_buffer at least once
 	return _text_texture_rect.h; 
 }

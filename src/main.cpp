@@ -65,16 +65,15 @@ int main()
 		SDL_RenderPresent(renderer);	// update the display with new info from renderer
 		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 
-
 		test_message.set_position(x_pos, y_pos);
 		x_pos += x_speed;  //controls the rect's x coordinate 
 		y_pos += y_speed;  // controls the rect's y coordinate		
 
-		if (x_pos <= 0 || x_pos + test_message.get_latest_text_width() >= SCREEN_WIDTH) {
+		if (x_pos <= 0 || x_pos + test_message.get_text_width(text_to_render) >= SCREEN_WIDTH) {
 			x_speed = -x_speed;
 		}
 
-		if (y_pos <= 0 || y_pos + test_message.get_latest_text_height() >= SCREEN_HEIGHT) {
+		if (y_pos <= 0 || y_pos + test_message.get_text_height(text_to_render) >= SCREEN_HEIGHT) {
 			y_speed = -y_speed;
 		}		
 	}
