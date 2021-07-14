@@ -5,9 +5,8 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <math.h>       /* use of floor */
 
-
+#include "emulator_status_graphics.h"
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"
@@ -36,74 +35,48 @@ int main()
 	
     if (!base_path) {
         base_path = SDL_strdup("./");
-    } 
-
-	// std::cout << "Base path set at: " << test << std::endl;
-
+    }   // std::cout << "Base path set at: " << test << std::endl;
+	
     // On success, setup SDL window and rendered
 	SDL_Window* window = SDL_CreateWindow("6502 Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
-	SDL_RenderClear(renderer);
-	SDL_RenderPresent(renderer);
 
-	// initialize our TTF font
-	uint8_t font_size = 14;
-	TTF_Init();
-	std::string font_file_name = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf");		// a bit of a casting nightmare to say the least, but it works. 
-	TTF_Font* Sans_font = TTF_OpenFont(font_file_name.c_str(), font_size);
+	// initialize our emulator status graphics devices
+	emulator_status_graphics test_message(renderer, ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str(), 14);  // it looks messy, but I don't want the file path variable sitting on the stack for the rest of the programs execution unnecessarily
 
-    if (Sans_font == NULL) {
-		std::cout << "error - font not found, error code: " << TTF_GetError() << std::endl;    	 
-	    exit(EXIT_FAILURE);
-    }
+	SDL_Event event_handler; 
+	bool quit = false; 
 
-	uint8_t font_width = font_size, font_height = font_size; 
-	SDL_Color White = {255, 255, 255, 255}; // full white, full alpha
-	std::string text_to_render = "Hello SDL, 0x1D53 0x7F";
-	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans_font, text_to_render.c_str(), White); 
-
-	// Convert the message into a texture
-	SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-
-	SDL_Rect Message_rect; //create a rect
-	Message_rect.x = 100;  //controls the rect's x coordinate 
-	Message_rect.y = 100; // controls the rect's y coordinte			
-	Message_rect.w = text_to_render.length() * font_width; // controls the width of the rect
-	Message_rect.h = font_height; // controls the height of the rect
-
-	bool quit = false; //Main loop flag
-	SDL_Event event_handler; //Event handler
-
+	uint16_t x_pos = 100, y_pos = 100; 
 	int8_t x_speed = 2, y_speed = 2; 
+    std::string text_to_render; 
 
-	//While application is running
-	while (!quit) {
+	while (!quit) { // main application running loop
 		while (SDL_PollEvent(&event_handler) != 0) {//Handle events on queue
 			if (event_handler.type == SDL_QUIT) {			//User requests quit
 				quit = true;
 			}
 		}
 
-		text_to_render = "x: " + std::to_string(Message_rect.x) + ", y: " + std::to_string(Message_rect.y); 
-		surfaceMessage = TTF_RenderText_Solid(Sans_font, text_to_render.c_str(), White);
-		Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-		Message_rect.x += x_speed;  //controls the rect's x coordinate 
-		Message_rect.y += y_speed;  // controls the rect's y coordinate		
+		SDL_RenderClear(renderer); // clear the screen
+		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
+		test_message.draw_to_buffer(text_to_render);		
+		SDL_RenderPresent(renderer);	// update the display with new info from renderer
+		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 
-		if (Message_rect.x <= 0 || Message_rect.x + Message_rect.w >= SCREEN_WIDTH) {
+
+		test_message.set_position(x_pos, y_pos);
+		x_pos += x_speed;  //controls the rect's x coordinate 
+		y_pos += y_speed;  // controls the rect's y coordinate		
+
+		if (x_pos <= 0 || x_pos + test_message.get_latest_text_width() >= SCREEN_WIDTH) {
 			x_speed = -x_speed;
 		}
 
-		if (Message_rect.y <= 0 || Message_rect.y + Message_rect.h >= SCREEN_HEIGHT) {
+		if (y_pos <= 0 || y_pos + test_message.get_latest_text_height() >= SCREEN_HEIGHT) {
 			y_speed = -y_speed;
 		}		
-
-		SDL_RenderClear(renderer); // clear the screen
-		SDL_RenderCopy(renderer, Message, NULL, &Message_rect); // copy any new textures to the renderer
-		SDL_RenderPresent(renderer);	// update the display1
-
-		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 	}
 
     /* std::system("clear");
@@ -122,12 +95,6 @@ int main()
 	}*/ 
 
 	// tidy up
-	TTF_CloseFont(Sans_font);
-
-	SDL_FreeSurface(surfaceMessage);
-	SDL_DestroyTexture(Message);
-	TTF_Quit();
-
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
