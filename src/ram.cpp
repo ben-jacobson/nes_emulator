@@ -44,3 +44,7 @@ void ram::write(void) {
         _ram_data[address - _address_space_lower] = data_to_write;  // place it into the array at the new offset address
     }
 }
+
+uint8_t* ram::get_ram_pointer(void) {
+    return _ram_data;
+}

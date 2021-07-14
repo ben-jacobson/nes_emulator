@@ -12,6 +12,7 @@ public:
 	// functions for reading and writing RAM data to and from the bus
 	void read(void);
 	void write(void);
+	uint8_t* get_ram_pointer(void);
 	
 private:
 	uint8_t* _ram_data;	// will use heap memory to store the 2Kb of memory used by the system.

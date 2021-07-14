@@ -22,6 +22,7 @@ class emulator_status_graphics
 		uint16_t get_last_rendered_text_height(void);
 
 		void draw_to_buffer(std::string text_to_render);
+		void draw_to_buffer(std::string text_to_render, uint16_t x_pos, uint16_t y_pos);
 
 	private:
 		SDL_Renderer* _renderer; 			// Pointer to main renderer
@@ -29,10 +30,10 @@ class emulator_status_graphics
 		SDL_Texture* _text_texture;  		// The surface with text on it converted into a texture
 		SDL_Rect _text_texture_rect;		// A rectangle blitting region containing the texture rendered onto a rectangle
 
-	    uint16_t _x_pos, _y_pos; 			// x and y coords of text to be displayed
-		TTF_Font* _font;					// font TTF ffile
+	protected:
 		int _font_size; 					// font point size
-		uint8_t _font_width, _font_height;	// font width and height
+		uint8_t _font_width, _font_height;	// font width and height	
+		uint16_t _x_pos, _y_pos; 			// x and y coords of text to be displayed
+		TTF_Font* _font;					// font TTF file
 		SDL_Color _colour; 					// text colour, can be changed at any time.
-
 };

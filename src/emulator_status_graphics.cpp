@@ -90,3 +90,8 @@ void emulator_status_graphics::draw_to_buffer(std::string text_to_render) {
 
     SDL_RenderCopy(_renderer, _text_texture, NULL, &_text_texture_rect); // copy any new textures to the renderer
 }
+
+void emulator_status_graphics::draw_to_buffer(std::string text_to_render, uint16_t x_pos, uint16_t y_pos) {
+    set_position(x_pos, y_pos);
+    draw_to_buffer(text_to_render);
+}

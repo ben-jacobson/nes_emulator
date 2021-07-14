@@ -1,12 +1,11 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 
 #include <iostream>
-#include <iomanip>
 #include <string>
 
 #include "emulator_status_graphics.h"
+#include "ram_status_output.h"
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"
@@ -43,7 +42,9 @@ int main()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
 	// initialize our emulator status graphics devices
-	emulator_status_graphics test_message(renderer, ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str(), 14);  // it looks messy, but I don't want the file path variable sitting on the stack for the rest of the programs execution unnecessarily
+	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
+	emulator_status_graphics test_message(renderer, font_fullpath.c_str(), 14);  
+	ram_status_output debug_ram_display(renderer, font_fullpath.c_str(), 14, &nes_ram);
 
 	SDL_Event event_handler; 
 	bool quit = false; 
@@ -62,6 +63,7 @@ int main()
 		SDL_RenderClear(renderer); // clear the screen
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
 		test_message.draw_to_buffer(text_to_render);		
+		debug_ram_display.display_ram_contents(0, 0);
 		SDL_RenderPresent(renderer);	// update the display with new info from renderer
 		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 
@@ -77,21 +79,6 @@ int main()
 			y_speed = -y_speed;
 		}		
 	}
-
-    /* std::system("clear");
-
-	// Output ram content, with the first column being address offset. 
-	std::cout << "RAM contents:" << std::endl; // 6 spaces to offset the header row.
-	std::cout.setf(std::ios::hex, std::ios::basefield);
-	std::cout << std::endl << "0x00: "; 
-
-	for (uint16_t i = 0; i < 64; i++) { // show the first 64 bytes of RAM
-		if (i > 0 && i % 8 == 0) {
-			std::cout << std::endl; // insert newline every 8 characters. 			
-			std::cout << "0x" << std::setfill('0') << std::setw(2) << i << ": "; 			
-		}		
-		std::cout << std::setfill('0') << std::setw(2) << (uint16_t)(nes_ram.debug_read(i)) << " ";  // seems that we need to cast to uint16_t to allow the fill and width to work properly. 
-	}*/ 
 
 	// tidy up
     SDL_DestroyRenderer(renderer);
