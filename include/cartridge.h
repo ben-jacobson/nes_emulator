@@ -10,7 +10,7 @@ public:
 	~cartridge();
 
 	// functions for reading and writing  data to and from the bus
-	void read(void);
+	void read_rom(void);
 
 	// for outputting to test functions, and our debug view
 	uint8_t debug_read(uint16_t relative_address);	// for rom output view, not for actual use in emulation
