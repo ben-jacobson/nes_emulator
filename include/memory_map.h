@@ -1,11 +1,10 @@
 #pragma once
-
 #include <stdint.h>
 
 // main 2Kb of RAM
 constexpr uint16_t RAM_ADDRESS_SPACE_START      = 0x0000;
 constexpr uint16_t RAM_ADDRESS_SPACE_END        = 0x07FF;
-constexpr uint16_t RAM_SIZE_BYTES               = 0x8000;       // 2048 or 2Kb for RAM buffer
+constexpr uint16_t RAM_SIZE_BYTES               = 0x0800;       // 2048 or 2Kb for RAM buffer
 
 // A mirror of RAM
 constexpr uint16_t RAM_MIRRORA_SPACE_START      = 0x0800;
@@ -59,8 +58,7 @@ constexpr uint16_t BATTERY_SAVE_END             = 0x7FFF;
 // Usual ROM space, including mapper registers
 constexpr uint16_t ROM_ADDRESS_SPACE_START      = 0x8000;
 constexpr uint16_t ROM_ADDRESS_SPACE_END        = 0xFFFF;
-constexpr uint16_t ROM_SIZE_BYTES               = 0x7FFF;       // 32,767 bytes or 32Kb for ROM
-
+constexpr uint16_t ROM_SIZE_BYTES               = 0x8000;       // 32,768 bytes or 32Kb for ROM
 
 // Non maskable interrupt vector
 constexpr uint16_t NMI_VECTOR_START             = 0xFFFA; 

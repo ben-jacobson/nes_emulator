@@ -30,8 +30,8 @@ void ram::read(void) {
 
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        uint8_t read_data = _ram_data[address - _address_space_lower]; // new mapped address is offset by _address_space_lower;
-        _bus_ptr->write_data(read_data); // write this data to the bus
+        uint8_t data = _ram_data[address - _address_space_lower]; // new mapped address is offset by _address_space_lower;
+        _bus_ptr->write_data(data); // write this data to the bus
     }
 }
 
@@ -40,8 +40,8 @@ void ram::write(void) {
 
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        uint8_t data_to_write = _bus_ptr->read_data(); // take the data from the bus
-        _ram_data[address - _address_space_lower] = data_to_write;  // place it into the array at the new offset address
+        uint8_t data = _bus_ptr->read_data(); // take the data from the bus
+        _ram_data[address - _address_space_lower] = data;  // place it into the array at the new offset address
     }
 }
 

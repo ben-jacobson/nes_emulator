@@ -19,11 +19,11 @@ void cpu::reset(void) {
     // Set mask interrupt flag
 
     // Load program counter from memory vector 0xFFFC and 0xFFFD, which is start location for program control
-    _bus_ptr->set_address(0xFFFC);    
+    _bus_ptr->set_address(RESET_VECTOR_START);    
     program_counter = _bus_ptr->read_data();
     program_counter = program_counter << 8; 
-    _bus_ptr->set_address(0xFFFD);
-    program_counter != _bus_ptr->read_data();
+    _bus_ptr->set_address(RESET_VECTOR_END);
+    program_counter |= _bus_ptr->read_data();
 } 
 
 void cpu::IRQ(void) {

@@ -2,7 +2,7 @@
 #include "test_fixtures.h"
 
 TEST_CASE("bus - Set address", "[bus]") {
-    uint16_t test_address = rand() % TEST_RAM_SIZE_BYTES;
+    uint16_t test_address = rand() % 0xFFFF;
     test_bus.set_address(test_address);
     REQUIRE(test_bus.read_address() == test_address);
 }

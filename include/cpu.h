@@ -1,5 +1,6 @@
 #pragma once
 
+#include "memory_map.h"
 #include "bus_device.h"
 #include "bus.h"
 #include "ram.h"

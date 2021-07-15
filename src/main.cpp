@@ -10,6 +10,7 @@
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"
+#include "cartridge.h"
 
 int main()
 {
@@ -20,6 +21,7 @@ int main()
 	bus nes_bus;
 	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END); // temporarily mapped to 0x000 through to 0x7FF for now
 	cpu nes_cpu(&nes_bus, &nes_ram);  // todo, add the PPU
+	cartridge nes_cart(&nes_bus, CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
 
 	// Attempt to init SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {        
