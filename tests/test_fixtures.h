@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "memory_map.h"
 #include "bus.h"
 #include "cpu.h"

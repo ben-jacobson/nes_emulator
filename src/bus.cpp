@@ -17,21 +17,21 @@ void bus::write_data(uint8_t data) {
     int device_index = get_index_of_connected_device(_address);
     
     if (device_index != -1 && devices_connected_to_bus[device_index]._write_function_ptr != nullptr) {
-        devices_connected_to_bus[device_index]._write_function_ptr();
+        devices_connected_to_bus[device_index]._write_function_ptr(_address, data);
     }
 }
 
 uint8_t bus::read_data(void) {
     int device_index = get_index_of_connected_device(_address);
-    
+
     if (device_index != -1) {
-        _data = devices_connected_to_bus[device_index]._read_function_ptr();  // ensure read data is placed onto bus as well.   
+        devices_connected_to_bus[device_index]._read_function_ptr(_address);
         return _data;
     }
     return 0;
 }
 
-void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, read_function_pointer read_function_ptr, write_function_pointer write_function_ptr) {
+void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr) {
     if (device_index < MAX_BUS_DEVICES) {
         devices_connected_to_bus[device_index]._address_range_start = address_range_start;
         devices_connected_to_bus[device_index]._address_range_end = address_range_end;

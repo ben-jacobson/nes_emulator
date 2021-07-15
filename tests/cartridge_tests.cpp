@@ -24,11 +24,10 @@ TEST_CASE("rom - Test hack in rom data helper function", "[cartridge]") {
         test_data = rand() % 255;
         
         hack_in_test_rom_data(test_relative_address, test_data);
-        REQUIRE(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
+        CHECK(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
 
         // reading this from the start of the ROM Address space should yield the same result
         test_bus.set_address(ROM_ADDRESS_SPACE_START + test_relative_address);
-        // test_cart.read_rom();
         REQUIRE(test_bus.read_data() == test_data);
     }
 }
@@ -38,7 +37,7 @@ TEST_CASE("rom - Create object and set address space", "[cartridge]") {
     uint16_t address_upper = rand() % ROM_SIZE_BYTES;
     cartridge another_test_cart(&test_bus, address_lower, address_upper); 
 
-    REQUIRE(another_test_cart._address_space_lower == address_lower);
+    CHECK(another_test_cart._address_space_lower == address_lower);
     REQUIRE(another_test_cart._address_space_upper == address_upper);
 }
 
@@ -56,10 +55,7 @@ TEST_CASE("rom - Read places data on bus", "[cartridge]") {
 
     hack_in_test_rom_data(test_abs_address - ROM_ADDRESS_SPACE_START, test_data);    
     
-    // set the address and attemp to read it back
     test_bus.set_address(test_abs_address);
-    test_bus.write_data(10); // write something else on the bus to ensure it is being overwritten by the ram device
-    // test_cart.read_rom();    // place the rom data on the bus
-
+    test_bus.write_data(test_data);
     REQUIRE(test_bus.read_data() == test_data);    
 }

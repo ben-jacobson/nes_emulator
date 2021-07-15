@@ -25,26 +25,20 @@ uint8_t ram::debug_read(uint16_t relative_address) {
     return _ram_data[relative_address];
 }
 
-void ram::read(void) {
-    uint16_t address = _bus_ptr->read_address();
+uint8_t* ram::get_ram_pointer(void) {
+    return _ram_data;
+}
 
+uint8_t ram::read(uint16_t address) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
         uint8_t data = _ram_data[address - _address_space_lower]; // new mapped address is offset by _address_space_lower;
-        _bus_ptr->write_data(data); // write this data to the bus
     }
 }
 
-void ram::write(void) {
-    uint16_t address = _bus_ptr->read_address();
-
+void ram::write(uint16_t address, uint8_t data) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        uint8_t data = _bus_ptr->read_data(); // take the data from the bus
         _ram_data[address - _address_space_lower] = data;  // place it into the array at the new offset address
     }
-}
-
-uint8_t* ram::get_ram_pointer(void) {
-    return _ram_data;
 }
