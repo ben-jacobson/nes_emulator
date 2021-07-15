@@ -1,8 +1,5 @@
 #include "cartridge.h"
 
-#include <iostream>
-
-
 cartridge::cartridge(bus* bus_ptr, uint16_t address_space_lower, uint16_t address_space_upper) 
 :   bus_device(bus_ptr)
 {

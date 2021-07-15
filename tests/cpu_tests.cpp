@@ -14,8 +14,13 @@ TEST_CASE("cpu - Test cycle", "[cpu]") {
 }
 
 TEST_CASE("cpu - Test reset", "[cpu]") {
-    // test_cpu.reset();   
-    REQUIRE(0 != 0); // temporary fail while we write some 
+    // put some data into the reset vector, which is a section of ROM memory
+    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);
+    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0xEE);
+    test_cpu.reset();
+
+    // resetting the CPU will set the program counter to the reset vector.
+    REQUIRE(test_cpu.get_program_counter() == 0xEEDD);
 }
 
 TEST_CASE("cpu - Test IRQ", "[cpu]") {

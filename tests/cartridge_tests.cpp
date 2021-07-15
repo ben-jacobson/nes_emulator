@@ -28,7 +28,7 @@ TEST_CASE("rom - Test hack in rom data helper function", "[cartridge]") {
 
         // reading this from the start of the ROM Address space should yield the same result
         test_bus.set_address(ROM_ADDRESS_SPACE_START + test_relative_address);
-        test_cart.read_rom();
+        // test_cart.read_rom();
         REQUIRE(test_bus.read_data() == test_data);
     }
 }
@@ -59,7 +59,7 @@ TEST_CASE("rom - Read places data on bus", "[cartridge]") {
     // set the address and attemp to read it back
     test_bus.set_address(test_abs_address);
     test_bus.write_data(10); // write something else on the bus to ensure it is being overwritten by the ram device
-    test_cart.read_rom();    // place the rom data on the bus
+    // test_cart.read_rom();    // place the rom data on the bus
 
     REQUIRE(test_bus.read_data() == test_data);    
 }

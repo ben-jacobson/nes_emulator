@@ -65,8 +65,8 @@ constexpr uint16_t NMI_VECTOR_START             = 0xFFFA;
 constexpr uint16_t NMI_VECTOR_END               = 0xFFFB;
 
 // Reset vector, this area of the cartridge is the start of the program
-constexpr uint16_t RESET_VECTOR_START           = 0xFFFC; 
-constexpr uint16_t RESET_VECTOR_END             = 0xFFFD;
+constexpr uint16_t RESET_VECTOR_LOW             = 0xFFFC; 
+constexpr uint16_t RESET_VECTOR_HIGH            = 0xFFFD;
 
 // IRQ and BRK vectors
 constexpr uint16_t IRQBRK_VECTOR_START          = 0xFFFE; 

@@ -12,3 +12,8 @@ TEST_CASE("bus - Set data", "[bus]") {
     test_bus.write_data(test_data);
     REQUIRE(test_bus.read_data() == test_data);
 }
+
+TEST_CASE("bus - register new device on bus", "[bus]") {
+    // register_new_bus_device
+    REQUIRE(0 == 0);
+}
