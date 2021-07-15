@@ -13,6 +13,7 @@ TEST_CASE("ram - Create object and set address space", "[ram]") {
     REQUIRE(another_test_ram._address_space_lower == address_lower);
     REQUIRE(another_test_ram._address_space_upper == address_upper);
 }
+
 TEST_CASE("ram - Test address mapping", "[ram") {    
     uint8_t test_data = 127;
     uint16_t address_lower = 0x200;

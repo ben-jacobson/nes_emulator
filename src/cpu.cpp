@@ -13,7 +13,17 @@ void cpu::cycle(void) {
 }
 
 void cpu::reset(void) {
+    // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our hardware doesn't do anything to prevent this, but we may need to in future
+    // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator
 
+    // Set mask interrupt flag
+
+    // Load program counter from memory vector 0xFFFC and 0xFFFD, which is start location for program control
+    _bus_ptr->set_address(0xFFFC);    
+    program_counter = _bus_ptr->read_data();
+    program_counter = program_counter << 8; 
+    _bus_ptr->set_address(0xFFFD);
+    program_counter != _bus_ptr->read_data();
 } 
 
 void cpu::IRQ(void) {
@@ -44,8 +54,8 @@ uint8_t cpu::get_stack_pointer_reg_content(void) {
     return stack_pointer_reg;
 }
 
-status_flags_reg cpu::get_status_reg_contents(void) {
-    return status_reg;
+status_flags cpu::get_status_reg_flags_contents(void) {
+    return status_flags_reg;
 }
 
 uint8_t cpu::addr_mode_ACCUM(void) {

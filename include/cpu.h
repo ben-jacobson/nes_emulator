@@ -6,7 +6,7 @@
 
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 
-struct status_flags_reg {
+struct status_flags {
     uint8_t n : 1;          // negative flag, 1 = negative.
     uint8_t v : 1;          // overflow flag. 
     uint8_t u : 1;          // unused, should be 1 at all times.
@@ -35,7 +35,7 @@ public:
     uint8_t get_x_index_reg_content(void);
     uint8_t get_y_index_reg_content(void);
     uint8_t get_stack_pointer_reg_content(void); 
-    status_flags_reg get_status_reg_contents(void);
+    status_flags get_status_reg_flags_contents(void);
 
 private:
     ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
@@ -44,7 +44,7 @@ private:
     uint8_t accumulator_reg; 
     uint8_t x_index_reg, y_index_reg;     
     uint8_t stack_pointer_reg;      
-    status_flags_reg status_reg; 
+    status_flags status_flags_reg; 
 
     // Functions are for setting the addressing modes
     uint8_t addr_mode_ACCUM(void);

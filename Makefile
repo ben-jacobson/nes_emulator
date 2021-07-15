@@ -108,4 +108,4 @@ run: all
 	@echo Executing 'run: all' complete!
 
 $(TESTS): $(TEST_OBJECTS) 
-	$(CXX) $(TEST_OBJECTS) $(CXXFLAGS) $(INCLUDES) $(LFLAGS) $(LIBS) -o $(TEST_SOURCE_DIRS)/$(TEST_OUT) 
+	$(CXX) $(TEST_OBJECTS) $(CXXFLAGS) $(INCLUDES) $(LFLAGS) $(LIBS) -o $(OUTPUT)/$(TEST_OUT) 
