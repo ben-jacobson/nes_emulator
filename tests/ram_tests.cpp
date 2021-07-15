@@ -3,12 +3,12 @@
 
 // test fixtures
 bus test_bus;
-ram test_ram(&test_bus, TEST_RAM_SIZE_BYTES, 0x000, 0x7FF);
+ram test_ram(&test_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 
 TEST_CASE("ram - Create object and set address space", "[ram]") {
-    uint16_t address_lower = (rand() % TEST_RAM_SIZE_BYTES) - 1;    // theorectially this could underflow, but the test will still pass. 
-    uint16_t address_upper = rand() % TEST_RAM_SIZE_BYTES;
-    ram another_test_ram(&test_bus, TEST_RAM_SIZE_BYTES, address_lower, address_upper); 
+    uint16_t address_lower = (rand() % RAM_SIZE_BYTES) - 1;    // theorectially this could underflow, but the test will still pass. 
+    uint16_t address_upper = rand() % RAM_SIZE_BYTES;
+    ram another_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper); 
 
     REQUIRE(another_test_ram._address_space_lower == address_lower);
     REQUIRE(another_test_ram._address_space_upper == address_upper);
@@ -22,7 +22,7 @@ TEST_CASE("ram - Test address mapping", "[ram") {
     REQUIRE(test_abs_address >= address_lower);
     REQUIRE(test_abs_address <= address_upper);
 
-    ram another_test_ram(&test_bus, TEST_RAM_SIZE_BYTES, address_lower, address_upper);     
+    ram another_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper);     
 
     test_bus.set_address(test_abs_address);
     test_bus.write_data(test_data);
@@ -38,7 +38,7 @@ TEST_CASE("ram - Test address mapping", "[ram") {
 
 TEST_CASE("ram - Debug read", "[ram]") {
     uint8_t test_data = rand() % 255;
-    uint16_t test_address = rand() % TEST_RAM_SIZE_BYTES;
+    uint16_t test_address = rand() % RAM_SIZE_BYTES;
 
     test_bus.set_address(test_address);
     test_bus.write_data(test_data);
@@ -48,7 +48,7 @@ TEST_CASE("ram - Debug read", "[ram]") {
 
 TEST_CASE("ram - Read and write test", "[ram]") {
     uint8_t test_data = rand() % 255;
-    uint16_t test_address = rand() % TEST_RAM_SIZE_BYTES;
+    uint16_t test_address = rand() % RAM_SIZE_BYTES;
 
     // set the address and write the data
     test_bus.set_address(test_address);

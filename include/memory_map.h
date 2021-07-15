@@ -5,6 +5,7 @@
 // main 2Kb of RAM
 constexpr uint16_t RAM_ADDRESS_SPACE_START      = 0x0000;
 constexpr uint16_t RAM_ADDRESS_SPACE_END        = 0x07FF;
+constexpr uint16_t RAM_SIZE_BYTES               = 0x8000;       // 2048 or 2Kb for RAM buffer
 
 // A mirror of RAM
 constexpr uint16_t RAM_MIRRORA_SPACE_START      = 0x0800;
@@ -18,7 +19,7 @@ constexpr uint16_t RAM_MIRRORB_SPACE_END        = 0x17FF;
 constexpr uint16_t RAM_MIRRORC_SPACE_START      = 0x1800;
 constexpr uint16_t RAM_MIRRORC_SPACE_END        = 0x1FFF;
 
-// PPU
+// Picture processing unit
 constexpr uint16_t PPU_ADDRESS_SPACE_START      = 0x2000;
 constexpr uint16_t PPU_ADDRESS_SPACE_END        = 0x2007;
 
@@ -37,6 +38,7 @@ constexpr uint16_t APU_DISABLED_SPACE_END       = 0x401F;
 // ROM Cartridge. Program ROM, Program RAM and mapper registers
 constexpr uint16_t CART_ADDRESS_SPACE_START     = 0x4020;
 constexpr uint16_t CART_ADDRESS_SPACE_END       = 0xFFFF;
+constexpr uint16_t CART_SIZE_BYTES              = 0xBFE0;       // 49120 bytes or 
 
 // Part of the RAM address space have special functions
 
@@ -57,6 +59,8 @@ constexpr uint16_t BATTERY_SAVE_END             = 0x7FFF;
 // Usual ROM space, including mapper registers
 constexpr uint16_t ROM_ADDRESS_SPACE_START      = 0x8000;
 constexpr uint16_t ROM_ADDRESS_SPACE_END        = 0xFFFF;
+constexpr uint16_t ROM_SIZE_BYTES               = 0x7FFF;       // 32,767 bytes or 32Kb for ROM
+
 
 // Non maskable interrupt vector
 constexpr uint16_t NMI_VECTOR_START             = 0xFFFA; 

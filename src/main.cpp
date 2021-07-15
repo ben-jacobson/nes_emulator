@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "memory_map.h"
 #include "emulator_status_graphics.h"
 #include "ram_status_output.h"
 #include "bus.h"
@@ -15,11 +16,9 @@ int main()
 	constexpr uint16_t SCREEN_WIDTH = 1280;
 	constexpr uint16_t SCREEN_HEIGHT = 720;
 
-	constexpr uint16_t RAM_SIZE_BYTES = 2048; // 2Kb of RAM for emulator
-
 	// initialize our bus, ram and cpu
 	bus nes_bus;
-	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, 0x000, 0x7FF); // temporarily mapped to 0x000 through to 0x7FF for now
+	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END); // temporarily mapped to 0x000 through to 0x7FF for now
 	cpu nes_cpu(&nes_bus, &nes_ram);  // todo, add the PPU
 
 	// Attempt to init SDL

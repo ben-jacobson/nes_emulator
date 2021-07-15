@@ -1,10 +1,9 @@
 #pragma once
 
+#include "memory_map.h"
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"
-
-constexpr uint16_t TEST_RAM_SIZE_BYTES = 2048; // 2Kb for RAM buffer
 
 // test fixtures
 extern bus test_bus;
