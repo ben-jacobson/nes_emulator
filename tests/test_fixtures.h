@@ -13,3 +13,4 @@ extern cpu test_cpu;
 extern cartridge test_cart;
 
 void hack_in_test_rom_data(uint16_t address, uint8_t data);
+uint8_t test_read_fn(void);

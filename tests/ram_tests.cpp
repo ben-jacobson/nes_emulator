@@ -46,7 +46,7 @@ TEST_CASE("ram - Debug read", "[ram]") {
 
     test_bus.set_address(test_address);
     test_bus.write_data(test_data);
-    test_ram.write();
+    //test_ram.write();
 
     REQUIRE(test_ram.debug_read(test_address - RAM_ADDRESS_SPACE_START) == test_data);
 }
@@ -58,12 +58,12 @@ TEST_CASE("ram - Read and write test", "[ram]") {
     // set the address and write the data
     test_bus.set_address(test_address);
     test_bus.write_data(test_data);
-    test_ram.write();
+    //test_ram.write();
 
     // set the address once again and read it back
     test_bus.set_address(test_address);
     test_bus.write_data(rand() % 255); // write some random data on the bus to ensure it is being overwritten by the ram device
-    test_ram.read();    // read from the ram back to the bus, overwrting out jibberish data
+    //test_ram.read();    // read from the ram back to the bus, overwrting out jibberish data
 
     REQUIRE(test_bus.read_data() == test_data);    
 }

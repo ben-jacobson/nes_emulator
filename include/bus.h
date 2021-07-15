@@ -1,18 +1,23 @@
 #pragma once
 
 #include <stdint.h>
+#include <iostream>
+
+typedef uint8_t (*read_function_pointer)(void);
+typedef void (*write_function_pointer)(void);		
 
 constexpr uint8_t MAX_BUS_DEVICES = 16; // just to keep our memory consumption down for this. 
 
 struct connected_device {
 	uint16_t _address_range_start, _address_range_end;
-	uint8_t (*_read_fn_ptr);
+	read_function_pointer _read_function_ptr;
+	write_function_pointer _write_function_ptr;
 };
 
 class bus 
 {
 public:
-	bus() = default;
+	bus();
 	~bus() = default;
 			
 	void set_address(uint16_t address);
@@ -21,10 +26,13 @@ public:
 	void write_data(uint8_t data);
 	uint8_t read_data(void);
 
-	void register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, uint8_t (*read_fn_ptr));
+	void register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, read_function_pointer read_function_ptr, write_function_pointer write_function_ptr = nullptr);
 		
 private:
 	uint16_t _address;
 	uint8_t _data;
-	connected_device connected_devices[MAX_BUS_DEVICES];
+	connected_device devices_connected_to_bus[MAX_BUS_DEVICES];
+	uint8_t device_index;
+
+	int get_index_of_connected_device(uint16_t address);
 };
