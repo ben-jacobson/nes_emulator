@@ -24,11 +24,7 @@ TEST_CASE("rom - Test hack in rom data helper function", "[cartridge]") {
         test_data = rand() % 255;
         
         hack_in_test_rom_data(test_relative_address, test_data);
-        CHECK(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
-
-        // reading this from the start of the ROM Address space should yield the same result
-        test_bus.set_address(ROM_ADDRESS_SPACE_START + test_relative_address);
-        REQUIRE(test_bus.read_data() == test_data);
+        REQUIRE(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
     }
 }
 
@@ -47,15 +43,4 @@ TEST_CASE("rom - Debug read", "[cartridge]") {
 
     hack_in_test_rom_data(test_address, test_data);    
     REQUIRE(test_cart.debug_read(test_address) == test_data);
-}
-
-TEST_CASE("rom - Read places data on bus", "[cartridge]") {
-    uint8_t test_data = rand() % 255;
-    uint16_t test_abs_address = ROM_ADDRESS_SPACE_START + (rand() % ROM_SIZE_BYTES);
-
-    hack_in_test_rom_data(test_abs_address - ROM_ADDRESS_SPACE_START, test_data);    
-    
-    test_bus.set_address(test_abs_address);
-    test_bus.write_data(test_data);
-    REQUIRE(test_bus.read_data() == test_data);    
 }

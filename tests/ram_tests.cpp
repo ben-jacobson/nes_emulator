@@ -14,7 +14,7 @@ TEST_CASE("ram - Create object and set address space", "[ram]") {
     uint16_t address_upper = rand() % RAM_SIZE_BYTES;
     ram another_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper); 
 
-    CHECK(another_test_ram._address_space_lower == address_lower);
+    REQUIRE(another_test_ram._address_space_lower == address_lower);
     REQUIRE(another_test_ram._address_space_upper == address_upper);
 }
 
@@ -23,31 +23,20 @@ TEST_CASE("ram - Test custom address mapping", "[ram") {
     uint16_t address_lower = 0x200;
     uint16_t address_upper = 0x400;
     uint16_t test_abs_address = rand() % (address_upper - address_lower + 1) + address_lower;
+
     CHECK(test_abs_address >= address_lower);
     CHECK(test_abs_address <= address_upper);
 
     ram another_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper);     // establish another ram device with custom address space
-
-    test_bus.set_address(test_abs_address);
-    test_bus.write_data(test_data);
-    // another_test_ram.write();
-
-    test_bus.set_address(test_abs_address); // set the address once again and read it back
-    test_bus.write_data(10); // write something else on the bus to ensure it is being overwritten by the ram device
-    // another_test_ram.read();    // place the ram data back on the bus overwriting what we wrote
-
-    CHECK(test_bus.read_data() == test_data);                 
-    REQUIRE(another_test_ram.debug_read(test_abs_address - address_lower) == test_data); // test that offsetting works
+    another_test_ram.write(test_abs_address, 10);   // ensure no conflict as we've written to another RAM unit
+    REQUIRE(another_test_ram.read(test_abs_address) == 10); // test that offsetting works
 }
 
 TEST_CASE("ram - Debug read", "[ram]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = RAM_ADDRESS_SPACE_START + (rand() % RAM_SIZE_BYTES);
 
-    test_bus.set_address(test_address);
-    test_bus.write_data(test_data);
-    //test_ram.write();
-
+    test_ram.write(test_address, test_data);
     REQUIRE(test_ram.debug_read(test_address - RAM_ADDRESS_SPACE_START) == test_data);
 }
 
@@ -55,15 +44,7 @@ TEST_CASE("ram - Read and write test", "[ram]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = (rand() % RAM_SIZE_BYTES) + RAM_ADDRESS_SPACE_START;
 
-    // set the address and write the data
-    test_bus.set_address(test_address);
-    test_bus.write_data(test_data);
-    //test_ram.write();
-
-    // set the address once again and read it back
-    test_bus.set_address(test_address);
-    test_bus.write_data(rand() % 255); // write some random data on the bus to ensure it is being overwritten by the ram device
-    //test_ram.read();    // read from the ram back to the bus, overwrting out jibberish data
-
-    REQUIRE(test_bus.read_data() == test_data);    
+    // set the address and write the data    
+    test_ram.write(test_address, test_data);
+    REQUIRE(test_ram.read(test_address) == test_data);    
 }

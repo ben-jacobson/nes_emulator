@@ -15,7 +15,5 @@ public:
     virtual void write(uint16_t address, uint8_t data) = 0;
 
 protected: 
-    bus* _bus_ptr = nullptr;
-	std::function<uint8_t(uint16_t)> _read_function_ptr;  // for storing function pointers to their own functions. 
-	std::function<void(uint16_t, uint8_t)> _write_function_ptr;    
+    bus* _bus_ptr = nullptr;  
 };
