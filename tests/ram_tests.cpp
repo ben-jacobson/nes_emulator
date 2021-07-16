@@ -28,8 +28,9 @@ TEST_CASE("ram - Test custom address mapping", "[ram") {
     CHECK(test_abs_address <= address_upper);
 
     ram another_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper);     // establish another ram device with custom address space
-    another_test_ram.write(test_abs_address, 10);   // ensure no conflict as we've written to another RAM unit
-    REQUIRE(another_test_ram.read(test_abs_address) == 10); // test that offsetting works
+    another_test_ram.write(test_abs_address, test_data);   // ensure no conflict as we've written to another RAM unit
+    uint8_t result = another_test_ram.read(test_abs_address);
+    REQUIRE(result == test_data); // test that offsetting works
 }
 
 TEST_CASE("ram - Debug read", "[ram]") {
@@ -49,13 +50,22 @@ TEST_CASE("ram - Read and write test", "[ram]") {
     REQUIRE(test_ram.read(test_address) == test_data);    
 }
 
-TEST_CASE("Temporarily test new function pointers", "[bus]") {
+TEST_CASE("ram - test ram read function pointer", "[bus]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = (rand() % RAM_SIZE_BYTES) + RAM_ADDRESS_SPACE_START;
 
     // set the address and write the data    
     test_ram.write(test_address, test_data);
-
     uint8_t result = test_ram._read_function_ptr(test_address);
+    REQUIRE(result == test_data);
+}
+
+TEST_CASE("ram - test ram write function pointer", "[bus]") {
+    uint8_t test_data = rand() % 255;
+    uint16_t test_address = (rand() % RAM_SIZE_BYTES) + RAM_ADDRESS_SPACE_START;
+
+    // set the address and write the data    
+    test_ram._write_function_ptr(test_address, test_data);
+    uint8_t result = test_ram.read(test_address);
     REQUIRE(result == test_data);
 }

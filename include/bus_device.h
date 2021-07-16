@@ -11,13 +11,13 @@ public:
     bus_device(bus *bus_ptr);
     ~bus_device() = default;
 
+    // function pointers for read and write. Basically the bus maintains a list of these so that when it decodes the address, it knows which device to trigger for read/write operations
+	std::function<uint8_t(uint16_t)> _read_function_ptr = nullptr;
+	std::function<void(uint16_t, uint8_t)> _write_function_ptr = nullptr;    
+
     virtual uint8_t read(uint16_t address) = 0;
     virtual void write(uint16_t address, uint8_t data) = 0;
 
 protected: 
     bus* _bus_ptr = nullptr;  
-
-public:
-	std::function<uint8_t(uint16_t)> _read_function_ptr = nullptr;
-	std::function<void(uint16_t, uint8_t)> _write_function_ptr = nullptr;    
 };
