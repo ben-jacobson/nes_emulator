@@ -12,8 +12,8 @@ public:
 	uint8_t* get_ram_pointer(void);
 	
 	// functions for reading and writing data to and from the device
-	uint8_t read(uint16_t address);
-	void write(uint16_t address, uint8_t data);
+	uint8_t read(uint16_t address) override;
+	void write(uint16_t address, uint8_t data) override;	
 
 private:
 	uint8_t* _ram_data;	// will use heap memory to store the 2Kb of memory used by the system.

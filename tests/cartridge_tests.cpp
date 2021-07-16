@@ -1,21 +1,12 @@
 #include "catch.hpp"
 #include "test_fixtures.h"
 
-// test fixtures
-cartridge test_cart(&test_bus, CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
-
-void hack_in_test_rom_data(uint16_t relative_address, uint8_t data) {
-    // hacks some data into the rom via it's rom pointer. Uses relative addresses, i.e not in the global address space. Address 0x0000 is is address 0x0000 
-    uint8_t* cart_ptr = test_cart.get_rom_pointer();    
-    *(cart_ptr + relative_address) = data;
-}
-
-TEST_CASE("rom - Check address mapping is valid for cartridge and rom", "[cartridge]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Check address mapping is valid for cartridge and rom", "[cartridge]") {
     REQUIRE(CART_ADDRESS_SPACE_START + CART_SIZE_BYTES - 1 == CART_ADDRESS_SPACE_END);
     REQUIRE(ROM_ADDRESS_SPACE_START + ROM_SIZE_BYTES - 1 == ROM_ADDRESS_SPACE_END);    
 }
 
-TEST_CASE("rom - Test hack in rom data helper function", "[cartridge]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test hack in rom data helper function", "[cartridge]") {
     uint16_t test_relative_address;  
     uint8_t test_data;
 
@@ -24,47 +15,47 @@ TEST_CASE("rom - Test hack in rom data helper function", "[cartridge]") {
         test_data = rand() % 255;
         
         hack_in_test_rom_data(test_relative_address, test_data);
-        REQUIRE(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
+        REQUIRE(test_cart->debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
     }
 }
 
-TEST_CASE("rom - Create object and set address space", "[cartridge]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Create object and set address space", "[cartridge]") {
     uint16_t address_lower = (rand() % ROM_SIZE_BYTES) - 1;    // theorectially this could underflow, but the test will still pass. 
     uint16_t address_upper = rand() % ROM_SIZE_BYTES;
-    cartridge another_test_cart(&test_bus, address_lower, address_upper); 
+    cartridge another_test_cart(test_bus, address_lower, address_upper); 
 
     CHECK(another_test_cart._address_space_lower == address_lower);
     REQUIRE(another_test_cart._address_space_upper == address_upper);
 }
 
-TEST_CASE("rom - Debug read", "[cartridge]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Debug read", "[cartridge]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = rand() % ROM_SIZE_BYTES;
 
     hack_in_test_rom_data(test_address, test_data);    
-    REQUIRE(test_cart.debug_read(test_address) == test_data);
+    REQUIRE(test_cart->debug_read(test_address) == test_data);
 }
 
-TEST_CASE("rom - Read test", "[ram]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[ram]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = (rand() % RAM_SIZE_BYTES) + ROM_ADDRESS_SPACE_START;
 
     // set the address and write the data    
     hack_in_test_rom_data(test_address - ROM_ADDRESS_SPACE_START, test_data);    
-    uint8_t result = test_cart.read_rom(test_address);
+    uint8_t result = test_cart->read_rom(test_address);
     REQUIRE(result == test_data);    
 }
 
-TEST_CASE("rom - test read function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - test read function pointer", "[bus]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = ROM_ADDRESS_SPACE_START + (rand() % ROM_SIZE_BYTES);
 
     // set the address and write the data    
     hack_in_test_rom_data(test_address - ROM_ADDRESS_SPACE_START, test_data);    
-    uint8_t result = test_cart._read_function_ptr(test_address);
+    uint8_t result = test_cart->_read_function_ptr(test_address);
     REQUIRE(result == test_data);
 }
 
-TEST_CASE("rom - test write function pointer", "[bus]") {
-    REQUIRE(test_cart._write_function_ptr == nullptr);
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - test write function pointer", "[bus]") {
+    REQUIRE(test_cart->_write_function_ptr == nullptr);
 }

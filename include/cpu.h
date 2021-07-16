@@ -32,8 +32,8 @@ public:
     uint8_t fetch_data(void);    
 
     // being a bus device, we need to define these, as a result, they do nothing. 
-	uint8_t read(uint16_t address);
-	void write(uint16_t address, uint8_t data);	    
+	uint8_t read(uint16_t address) override;
+	void write(uint16_t address, uint8_t data) override;	   
 
     uint16_t get_program_counter(void);
     uint8_t get_accumulator_reg_content(void);

@@ -8,3 +8,7 @@ bus_device::bus_device(bus* bus_ptr) {
 	_read_function_ptr = std::bind(&bus_device::read, this, std::placeholders::_1);
     _write_function_ptr = std::bind(&bus_device::write, this, std::placeholders::_1, std::placeholders::_2); 
 }
+
+bus_device::~bus_device() {
+    // nothing to do!
+}
