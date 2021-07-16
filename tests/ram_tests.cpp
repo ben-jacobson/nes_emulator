@@ -48,3 +48,14 @@ TEST_CASE("ram - Read and write test", "[ram]") {
     test_ram.write(test_address, test_data);
     REQUIRE(test_ram.read(test_address) == test_data);    
 }
+
+TEST_CASE("Temporarily test new function pointers", "[bus]") {
+    uint8_t test_data = rand() % 255;
+    uint16_t test_address = (rand() % RAM_SIZE_BYTES) + RAM_ADDRESS_SPACE_START;
+
+    // set the address and write the data    
+    test_ram.write(test_address, test_data);
+
+    uint8_t result = test_ram._read_function_ptr(test_address);
+    REQUIRE(result == test_data);
+}

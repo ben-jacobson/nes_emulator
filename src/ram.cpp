@@ -14,6 +14,10 @@ ram::ram(bus* bus_ptr, uint16_t ram_size, uint16_t address_space_lower, uint16_t
     for (uint16_t i = 0; i < ram_size; i++) {
         _ram_data[i] = 0;
     }
+
+    // set up function pointers
+	_read_function_ptr = std::bind(&ram::read, this, std::placeholders::_1);
+    _write_function_ptr = std::bind(&ram::write, this, std::placeholders::_1, std::placeholders::_2);     
 }
 
 ram::~ram() {

@@ -16,4 +16,8 @@ public:
 
 protected: 
     bus* _bus_ptr = nullptr;  
+
+public:
+	std::function<uint8_t(uint16_t)> _read_function_ptr = nullptr;
+	std::function<void(uint16_t, uint8_t)> _write_function_ptr = nullptr;    
 };
