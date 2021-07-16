@@ -31,6 +31,10 @@ public:
     void NMI(void);     // non maskable interrupt
     uint8_t fetch_data(void);    
 
+    // being a bus device, we need to define these, as a result, they do nothing. 
+	uint8_t read(uint16_t address);
+	void write(uint16_t address, uint8_t data);	    
+
     uint16_t get_program_counter(void);
     uint8_t get_accumulator_reg_content(void);
     uint8_t get_x_index_reg_content(void);

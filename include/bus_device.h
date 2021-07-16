@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bus.h"
+#include <functional>
 
 class bus_device    
 {
@@ -9,8 +10,12 @@ public:
 
     bus_device(bus *bus_ptr);
     ~bus_device() = default;
-    // the thought occured to me to make this a pure virtual class with read and write prototypes, however the implementation of each device is a little different, not everything has a write method, the CPU doesn't have a read for example
+
+    virtual uint8_t read(uint16_t address) = 0;
+    virtual void write(uint16_t address, uint8_t data) = 0;
 
 protected: 
     bus* _bus_ptr = nullptr;
+	std::function<uint8_t(uint16_t)> _read_function_ptr;  // for storing function pointers to their own functions. 
+	std::function<void(uint16_t, uint8_t)> _write_function_ptr;    
 };

@@ -11,6 +11,8 @@ public:
 
 	// functions for reading and writing  data to and from the bus
 	void read_rom(void);
+	uint8_t read(uint16_t address);
+	void write(uint16_t address, uint8_t data);	
 
 	// for outputting to test functions, and our debug view
 	uint8_t debug_read(uint16_t relative_address);	// for rom output view, not for actual use in emulation

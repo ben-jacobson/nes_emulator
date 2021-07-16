@@ -17,7 +17,7 @@ void bus::write_data(uint8_t data) {
     int device_index = get_index_of_connected_device(_address);
     
     if (device_index != -1 && devices_connected_to_bus[device_index]._write_function_ptr != nullptr) {
-        devices_connected_to_bus[device_index]._write_function_ptr(_address, data);
+        devices_connected_to_bus[device_index]._write_function_ptr(_address, _data);
     }
 }
 
@@ -25,7 +25,7 @@ uint8_t bus::read_data(void) {
     int device_index = get_index_of_connected_device(_address);
 
     if (device_index != -1) {
-        devices_connected_to_bus[device_index]._read_function_ptr(_address);
+        _data = devices_connected_to_bus[device_index]._read_function_ptr(_address);
         return _data;
     }
     return 0;

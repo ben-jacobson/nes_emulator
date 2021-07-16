@@ -34,6 +34,14 @@ void cpu::NMI(void) {
 
 }
 
+uint8_t cpu::read(uint16_t address) {
+    return 0; // do nothing
+}
+
+void cpu::write(uint16_t address, uint8_t data) {
+    return; // do nothing
+}	
+
 uint16_t cpu::get_program_counter(void) {
     return program_counter;
 }

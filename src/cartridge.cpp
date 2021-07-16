@@ -20,13 +20,21 @@ cartridge::~cartridge() {
     delete[] _rom_data; // free the memory. 
 }
 
+uint8_t cartridge::read(uint16_t address) {
+    // todo
+    return 0;
+}
+
+void cartridge::write(uint16_t address, uint8_t data) {
+    return;
+}	
+
 void cartridge::read_rom(void) {
     uint16_t address = _bus_ptr->read_address();
 
     // First check if the read is within the specified address range
     if (address >= ROM_ADDRESS_SPACE_START && address <= ROM_ADDRESS_SPACE_END) {
         uint8_t data = _rom_data[address - ROM_ADDRESS_SPACE_START]; // new mapped address is offset by _address_space_lower;
-        //std::cout << "read data: " << data << std::endl;
         _bus_ptr->write_data(data); // write this data to the bus
     }
 }
