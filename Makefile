@@ -107,5 +107,6 @@ run: all
 	./$(OUTPUTMAIN)
 	@echo Executing 'run: all' complete!
 
-$(TESTS): $(TEST_OBJECTS) 
+$(TESTS): $(TEST_OBJECTS)
+	make
 	$(CXX) $(TEST_OBJECTS) $(CXXFLAGS) $(INCLUDES) $(LFLAGS) $(LIBS) -o $(OUTPUT)/$(TEST_OUT) 
