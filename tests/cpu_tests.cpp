@@ -13,7 +13,8 @@ TEST_CASE("cpu - Test cycle", "[cpu]") {
 }
 
 TEST_CASE("cpu - Test reset", "[cpu]") {
-    test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, std::bind(&cartridge::read, &test_cart, std::placeholders::_1));
+    //test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, std::bind(&cartridge::read, &test_cart, std::placeholders::_1));    
+    test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
 
     // put some data into the reset vector, which is a section of ROM memory
     hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);
@@ -21,10 +22,14 @@ TEST_CASE("cpu - Test reset", "[cpu]") {
     uint8_t reset_vector_low = test_cart.read_rom(RESET_VECTOR_LOW);
     CHECK(reset_vector_low == 0xDD); // check that it landed properly in ROM
 
-    test_cpu.reset();
-    uint8_t reset_vector_in_rom = test_cart.read(RESET_VECTOR_HIGH);
-    CHECK(reset_vector_in_rom == 0xEE); // check that it landed properly in all of the cart addres space. 
+    uint8_t rom_test_result = test_cart.read(RESET_VECTOR_HIGH);
+    CHECK(rom_test_result == 0xEE);
 
+    test_bus.set_address(RESET_VECTOR_HIGH);
+    uint8_t reset_vector_on_bus = test_bus.read_data();
+    CHECK(reset_vector_on_bus == 0xEE); // check that it landed properly in all of the cart addres space.     
+
+    test_cpu.reset();
     uint16_t result = test_cpu.get_program_counter();   
     // resetting the CPU will set the program counter to the reset vector.
     REQUIRE(result == 0xEEDD); // check that this copied into program counter

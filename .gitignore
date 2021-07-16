@@ -13,8 +13,8 @@
 # Output binaries
 output/*.exe
 output/nes_emulator
-tests/tests
-tests/tests.exe
+output/tests
+output/tests.exe
 
 # Precompiled Headers
 *.gch
