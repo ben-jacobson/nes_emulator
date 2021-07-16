@@ -5,7 +5,7 @@
 TEST_CASE("bus - test bus decoding behaviour", "[bus]") {
 
     // register our test ram device
-    test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, std::bind(&ram::read, &test_ram, 0), std::bind(&ram::write, &test_ram, std::placeholders::_1, std::placeholders::_2));    
+    test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, std::bind(&ram::read, &test_ram, std::placeholders::_1), std::bind(&ram::write, &test_ram, std::placeholders::_1, std::placeholders::_2));    
     
     // create an additional device for testing and register it
     ram another_test_ram(&test_bus, RAM_SIZE_BYTES, RAM_MIRRORA_SPACE_START, RAM_MIRRORA_SPACE_END); 

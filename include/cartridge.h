@@ -10,7 +10,7 @@ public:
 	~cartridge();
 
 	// functions for reading and writing  data to and from the bus
-	void read_rom(void);
+	uint8_t read_rom(uint16_t address);
 	uint8_t read(uint16_t address);
 	void write(uint16_t address, uint8_t data);	
 

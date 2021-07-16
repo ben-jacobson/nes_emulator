@@ -44,3 +44,27 @@ TEST_CASE("rom - Debug read", "[cartridge]") {
     hack_in_test_rom_data(test_address, test_data);    
     REQUIRE(test_cart.debug_read(test_address) == test_data);
 }
+
+TEST_CASE("rom - Read test", "[ram]") {
+    uint8_t test_data = rand() % 255;
+    uint16_t test_address = (rand() % RAM_SIZE_BYTES) + ROM_ADDRESS_SPACE_START;
+
+    // set the address and write the data    
+    hack_in_test_rom_data(test_address - ROM_ADDRESS_SPACE_START, test_data);    
+    uint8_t result = test_cart.read_rom(test_address);
+    REQUIRE(result == test_data);    
+}
+
+TEST_CASE("rom - test read function pointer", "[bus]") {
+    uint8_t test_data = rand() % 255;
+    uint16_t test_address = ROM_ADDRESS_SPACE_START + (rand() % ROM_SIZE_BYTES);
+
+    // set the address and write the data    
+    hack_in_test_rom_data(test_address - ROM_ADDRESS_SPACE_START, test_data);    
+    uint8_t result = test_cart._read_function_ptr(test_address);
+    REQUIRE(result == test_data);
+}
+
+TEST_CASE("rom - test write function pointer", "[bus]") {
+    REQUIRE(test_cart._write_function_ptr == nullptr);
+}

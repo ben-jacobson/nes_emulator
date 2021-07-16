@@ -3,7 +3,6 @@
     
 cpu test_cpu(&test_bus, &test_ram);
 
-
 TEST_CASE("cpu - Initialize and check defaults", "[cpu]") {
     REQUIRE(0 != 0); // temporary fail while we write some code
 }
@@ -14,13 +13,21 @@ TEST_CASE("cpu - Test cycle", "[cpu]") {
 }
 
 TEST_CASE("cpu - Test reset", "[cpu]") {
+    test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, std::bind(&cartridge::read, &test_cart, std::placeholders::_1));
+
     // put some data into the reset vector, which is a section of ROM memory
     hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);
     hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0xEE);
-    test_cpu.reset();
+    uint8_t reset_vector_low = test_cart.read_rom(RESET_VECTOR_LOW);
+    CHECK(reset_vector_low == 0xDD); // check that it landed properly in ROM
 
+    test_cpu.reset();
+    uint8_t reset_vector_in_rom = test_cart.read(RESET_VECTOR_HIGH);
+    CHECK(reset_vector_in_rom == 0xEE); // check that it landed properly in all of the cart addres space. 
+
+    uint16_t result = test_cpu.get_program_counter();   
     // resetting the CPU will set the program counter to the reset vector.
-    REQUIRE(test_cpu.get_program_counter() == 0xEEDD);
+    REQUIRE(result == 0xEEDD); // check that this copied into program counter
 }
 
 TEST_CASE("cpu - Test IRQ", "[cpu]") {
@@ -68,5 +75,11 @@ TEST_CASE("cpu - Test get status flag register content getter", "[cpu]") {
     REQUIRE(0 != 0); // temporary fail while we write some code
 } 
 
- 
+ TEST_CASE("cpu - test read function pointer", "[bus]") {
+    // the CPU's read and write functions do nothing, so we test that 
+    REQUIRE(test_cpu._read_function_ptr == nullptr);
+}
 
+TEST_CASE("cpu - test write function pointer", "[bus]") {
+    REQUIRE(test_cpu._write_function_ptr == nullptr);
+}

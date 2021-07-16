@@ -4,6 +4,11 @@ cpu::cpu(bus *bus_ptr, ram *ram_ptr)
 :   bus_device(bus_ptr)
 {
     _ram_ptr = ram_ptr; 
+
+    // disable the read and write function pointer
+    _read_function_ptr = nullptr;
+    _write_function_ptr = nullptr;
+ 
     reset();
 } 
 

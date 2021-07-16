@@ -3,6 +3,9 @@
 cartridge::cartridge(bus* bus_ptr, uint16_t address_space_lower, uint16_t address_space_upper) 
 :   bus_device(bus_ptr)
 {
+    // disable the write function pointer
+    _write_function_ptr = nullptr;
+
     // temporarily set the address space boundaries to zero in this implementation
     _address_space_lower = address_space_lower;
     _address_space_upper = address_space_upper;   
@@ -21,7 +24,13 @@ cartridge::~cartridge() {
 }
 
 uint8_t cartridge::read(uint16_t address) {
-    // todo
+    // First check if the read is within the specified address range
+    if (address >= _address_space_lower && address <= _address_space_upper) {
+        if (address >= ROM_ADDRESS_SPACE_START && address <= ROM_ADDRESS_SPACE_END) {
+            return read_rom(address);
+        }
+        return 0; // TODO!!
+    }
     return 0;
 }
 
@@ -29,15 +38,14 @@ void cartridge::write(uint16_t address, uint8_t data) {
     return;
 }	
 
-void cartridge::read_rom(void) {
-    uint16_t address = _bus_ptr->read_address();
-
+uint8_t cartridge::read_rom(uint16_t address) {
     // First check if the read is within the specified address range
     if (address >= ROM_ADDRESS_SPACE_START && address <= ROM_ADDRESS_SPACE_END) {
-        uint8_t data = _rom_data[address - ROM_ADDRESS_SPACE_START]; // new mapped address is offset by _address_space_lower;
-        _bus_ptr->write_data(data); // write this data to the bus
+        return _rom_data[address - ROM_ADDRESS_SPACE_START]; // new mapped address is offset by _address_space_lower;
     }
+    return 0;
 }
+
 
 uint8_t cartridge::debug_read(uint16_t relative_address) {
     // notice there is no address space checking, we simply output whatever is at the relative address, e.g 0 is the start and MAX_SIZE is the end

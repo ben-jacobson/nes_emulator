@@ -16,8 +16,8 @@ ram::ram(bus* bus_ptr, uint16_t ram_size, uint16_t address_space_lower, uint16_t
     }
 
     // set up function pointers
-	_read_function_ptr = std::bind(&ram::read, this, std::placeholders::_1);
-    _write_function_ptr = std::bind(&ram::write, this, std::placeholders::_1, std::placeholders::_2);     
+	//_read_function_ptr = std::bind(&ram::read, this, std::placeholders::_1);
+    //_write_function_ptr = std::bind(&ram::write, this, std::placeholders::_1, std::placeholders::_2);     
 }
 
 ram::~ram() {
@@ -38,6 +38,7 @@ uint8_t ram::read(uint16_t address) {
     if (address >= _address_space_lower && address <= _address_space_upper) {
         return _ram_data[address - _address_space_lower]; // new mapped address is offset by _address_space_lower;
     }
+    return 0;
 }
 
 void ram::write(uint16_t address, uint8_t data) {

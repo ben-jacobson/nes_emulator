@@ -38,7 +38,8 @@ TEST_CASE("ram - Debug read", "[ram]") {
     uint16_t test_address = RAM_ADDRESS_SPACE_START + (rand() % RAM_SIZE_BYTES);
 
     test_ram.write(test_address, test_data);
-    REQUIRE(test_ram.debug_read(test_address - RAM_ADDRESS_SPACE_START) == test_data);
+    uint8_t result = test_ram.debug_read(test_address - RAM_ADDRESS_SPACE_START);
+    REQUIRE(result == test_data);
 }
 
 TEST_CASE("ram - Read and write test", "[ram]") {
@@ -47,10 +48,11 @@ TEST_CASE("ram - Read and write test", "[ram]") {
 
     // set the address and write the data    
     test_ram.write(test_address, test_data);
-    REQUIRE(test_ram.read(test_address) == test_data);    
+    uint8_t result = test_ram.read(test_address);
+    REQUIRE(result == test_data);    
 }
 
-TEST_CASE("ram - test ram read function pointer", "[bus]") {
+TEST_CASE("ram - test read function pointer", "[bus]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = (rand() % RAM_SIZE_BYTES) + RAM_ADDRESS_SPACE_START;
 
@@ -60,7 +62,7 @@ TEST_CASE("ram - test ram read function pointer", "[bus]") {
     REQUIRE(result == test_data);
 }
 
-TEST_CASE("ram - test ram write function pointer", "[bus]") {
+TEST_CASE("ram - test write function pointer", "[bus]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = (rand() % RAM_SIZE_BYTES) + RAM_ADDRESS_SPACE_START;
 

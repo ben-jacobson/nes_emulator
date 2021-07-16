@@ -30,7 +30,7 @@ public:
 	uint8_t read_data(void);
 
 	//void register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, read_function_pointer read_function_ptr, write_function_pointer write_function_ptr = nullptr);
-	void register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr);
+	void register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr = nullptr);
 
 private:
 	uint16_t _address;
