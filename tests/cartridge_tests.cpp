@@ -15,14 +15,14 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test hack in rom data helper fun
         test_data = rand() % 255;
         
         hack_in_test_rom_data(test_relative_address, test_data);
-        REQUIRE(test_cart->debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
+        REQUIRE(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
     }
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "rom - Create object and set address space", "[cartridge]") {
     uint16_t address_lower = (rand() % ROM_SIZE_BYTES) - 1;    // theorectially this could underflow, but the test will still pass. 
     uint16_t address_upper = rand() % ROM_SIZE_BYTES;
-    cartridge another_test_cart(test_bus, address_lower, address_upper); 
+    cartridge another_test_cart(&test_bus, address_lower, address_upper); 
 
     CHECK(another_test_cart._address_space_lower == address_lower);
     REQUIRE(another_test_cart._address_space_upper == address_upper);
@@ -33,7 +33,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Debug read", "[cartridge]") {
     uint16_t test_address = rand() % ROM_SIZE_BYTES;
 
     hack_in_test_rom_data(test_address, test_data);    
-    REQUIRE(test_cart->debug_read(test_address) == test_data);
+    REQUIRE(test_cart.debug_read(test_address) == test_data);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[ram]") {
@@ -42,7 +42,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[ram]") {
 
     // set the address and write the data    
     hack_in_test_rom_data(test_address - ROM_ADDRESS_SPACE_START, test_data);    
-    uint8_t result = test_cart->read_rom(test_address);
+    uint8_t result = test_cart.read_rom(test_address);
     REQUIRE(result == test_data);    
 }
 
@@ -52,10 +52,10 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - test read function pointer", "[b
 
     // set the address and write the data    
     hack_in_test_rom_data(test_address - ROM_ADDRESS_SPACE_START, test_data);    
-    uint8_t result = test_cart->_read_function_ptr(test_address);
+    uint8_t result = test_cart._read_function_ptr(test_address);
     REQUIRE(result == test_data);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "rom - test write function pointer", "[bus]") {
-    REQUIRE(test_cart->_write_function_ptr == nullptr);
+    REQUIRE(test_cart._write_function_ptr == nullptr);
 }
