@@ -46,7 +46,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[ram]") {
     REQUIRE(result == test_data);    
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "rom - test read function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test read function pointer", "[bus]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = ROM_ADDRESS_SPACE_START + (rand() % ROM_SIZE_BYTES);
 
@@ -56,6 +56,6 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - test read function pointer", "[b
     REQUIRE(result == test_data);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "rom - test write function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test write function pointer", "[bus]") {
     REQUIRE(test_cart._write_function_ptr == nullptr);
 }

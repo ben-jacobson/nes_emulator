@@ -14,6 +14,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
     // put some data into the reset vector, which is a section of ROM memory
     hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);
     hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0xEE);
+
     uint8_t reset_vector_low = test_cart.read_rom(RESET_VECTOR_LOW);
     CHECK(reset_vector_low == 0xDD); // check that it landed properly in ROM
 
@@ -22,7 +23,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
 
     test_bus.set_address(RESET_VECTOR_HIGH);
     uint8_t reset_vector_on_bus = test_bus.read_data();
-    CHECK(reset_vector_on_bus == 0xEE); // check that it landed properly in all of the cart addres space.     
+    CHECK(reset_vector_on_bus == 0xEE); // check that it landed properly in all of the cart address space.     
 
     test_cpu.reset();
     uint16_t result = test_cpu.get_program_counter();   
@@ -75,11 +76,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get status flag register co
     REQUIRE(0 != 0); // temporary fail while we write some code
 } 
 
- TEST_CASE_METHOD(emulator_test_fixtures, "cpu - test read function pointer", "[bus]") {
+ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test read function pointer", "[bus]") {
     // the CPU's read and write functions do nothing, so we test that 
     REQUIRE(test_cpu._read_function_ptr == nullptr);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpu - test write function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test write function pointer", "[bus]") {
     REQUIRE(test_cpu._write_function_ptr == nullptr);
 }

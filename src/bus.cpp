@@ -45,6 +45,14 @@ void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address
     }
 }
 
+void bus::clear_bus_devices(void) {    
+    for (uint8_t i = 0; i < MAX_BUS_DEVICES; i++) {
+        // clear the struct (we could probably just get away with device index resetting back to zero but that's fine)
+        std::memset(devices_connected_to_bus, 0, sizeof(devices_connected_to_bus));
+    }
+    device_index = 0;
+}
+
 int bus::get_index_of_connected_device(uint16_t address) {
     for (uint8_t i = 0; i < MAX_BUS_DEVICES; i++) {
         if (address >= devices_connected_to_bus[i]._address_range_start && address <= devices_connected_to_bus[i]._address_range_end) {
