@@ -49,8 +49,8 @@ void cpu::reset(void) {
     _bus_ptr->set_address(RESET_VECTOR_LOW);
     _program_counter |= _bus_ptr->read_data();
 
-    // set the stack pointer back to the start address
-    set_stack_pointer(STACK_START);
+    // set the stack pointer back to the end. As the stack pointer moves, it decrements back to STACK_START
+    set_stack_pointer(STACK_END);
 
    _status_flags_reg.i = 1; // interrupt mask is set (IRQ disabled on reset)
    _status_flags_reg.d = 0; // decimal mode is cleared
@@ -61,9 +61,11 @@ bool cpu::IRQ(void) {
         // Set the  IRQ flag to 1 to temporarily disable it
         _status_flags_reg.i = 1; 
 
-        // store the program counter and status flags on the stack
-        //_program_counter -> stack??
-        //_status_flags_reg -> stack??
+        // push the program counter high 8 bits first to stack
+        // Then the low 8 bits of the program counter
+        // Then status register      
+
+        // TODO - need to add a push to stack function, the stack pointer starts at the top end of the page, and decrements down towards bottom
 
         // CPU expects that the interrupt vector will be loaded into addresses FFFE and FFFF (within the ROM space)
         _bus_ptr->set_address(0xFFFF);           // set program counter high bits from address FFFF    

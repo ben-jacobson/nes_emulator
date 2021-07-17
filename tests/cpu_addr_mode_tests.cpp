@@ -1,9 +1,6 @@
 #include "catch.hpp"
 #include "test_fixtures.h"
 
-
-
-
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruction]") {
     // cannot be tested until we load some instructions in and execute them.
     REQUIRE(0 != 0);
