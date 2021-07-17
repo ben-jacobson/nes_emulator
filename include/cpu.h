@@ -8,6 +8,17 @@
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
+enum status_flags_map : uint8_t {
+    NEGATIVE_FLAG   = 0,          // negative flag
+    OVERFLOW_FLAG   = 1,          // overflow flag 
+    UNUSED_FLAG     = 2,          // unused, should be 1 at all times.
+    BREAK_FLAG      = 3,          // break command flag
+    DECIMAL_FLAG    = 4,          // decimal mode  
+    IRQ_FLAG        = 5,          // IRQ disable flag
+    ZERO_FLAG       = 6,          // zero flag
+    CARRY_FLAG      = 7,          // carry flag         
+};
+
 struct status_flags {
     uint8_t n : 1;          // negative flag, 1 = negative.
     uint8_t v : 1;          // overflow flag. 
@@ -40,19 +51,12 @@ public:
     uint8_t get_accumulator_reg_content(void);
     uint8_t get_x_index_reg_content(void);
     uint8_t get_y_index_reg_content(void);
-    status_flags get_status_reg_flags_contents(void);
+    uint8_t get_status_flags(void);
+    status_flags get_status_flags_struct(void);
 
     void set_stack_pointer(uint16_t offset_address);
     uint8_t get_stack_pointer(void); 
 
-private:
-    ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
-
-    uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
-    uint8_t _accumulator_reg; 
-    uint8_t _x_index_reg, _y_index_reg;     
-    uint8_t _stack_pointer;      
-    status_flags _status_flags_reg; 
 
     // Functions are for setting the addressing modes
     uint8_t addr_mode_ACCUM(void);
@@ -141,4 +145,13 @@ private:
     uint8_t instr_TYA(void);
 
     uint8_t instr_ZZZ(void); // for any illegal opcodes
+
+private:
+    ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
+
+    uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
+    uint8_t _accumulator_reg; 
+    uint8_t _x_index_reg, _y_index_reg;     
+    uint8_t _stack_pointer;      
+    status_flags _status_flags_reg;     
 };

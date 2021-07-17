@@ -10,6 +10,9 @@
 *.o
 *.obj
 
+# Reference PDFs
+reference_docs/**
+
 # Output binaries
 output/*.exe
 output/nes_emulator

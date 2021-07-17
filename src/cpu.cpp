@@ -36,10 +36,10 @@ void cpu::reset(void) {
     // reset all status flags to default values
    _status_flags_reg.n = 0;
    _status_flags_reg.v = 0;
-   _status_flags_reg.u = 0;
+   _status_flags_reg.u = 1; // unused is left at one for all time
    _status_flags_reg.b = 0;
    _status_flags_reg.d = 0;
-   _status_flags_reg.i = 0;
+   _status_flags_reg.i = 1; // IRQ is started in the disabled state
    _status_flags_reg.z = 0;
    _status_flags_reg.c = 0;
 } 
@@ -106,8 +106,21 @@ uint8_t cpu::get_stack_pointer(void) {
     return _stack_pointer;
 }
 
-status_flags cpu::get_status_reg_flags_contents(void) {
+status_flags cpu::get_status_flags_struct(void) {
     return _status_flags_reg;
+}
+
+uint8_t cpu::get_status_flags(void) {
+    uint8_t status_flags;
+    status_flags = _status_flags_reg.n; // << NEGATIVE_FLAG;
+    status_flags |= _status_flags_reg.v << OVERFLOW_FLAG;
+    status_flags |= _status_flags_reg.u << UNUSED_FLAG;
+    status_flags |= _status_flags_reg.b << BREAK_FLAG;
+    status_flags |= _status_flags_reg.d << DECIMAL_FLAG;
+    status_flags |= _status_flags_reg.i << IRQ_FLAG;
+    status_flags |= _status_flags_reg.z << ZERO_FLAG;
+    status_flags |= _status_flags_reg.c << CARRY_FLAG;
+    return status_flags;
 }
 
 void cpu::set_stack_pointer(uint16_t address) {
@@ -220,6 +233,7 @@ uint8_t cpu::instr_CLD(void) {
 }
 
 uint8_t cpu::instr_CLI(void) {
+    _status_flags_reg.i = 0;
     return 0;
 }
 
@@ -344,6 +358,7 @@ uint8_t cpu::instr_SED(void) {
 }
 
 uint8_t cpu::instr_SEI(void) {
+    _status_flags_reg.i = 1;
     return 0;
 }
 
