@@ -27,8 +27,8 @@ public:
     // CPU main functions
     void cycle(void);   // main CPU clocking, called cycle because a cycle can have multiple clock pulses, e.g in multi clock instructions
     void reset(void);   // reset CPU back to original state. 
-    void IRQ(void);     // Interrupt request
-    void NMI(void);     // non maskable interrupt
+    bool IRQ(void);     // Interrupt request
+    bool NMI(void);     // non maskable interrupt
     uint8_t fetch_data(void);    
 
     // being a bus device, we need to define these, as a result, they do nothing. 
@@ -45,11 +45,11 @@ public:
 private:
     ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
 
-    uint16_t program_counter; // program counter increments each time an instruction or data is fetched from memory. 
-    uint8_t accumulator_reg; 
-    uint8_t x_index_reg, y_index_reg;     
-    uint8_t stack_pointer;      
-    status_flags status_flags_reg; 
+    uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
+    uint8_t _accumulator_reg; 
+    uint8_t _x_index_reg, _y_index_reg;     
+    uint8_t _stack_pointer;      
+    status_flags _status_flags_reg; 
 
     // Functions are for setting the addressing modes
     uint8_t addr_mode_ACCUM(void);

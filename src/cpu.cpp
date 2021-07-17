@@ -25,18 +25,44 @@ void cpu::reset(void) {
 
     // Load program counter from memory vector 0xFFFC and 0xFFFD, which is start location for program control
     _bus_ptr->set_address(RESET_VECTOR_HIGH);  
-    program_counter = _bus_ptr->read_data();
-    program_counter = program_counter << 8; 
+    _program_counter = _bus_ptr->read_data();
+    _program_counter = _program_counter << 8; 
     _bus_ptr->set_address(RESET_VECTOR_LOW);
-    program_counter |= _bus_ptr->read_data();
+    _program_counter |= _bus_ptr->read_data();
 } 
 
-void cpu::IRQ(void) {
+bool cpu::IRQ(void) {
+    if (_status_flags_reg.i == 0) { // this will only be allowed if the interrupt flag is enabled
+        // Set the  IRQ flag to 1 to temporarily disable it
+        _status_flags_reg.i = 1; 
 
+        // store the program counter and status flags on the stack
+        //_program_counter -> stack??
+        //_status_flags_reg -> stack??
+
+        // CPU expects that the interrupt vector will be loaded into addresses FFFE and FFFF (within the ROM space)
+        _bus_ptr->set_address(0xFFFF);           // set program counter high bits from address FFFF    
+        _program_counter = _bus_ptr->read_data();
+        _program_counter = _program_counter << 8; 
+        _bus_ptr->set_address(0xFFFE); // set program counter low bits from address FFFE
+        _program_counter |= _bus_ptr->read_data();             
+        return true; 
+    }
+    return false;
 }
 
-void cpu::NMI(void) {
+bool cpu::NMI(void) {
+    // store the program counter and status flags on the stack
+    //_program_counter -> stack??
+    //_status_flags_reg -> stack??
 
+    // CPU expects that the interrupt vector will be loaded into FFFA and FFFB (within the ROM space)
+    _bus_ptr->set_address(0xFFFB);           // set program counter high bits from address FFFB    
+    _program_counter = _bus_ptr->read_data();
+    _program_counter = _program_counter << 8; 
+    _bus_ptr->set_address(0xFFFA); // set program counter low bits from address FFFA
+    _program_counter |= _bus_ptr->read_data();             
+    return true;
 }
 
 uint8_t cpu::read(uint16_t address) {
@@ -48,27 +74,27 @@ void cpu::write(uint16_t address, uint8_t data) {
 }	
 
 uint16_t cpu::get_program_counter(void) {
-    return program_counter;
+    return _program_counter;
 }
 
 uint8_t cpu::get_accumulator_reg_content(void) {
-    return accumulator_reg;
+    return _accumulator_reg;
 }
 
 uint8_t cpu::get_x_index_reg_content(void) {
-    return x_index_reg;
+    return _x_index_reg;
 }
 
 uint8_t cpu::get_y_index_reg_content(void) {
-    return y_index_reg;
+    return _y_index_reg;
 }
 
 uint8_t cpu::get_stack_pointer(void) {
-    return stack_pointer;
+    return _stack_pointer;
 }
 
 status_flags cpu::get_status_reg_flags_contents(void) {
-    return status_flags_reg;
+    return _status_flags_reg;
 }
 
 uint8_t cpu::addr_mode_ACCUM(void) {

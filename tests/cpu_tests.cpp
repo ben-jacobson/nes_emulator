@@ -32,13 +32,26 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
-    // test_cpu->IRQ();     
-    REQUIRE(0 != 0); // temporary fail while we write some 
+    hack_in_test_rom_data(0xFFFF - ROM_ADDRESS_SPACE_START, 0xBB); 
+    hack_in_test_rom_data(0xFFFE - ROM_ADDRESS_SPACE_START, 0xAA);
+    CHECK(test_cpu.get_status_reg_flags_contents().i == 0); // is the interrupt enabled (0)?
+    bool result = test_cpu.IRQ();   
+
+    REQUIRE(result == true);
+    // todo: check that the program counter and status flags where placed on the stack  
+    REQUIRE(test_cpu.get_program_counter() == 0xBBAA);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
     // test_cpu->NMI();    
-    REQUIRE(0 != 0); // temporary fail while we write some 
+    hack_in_test_rom_data(0xFFFB - ROM_ADDRESS_SPACE_START, 0xEE);
+    hack_in_test_rom_data(0xFFFA - ROM_ADDRESS_SPACE_START, 0xFF); 
+    bool result = test_cpu.NMI();   
+    REQUIRE(result == true);
+
+    // todo: check that the program counter and status flags where placed on the stack  
+    REQUIRE(test_cpu.get_program_counter() == 0xEEFF);
+
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test fetch data", "[cpu]") {
