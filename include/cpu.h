@@ -169,8 +169,6 @@ private:
 
     // variables usd when processing information, passing data between fetch, clock and whatever instruction being performed.
     uint8_t _fetched_data;
-    uint16_t _addr_abs;
-    uint8_t _addr_rel;
     uint8_t _instr_opcode;
     uint8_t _instr_cycles;
 
