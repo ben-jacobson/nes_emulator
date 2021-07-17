@@ -54,6 +54,21 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
 
 }
 
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test set and get stack pointer") {
+    // first attempt to set the stack out of bounds
+    test_cpu.set_stack_pointer(0xFFFF); 
+    uint8_t result_one = test_cpu.get_stack_pointer();
+    REQUIRE(result_one == 0x00);
+
+    test_cpu.set_stack_pointer(STACK_START + 1); 
+    uint8_t result_two = test_cpu.get_stack_pointer();
+    REQUIRE(result_two == 0x01);
+
+    test_cpu.set_stack_pointer(0x0111); 
+    uint8_t result_three = test_cpu.get_stack_pointer();
+    REQUIRE(result_three == 0x11);
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test fetch data", "[cpu]") {
     // test_cpu->fetch_data();  
     REQUIRE(0 != 0); // temporary fail while we write some 

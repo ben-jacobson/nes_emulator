@@ -6,6 +6,7 @@
 #include "ram.h"
 
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
+// Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
 struct status_flags {
     uint8_t n : 1;          // negative flag, 1 = negative.
@@ -40,6 +41,8 @@ public:
     uint8_t get_x_index_reg_content(void);
     uint8_t get_y_index_reg_content(void);
     status_flags get_status_reg_flags_contents(void);
+
+    void set_stack_pointer(uint16_t offset_address);
     uint8_t get_stack_pointer(void); 
 
 private:

@@ -29,6 +29,19 @@ void cpu::reset(void) {
     _program_counter = _program_counter << 8; 
     _bus_ptr->set_address(RESET_VECTOR_LOW);
     _program_counter |= _bus_ptr->read_data();
+
+    // set the stack pointer back to the start address
+    set_stack_pointer(STACK_START);
+
+    // reset all status flags to default values
+   _status_flags_reg.n = 0;
+   _status_flags_reg.v = 0;
+   _status_flags_reg.u = 0;
+   _status_flags_reg.b = 0;
+   _status_flags_reg.d = 0;
+   _status_flags_reg.i = 0;
+   _status_flags_reg.z = 0;
+   _status_flags_reg.c = 0;
 } 
 
 bool cpu::IRQ(void) {
@@ -96,6 +109,16 @@ uint8_t cpu::get_stack_pointer(void) {
 status_flags cpu::get_status_reg_flags_contents(void) {
     return _status_flags_reg;
 }
+
+void cpu::set_stack_pointer(uint16_t address) {
+    if (address >= STACK_START && address <= STACK_END) {
+        _stack_pointer = address & 0x00FF; // chop off the high 8 bits
+    }
+    else {
+        _stack_pointer = 0x00;
+    }
+}
+
 
 uint8_t cpu::addr_mode_ACCUM(void) {
     return 0;

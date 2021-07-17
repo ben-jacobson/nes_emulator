@@ -46,8 +46,8 @@ constexpr uint16_t ZERO_PAGE_START              = 0x0000;
 constexpr uint16_t ZERO_PAGE_END                = 0x00FF;
 
 // Stack page of RAM
-constexpr uint16_t STACK_PAGE_START             = 0x0100;
-constexpr uint16_t STACK_PAGE_END               = 0x01FF;
+constexpr uint16_t STACK_START                  = 0x0100;
+constexpr uint16_t STACK_END                    = 0x01FF;
 
 // Additional special use cases for RAM
 constexpr uint16_t BATTERY_SAVE_START           = 0x6000;
