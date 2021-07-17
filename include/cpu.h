@@ -9,25 +9,25 @@
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
 enum status_flags_map : uint8_t {
-    NEGATIVE_FLAG   = 0,          // negative flag
-    OVERFLOW_FLAG   = 1,          // overflow flag 
-    UNUSED_FLAG     = 2,          // unused, should be 1 at all times.
-    BREAK_FLAG      = 3,          // break command flag
-    DECIMAL_FLAG    = 4,          // decimal mode  
-    IRQ_FLAG        = 5,          // IRQ disable flag
-    ZERO_FLAG       = 6,          // zero flag
-    CARRY_FLAG      = 7,          // carry flag         
+    CARRY_FLAG      = 0,          // carry flag         
+    ZERO_FLAG       = 1,          // zero flag
+    IRQ_FLAG        = 2,          // IRQ disable flag
+    DECIMAL_FLAG    = 3,          // decimal mode  
+    BREAK_FLAG      = 4,          // break command flag
+    UNUSED_FLAG     = 5,          // unused, should be 1 at all times.
+    OVERFLOW_FLAG   = 6,          // overflow flag 
+    NEGATIVE_FLAG   = 7,          // negative flag
 };
 
 struct status_flags {
-    uint8_t n : 1;          // negative flag, 1 = negative.
-    uint8_t v : 1;          // overflow flag. 
-    uint8_t u : 1;          // unused, should be 1 at all times.
-    uint8_t b : 1;          // break command flag, 1 = break.
-    uint8_t d : 1;          // decimal mode.   
-    uint8_t i : 1;          // IRQ disable flag, 1 = disable.
-    uint8_t z : 1;          // zero flag, 1 = result zero.
     uint8_t c : 1;          // carry flag.
+    uint8_t z : 1;          // zero flag, 1 = result zero.
+    uint8_t i : 1;          // IRQ disable flag, 1 = disable.
+    uint8_t d : 1;          // decimal mode.   
+    uint8_t b : 1;          // break command flag, 1 = break.
+    uint8_t u : 1;          // unused, should be 1 at all times.
+    uint8_t v : 1;          // overflow flag. 
+    uint8_t n : 1;          // negative flag, 1 = negative.
 };
 
 class cpu : public bus_device

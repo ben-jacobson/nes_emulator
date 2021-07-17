@@ -8,6 +8,8 @@ cpu::cpu(bus *bus_ptr, ram *ram_ptr)
     // disable the read and write function pointer
     _read_function_ptr = nullptr;
     _write_function_ptr = nullptr;
+
+    _status_flags_reg.u = 1; // unused is left at one for all time    
  
     reset();
 } 
@@ -33,15 +35,8 @@ void cpu::reset(void) {
     // set the stack pointer back to the start address
     set_stack_pointer(STACK_START);
 
-    // reset all status flags to default values
-   _status_flags_reg.n = 0;
-   _status_flags_reg.v = 0;
-   _status_flags_reg.u = 1; // unused is left at one for all time
-   _status_flags_reg.b = 0;
-   _status_flags_reg.d = 0;
-   _status_flags_reg.i = 1; // IRQ is started in the disabled state
-   _status_flags_reg.z = 0;
-   _status_flags_reg.c = 0;
+   _status_flags_reg.i = 1; // interrupt mask is set (IRQ disabled on reset)
+   _status_flags_reg.d = 0; // decimal mode is cleared
 } 
 
 bool cpu::IRQ(void) {
@@ -112,14 +107,14 @@ status_flags cpu::get_status_flags_struct(void) {
 
 uint8_t cpu::get_status_flags(void) {
     uint8_t status_flags;
-    status_flags = _status_flags_reg.n; // << NEGATIVE_FLAG;
-    status_flags |= _status_flags_reg.v << OVERFLOW_FLAG;
-    status_flags |= _status_flags_reg.u << UNUSED_FLAG;
-    status_flags |= _status_flags_reg.b << BREAK_FLAG;
-    status_flags |= _status_flags_reg.d << DECIMAL_FLAG;
-    status_flags |= _status_flags_reg.i << IRQ_FLAG;
+    status_flags = _status_flags_reg.c; // << CARRY_FLAG;
     status_flags |= _status_flags_reg.z << ZERO_FLAG;
-    status_flags |= _status_flags_reg.c << CARRY_FLAG;
+    status_flags |= _status_flags_reg.i << IRQ_FLAG;
+    status_flags |= _status_flags_reg.d << DECIMAL_FLAG;
+    status_flags |= _status_flags_reg.b << BREAK_FLAG;
+    status_flags |= _status_flags_reg.u << UNUSED_FLAG;
+    status_flags |= _status_flags_reg.v << OVERFLOW_FLAG;
+    status_flags |= _status_flags_reg.n << NEGATIVE_FLAG;    
     return status_flags;
 }
 

@@ -56,6 +56,10 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
     CHECK(result == true);
     CHECK(test_cpu.get_program_counter() == 0xBBAA); // was the program counter set to the IRQ vector
 
+    /*
+        NOTE -  the data sheet for the 6502 stipulates that on IRQ the program counter and the status flags are loaded into the stack, we just don't know yet what order, so until we can work that out these tests will fail
+    */
+
     // program counter should now be on the stack
     uint8_t result_pgm_counter_high = test_ram.read(test_cpu.get_program_counter()); // these tests are incomplete, and left to fail 
     CHECK(result_pgm_counter_high == (test_cpu.get_program_counter() & 0xFF00));
@@ -74,6 +78,10 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
     CHECK(result == true);
 
     CHECK(test_cpu.get_program_counter() == 0xEEFF);  // was the program counter set to the NMI vector
+
+    /*
+        NOTE -  the data sheet for the 6502 stipulates that on IRQ the program counter and the status flags are loaded into the stack, we just don't know yet what order, so until we can work that out these tests will fail
+    */
 
     // program counter should now be on the stack
     uint8_t result_pgm_counter_high = test_ram.read(test_cpu.get_program_counter()); // these tests are incomplete, and left to fail 
