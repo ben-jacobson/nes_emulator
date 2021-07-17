@@ -70,6 +70,11 @@ public:
     uint8_t get_status_flags(void);
     status_flags get_status_flags_struct(void);
 
+    uint16_t get_last_fetched_address(void);
+    uint8_t get_last_fetched_operand(void);
+    uint8_t get_last_fetched_opcode(void);
+    uint8_t get_last_fetched_instr_cycles(void);
+
     void set_stack_pointer(uint16_t offset_address);
     uint8_t get_stack_pointer(void); 
 
@@ -167,8 +172,8 @@ private:
     void init_opcode_decoder_lookup(void);
     void set_opcode(uint8_t index, std::string name, std::function<uint8_t(void)> instruction, std::function<uint8_t(void)> address_mode, uint8_t instruction_bytes, uint8_t cycles_needed);
 
-    // variables usd when processing information, passing data between fetch, clock and whatever instruction being performed.
-    uint8_t _fetched_data;
+    // variables used for processing information, passing data between fetch, clock and whatever instruction being performed.
+    uint16_t _fetched_address, _fetched_operand;
     uint8_t _instr_opcode;
     uint8_t _instr_cycles;
 

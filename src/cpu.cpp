@@ -143,3 +143,19 @@ void cpu::set_stack_pointer(uint16_t address) {
         _stack_pointer = 0x00;
     }
 }
+
+uint16_t cpu::get_last_fetched_address(void) {
+    return _fetched_address;
+}
+
+uint8_t cpu::get_last_fetched_operand(void) {
+    return _fetched_operand;
+}
+
+uint8_t cpu::get_last_fetched_opcode(void) {
+    return _instr_opcode;
+}
+
+uint8_t cpu::get_last_fetched_instr_cycles(void) {
+    return _instr_cycles;
+}
