@@ -39,8 +39,8 @@ public:
     uint8_t get_accumulator_reg_content(void);
     uint8_t get_x_index_reg_content(void);
     uint8_t get_y_index_reg_content(void);
-    uint8_t get_stack_pointer_reg_content(void); 
     status_flags get_status_reg_flags_contents(void);
+    uint8_t get_stack_pointer(void); 
 
 private:
     ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
@@ -48,7 +48,7 @@ private:
     uint16_t program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t accumulator_reg; 
     uint8_t x_index_reg, y_index_reg;     
-    uint8_t stack_pointer_reg;      
+    uint8_t stack_pointer;      
     status_flags status_flags_reg; 
 
     // Functions are for setting the addressing modes

@@ -63,8 +63,8 @@ uint8_t cpu::get_y_index_reg_content(void) {
     return y_index_reg;
 }
 
-uint8_t cpu::get_stack_pointer_reg_content(void) {
-    return stack_pointer_reg;
+uint8_t cpu::get_stack_pointer(void) {
+    return stack_pointer;
 }
 
 status_flags cpu::get_status_reg_flags_contents(void) {
