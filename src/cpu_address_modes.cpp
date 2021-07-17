@@ -31,7 +31,8 @@ uint8_t cpu::addr_mode_ACCUM(void) {
 
 uint8_t cpu::addr_mode_IMM(void) {
     // the second byte of the instruction contains the operand, with no further memory addressing required. Return zero after incrementing the program counter    
-    _fetched_operand = _program_counter; // grab a copy of the operand from the program counter directly, then increment.
+    _bus_ptr->set_address(_program_counter);
+    _fetched_operand = _bus_ptr->read_data(); // grab a copy of the operand from the program counter directly, then increment.
     _program_counter++;
     return 0; // todo
 }
@@ -59,23 +60,24 @@ uint8_t cpu::addr_mode_REL(void) {
 
 uint8_t cpu::addr_mode_ZP(void) {
     // this address mode takes only the second byte as it's address, and assumes that the third byte is all zero. in hardware this is faster, but probably doens't make much difference to an emulator
-    _fetched_address = _program_counter & 0x00FF;
+    _bus_ptr->set_address(_program_counter);
+    _fetched_address = (_bus_ptr->read_data()) & 0x00FF;
     _program_counter++;
     return 0;
 }
 
 uint8_t cpu::addr_mode_ZPX(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the x_index register. 
-    _x_index_reg += (_program_counter & 0x00FF);    // just need to grab the lower 8 bits because we only grab one byte.
-    _fetched_address = _x_index_reg & 0x00FF;       // the addres is now just the lower 8 bits of this index
+    _bus_ptr->set_address(_program_counter);
+    _fetched_address = (_bus_ptr->read_data() + _x_index_reg) & 0x00FF;
     _program_counter++;
     return 0; 
 }
 
 uint8_t cpu::addr_mode_ZPY(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the y_index register. 
-    _y_index_reg += (_program_counter & 0x00FF);    // just need to grab the lower 8 bits because we only grab one byte.
-    _fetched_address = _y_index_reg & 0x00FF;       // the addres is now just the lower 8 bits of this index
+    _bus_ptr->set_address(_program_counter);
+    _fetched_address = (_bus_ptr->read_data() + _y_index_reg) & 0x00FF;
     _program_counter++;
     return 0;
 }

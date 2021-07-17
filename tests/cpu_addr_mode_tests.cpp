@@ -15,16 +15,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSY", "[cpu instru
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ACCUM", "[cpu instruction]") {
-    REQUIRE(test_cpu.addr_mode_ACCUM() == 0);
+    REQUIRE(0 != 0);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruction]") {
-    uint16_t program_counter_before_address_mode = test_cpu.get_program_counter();
-    uint8_t result = test_cpu.addr_mode_IMM(); // program counter will tick one forward
-    uint16_t last_fetched_address = test_cpu.get_last_fetched_address(); 
-    // the last fetched data should now be set to the program counter once clock cycle ago
-    CHECK(last_fetched_address == program_counter_before_address_mode); 
-    REQUIRE(result == 0);
+    REQUIRE(0 != 0);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instruction]") {
@@ -40,6 +35,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instru
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMP", "[cpu instruction]") {
+    // implied mode does not mutate the instruction, so therefore will simply return 0 and do nothing else
     REQUIRE(test_cpu.addr_mode_IMP() == 0);
 }
 
