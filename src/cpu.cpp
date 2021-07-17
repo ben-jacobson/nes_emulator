@@ -22,8 +22,18 @@ cpu::~cpu() {
 }
 
 void cpu::cycle(void) {
-    // fetch data
-    // a cycle can have multiple clock cycles, this is affected by how the instructions are morphed by the addressing modes. 
+    if (_instr_cycles == 0) {
+        // The program counter will point to an address where there is some data stored.
+        // read the data at program counter (8 bits)
+        // increment the program counter
+        // Decode the data retrieved at PGMCounter
+        // Run this through our decoded_instruction set
+        // address mode will tell you if you need more clock cycles
+        // instruction will tell you if you need more clock cycles (Likely just zero or one)
+        // add those cycles to the amount of cycles required by that specific instruction in lookup
+        // execute the instruction
+    }
+    _instr_cycles--;
 }
 
 void cpu::reset(void) {

@@ -73,22 +73,21 @@ public:
     void set_stack_pointer(uint16_t offset_address);
     uint8_t get_stack_pointer(void); 
 
-
-    // Functions are for setting the addressing modes
-    uint8_t addr_mode_ACCUM(void);
-    uint8_t addr_mode_IMM(void);
+    // Functions are for setting the addressing modes, in alphabetical order
     uint8_t addr_mode_ABS(void);
     uint8_t addr_mode_ABSX(void);
     uint8_t addr_mode_ABSY(void);
-    uint8_t addr_mode_ZP(void);
-    uint8_t addr_mode_ZPX(void);
-    uint8_t addr_mode_ZPY(void);
+    uint8_t addr_mode_ACCUM(void);
+    uint8_t addr_mode_IMM(void);
     uint8_t addr_mode_IMP(void);
-    uint8_t addr_mode_REL(void);
     uint8_t addr_mode_INDI(void);
     uint8_t addr_mode_INDX(void);
     uint8_t addr_mode_INDY(void);
-
+    uint8_t addr_mode_REL(void);
+    uint8_t addr_mode_ZP(void);
+    uint8_t addr_mode_ZPX(void);
+    uint8_t addr_mode_ZPY(void);
+    
     // Instruction set in alphabetical order
     uint8_t instr_ADC(void);
     uint8_t instr_AND(void);
@@ -169,11 +168,11 @@ private:
     void set_opcode(uint8_t index, std::string name, std::function<uint8_t(void)> instruction, std::function<uint8_t(void)> address_mode, uint8_t instruction_bytes, uint8_t cycles_needed);
 
     // variables usd when processing information, passing data between fetch, clock and whatever instruction being performed.
-    uint8_t fetched_data;
-    uint16_t addr_abs;
-    uint8_t addr_rel;
-    uint8_t instr_opcode;
-    uint8_t instr_cycles;
+    uint8_t _fetched_data;
+    uint16_t _addr_abs;
+    uint8_t _addr_rel;
+    uint8_t _instr_opcode;
+    uint8_t _instr_cycles;
 
     uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t _accumulator_reg; 

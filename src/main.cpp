@@ -65,6 +65,9 @@ int main()
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
 		test_message.draw_to_buffer(text_to_render);		
 		debug_ram_display.display_ram_contents(0, 0);
+
+		// nes_cpu.cycle();
+
 		SDL_RenderPresent(renderer);	// update the display with new info from renderer
 		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 
