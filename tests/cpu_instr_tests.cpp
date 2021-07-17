@@ -1,5 +1,9 @@
 #include "catch.hpp"
 #include "test_fixtures.h"
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction decoder") {
+    REQUIRE(1 != 1);
+}
     
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - CLI", "[cpu instruction]") {
     test_cpu.instr_CLI(); // clear IRQ disable bit

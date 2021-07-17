@@ -8,6 +8,8 @@
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
+constexpr uint16_t OPCODE_COUNT = 256;
+
 enum status_flags_map : uint8_t {
     CARRY_FLAG      = 0,          // carry flag         
     ZERO_FLAG       = 1,          // zero flag
@@ -30,11 +32,23 @@ struct status_flags {
     uint8_t n : 1;          // negative flag, 1 = negative.
 };
 
+struct opcode {
+    std::string name;
+    uint8_t cycles_needed;
+    uint8_t instruction_bytes;
+    std::function<uint8_t(void)> address_mode;
+    std::function<uint8_t(void)> instruction;
+};
+
 class cpu : public bus_device
 {
 public:
+    // constrcutor and destructor
 	cpu(bus *bus_ptr, ram *ram_ptr);
-	~cpu() = default;
+	~cpu();
+
+    // opcode decoder struct
+    opcode* _opcode_decoder_lookup;
 
     // CPU main functions
     void cycle(void);   // main CPU clocking, called cycle because a cycle can have multiple clock pulses, e.g in multi clock instructions
@@ -62,11 +76,11 @@ public:
     uint8_t addr_mode_ACCUM(void);
     uint8_t addr_mode_IMM(void);
     uint8_t addr_mode_ABS(void);
+    uint8_t addr_mode_ABSX(void);
+    uint8_t addr_mode_ABSY(void);
     uint8_t addr_mode_ZP(void);
     uint8_t addr_mode_ZPX(void);
     uint8_t addr_mode_ZPY(void);
-    uint8_t addr_mode_ABSX(void);
-    uint8_t addr_mode_ABSY(void);
     uint8_t addr_mode_IMPLIED(void);
     uint8_t addr_mode_RELATIVE(void);
     uint8_t addr_mode_INDI(void);
@@ -148,6 +162,15 @@ public:
 
 private:
     ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
+
+    void init_opcode_decoder_lookup(void);
+
+    // variables usd when processing information, passing data between fetch, clock and whatever instruction being performed.
+    uint8_t fetched_data;
+    uint16_t addr_abs;
+    uint8_t addr_rel;
+    uint8_t instr_opcode;
+    uint8_t instr_cycles;
 
     uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t _accumulator_reg; 
