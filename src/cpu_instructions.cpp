@@ -1,5 +1,17 @@
 #include "cpu.h"
 
+uint8_t cpu::instr_ADC(void) {
+    return 0;
+}
+
+uint8_t cpu::instr_AND(void) {
+    return 0;
+}
+
+uint8_t cpu::instr_ASL(void) {
+    return 0;
+}
+
 uint8_t cpu::instr_BCC(void) {
     return 0;
 }

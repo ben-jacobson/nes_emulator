@@ -32,11 +32,11 @@ uint8_t cpu::addr_mode_ABSY(void) {
     return 0;
 }
 
-uint8_t cpu::addr_mode_IMPLIED(void) {
+uint8_t cpu::addr_mode_IMP(void) {
     return 0;
 }
 
-uint8_t cpu::addr_mode_RELATIVE(void) {
+uint8_t cpu::addr_mode_REL(void) {
     return 0;
 }
 

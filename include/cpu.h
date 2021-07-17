@@ -5,10 +5,12 @@
 #include "bus.h"
 #include "ram.h"
 
+#include <functional>
+
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
-constexpr uint16_t OPCODE_COUNT = 256;
+constexpr uint8_t OPCODE_COUNT = 255;
 
 enum status_flags_map : uint8_t {
     CARRY_FLAG      = 0,          // carry flag         
@@ -34,10 +36,10 @@ struct status_flags {
 
 struct opcode {
     std::string name;
-    uint8_t cycles_needed;
-    uint8_t instruction_bytes;
-    std::function<uint8_t(void)> address_mode;
     std::function<uint8_t(void)> instruction;
+    std::function<uint8_t(void)> address_mode;
+    uint8_t instruction_bytes;
+    uint8_t cycles_needed;
 };
 
 class cpu : public bus_device
@@ -81,8 +83,8 @@ public:
     uint8_t addr_mode_ZP(void);
     uint8_t addr_mode_ZPX(void);
     uint8_t addr_mode_ZPY(void);
-    uint8_t addr_mode_IMPLIED(void);
-    uint8_t addr_mode_RELATIVE(void);
+    uint8_t addr_mode_IMP(void);
+    uint8_t addr_mode_REL(void);
     uint8_t addr_mode_INDI(void);
     uint8_t addr_mode_INDX(void);
     uint8_t addr_mode_INDY(void);
@@ -164,6 +166,7 @@ private:
     ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
 
     void init_opcode_decoder_lookup(void);
+    void set_opcode(uint8_t index, std::string name, std::function<uint8_t(void)> instruction, std::function<uint8_t(void)> address_mode, uint8_t instruction_bytes, uint8_t cycles_needed);
 
     // variables usd when processing information, passing data between fetch, clock and whatever instruction being performed.
     uint8_t fetched_data;
