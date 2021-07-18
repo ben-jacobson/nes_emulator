@@ -108,6 +108,10 @@ void cpu::write(uint16_t address, uint8_t data) {
     return; // do nothing
 }	
 
+void cpu::set_program_counter(uint16_t new_program_counter) {
+    _program_counter = new_program_counter;
+}
+
 uint16_t cpu::get_program_counter(void) {
     return _program_counter;
 }
@@ -155,8 +159,8 @@ void cpu::set_stack_pointer(uint16_t address) {
 }
 
 void cpu::program_counter_to_stack(void) {
-    push_to_stack(((_program_counter & 0xFF00) >> 8));   // put the high 8 bits on the stack at the current pointer
-    push_to_stack((_program_counter & 0x00FF));   // then put the low 8 bits on the stack at the current pointer    
+    push_to_stack((_program_counter & 0xFF00) >> 8);   // put the high 8 bits on the stack at the current pointer
+    push_to_stack(_program_counter & 0x00FF);   // then put the low 8 bits on the stack at the current pointer    
 }
 
 void cpu::push_to_stack(uint8_t data) {

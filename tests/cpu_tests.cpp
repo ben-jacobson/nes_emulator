@@ -55,24 +55,26 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
     CHECK(test_cpu.get_status_flags_struct().u == 1);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") { 
+    test_cpu.set_program_counter(0xAADD);    // emulate being at a random address
+    test_cpu.instr_CLI(); // cpu defaults to IRQ disabled, clear this bit to enable IRQ
+
     uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
     uint16_t program_counter_at_start = test_cpu.get_program_counter();  
-    uint8_t program_counter_at_start_low = (program_counter_at_start & 0xFF);
+    uint8_t program_counter_at_start_low = (program_counter_at_start & 0x00FF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8);     
 
     hack_in_test_rom_data(0xFFFF - ROM_ADDRESS_SPACE_START, 0xBB); // put something in the IRQ vector
     hack_in_test_rom_data(0xFFFE - ROM_ADDRESS_SPACE_START, 0xAA);
 
-    test_cpu.instr_CLI(); // cpu defaults to IRQ disabled, clear this bit to enable IRQ
     CHECK(test_cpu.get_status_flags_struct().i == 0); // is the interrupt enabled (0)?
 
     bool result = test_cpu.IRQ();   // call the IRQ and see if returned true. 
     CHECK(result == true);
-
+    
     // program counter should now be on the stack
     uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start);  // the high 8 bits of pgm counter were loaded in first
-    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1); // then the low  8 bits of pgm counter
+    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1); // then the low 8 bits of pgm counter
     CHECK(result_pgm_counter_high == program_counter_at_start_high);
     CHECK(result_pgm_counter_low == program_counter_at_start_low);
         

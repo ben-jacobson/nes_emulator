@@ -63,7 +63,9 @@ public:
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	   
 
+    void set_program_counter(uint16_t new_program_counter);
     uint16_t get_program_counter(void);
+
     uint8_t get_accumulator_reg_content(void);
     uint8_t get_x_index_reg_content(void);
     uint8_t get_y_index_reg_content(void);
