@@ -36,15 +36,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - CLI", "[cpu instruct
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - PHP", "[cpu instruction]") {
     // test was the status pushed to the stack?
     uint8_t cpu_status_at_start = test_cpu.get_status_flags();
-    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
+    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();  // absolute address
     uint16_t program_counter_at_start = test_cpu.get_program_counter();
 
-    // run the command
+    // run the instruction
     test_cpu.instr_PHP();
-
-    // check to see if the program counter has incremented
-    uint16_t program_counter_now = test_cpu.get_program_counter();
-    CHECK(program_counter_now == program_counter_at_start + 1);
 
     // check that the stack pointer was decremented upon push
     uint16_t stack_pointer_now = STACK_START + test_cpu.get_stack_pointer();
