@@ -52,46 +52,45 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
     hack_in_test_rom_data(0xFFFF - ROM_ADDRESS_SPACE_START, 0xBB); 
     hack_in_test_rom_data(0xFFFE - ROM_ADDRESS_SPACE_START, 0xAA);
     CHECK(test_cpu.get_status_flags_struct().i == 0); // is the interrupt enabled (0)?
+    
+    uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
+    uint16_t program_counter_at_start = test_cpu.get_program_counter();    
     bool result = test_cpu.IRQ();   
     CHECK(result == true);
-    CHECK(test_cpu.get_program_counter() == 0xBBAA); // was the program counter set to the IRQ vector
-
-    /*
-        NOTE -  the data sheet for the 6502 stipulates that on IRQ the program counter and the status flags are loaded into the stack, we just don't know yet what order, so until we can work that out these tests will fail
-    */
 
     // program counter should now be on the stack
-    uint8_t result_pgm_counter_high = test_ram.read(test_cpu.get_program_counter()); // these tests are incomplete, and left to fail 
-    CHECK(result_pgm_counter_high == (test_cpu.get_program_counter() & 0xFF00));
-    uint8_t result_pgm_counter_low = test_ram.read(test_cpu.get_program_counter() + 1);
-    CHECK(result_pgm_counter_low == (test_cpu.get_program_counter() & 0x00FF));
+    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start); // these tests are incomplete, and left to fail 
+    CHECK(result_pgm_counter_high == (program_counter_at_start & 0xFF00));
+    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1);
+    CHECK(result_pgm_counter_low == (program_counter_at_start & 0x00FF));
         
     // also status registers
-    uint8_t result_stack_pointer_status_regs = test_ram.read(test_cpu.get_program_counter() + 2);
-    REQUIRE(result_stack_pointer_status_regs == test_cpu.get_status_flags());
+    uint8_t result_stack_pointer_status_regs = test_ram.read(STACK_START + stack_pointer_at_start - 2);
+    CHECK(result_stack_pointer_status_regs == test_cpu.get_status_flags());
+
+    REQUIRE(test_cpu.get_program_counter() == 0xBBAA); // was the program counter set to the IRQ vector?
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
     hack_in_test_rom_data(0xFFFB - ROM_ADDRESS_SPACE_START, 0xEE);
     hack_in_test_rom_data(0xFFFA - ROM_ADDRESS_SPACE_START, 0xFF); 
+
+    uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
+    uint16_t program_counter_at_start = test_cpu.get_program_counter();        
     bool result = test_cpu.NMI();   
     CHECK(result == true);
 
-    CHECK(test_cpu.get_program_counter() == 0xEEFF);  // was the program counter set to the NMI vector
-
-    /*
-        NOTE -  the data sheet for the 6502 stipulates that on IRQ the program counter and the status flags are loaded into the stack, we just don't know yet what order, so until we can work that out these tests will fail
-    */
-
     // program counter should now be on the stack
-    uint8_t result_pgm_counter_high = test_ram.read(test_cpu.get_program_counter()); // these tests are incomplete, and left to fail 
-    CHECK(result_pgm_counter_high == (test_cpu.get_program_counter() & 0xFF00));
-    uint8_t result_pgm_counter_low = test_ram.read(test_cpu.get_program_counter() + 1);
-    CHECK(result_pgm_counter_low == (test_cpu.get_program_counter() & 0x00FF));
+    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start); // these tests are incomplete, and left to fail 
+    CHECK(result_pgm_counter_high == (program_counter_at_start & 0xFF00));
+    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1);
+    CHECK(result_pgm_counter_low == (program_counter_at_start & 0x00FF));
         
     // also status registers
-    uint8_t result_stack_pointer_status_regs = test_ram.read(test_cpu.get_program_counter() + 2);
-    REQUIRE(result_stack_pointer_status_regs == test_cpu.get_status_flags());
+    uint8_t result_stack_pointer_status_regs = test_ram.read(STACK_START + stack_pointer_at_start - 2);
+    CHECK(result_stack_pointer_status_regs == test_cpu.get_status_flags());
+
+    REQUIRE(test_cpu.get_program_counter() == 0xEEFF);  // was the program counter set to the NMI vector?
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test set and get stack pointer") {

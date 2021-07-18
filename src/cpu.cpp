@@ -67,11 +67,8 @@ bool cpu::IRQ(void) {
         // Set the  IRQ flag to 1 to temporarily disable it
         _status_flags_reg.i = 1; 
 
-        // push the program counter high 8 bits first to stack
-        // Then the low 8 bits of the program counter
-        // Then status register      
-
-        // TODO - need to add a push to stack function, the stack pointer starts at the top end of the page, and decrements down towards bottom
+        program_counter_to_stack(); // put the program counter on the stack, high 8 bits first, then low 8 bits. 
+        instr_PHP();    // Then put the status register on the stack      
 
         // CPU expects that the interrupt vector will be loaded into addresses FFFE and FFFF (within the ROM space)
         _bus_ptr->set_address(0xFFFF);           // set program counter high bits from address FFFF    
@@ -85,9 +82,8 @@ bool cpu::IRQ(void) {
 }
 
 bool cpu::NMI(void) {
-    // store the program counter and status flags on the stack
-    //_program_counter -> stack??
-    //_status_flags_reg -> stack??
+    program_counter_to_stack(); // put the program counter on the stack, high 8 bits first, then low 8 bits. 
+    instr_PHP();    // Then put the status register on the stack     
 
     // CPU expects that the interrupt vector will be loaded into FFFA and FFFB (within the ROM space)
     _bus_ptr->set_address(0xFFFB);           // set program counter high bits from address FFFB    
@@ -151,6 +147,21 @@ void cpu::set_stack_pointer(uint16_t address) {
     else {
         _stack_pointer = 0x00;
     }
+}
+
+void cpu::program_counter_to_stack(void) {
+    // put the high 8 bits on the stack at the current pointer
+    push_to_stack(_program_counter & 0xFF00);
+    
+    // then put the low 8 bits on the stack at the current pointer
+    push_to_stack(_program_counter & 0x00FF);    
+}
+
+void cpu::push_to_stack(uint8_t data) {
+    // the address will be the stack start page + the offset pointer
+    _bus_ptr->set_address(STACK_START + _stack_pointer);
+    _bus_ptr->write_data(data);
+    _stack_pointer--; //     decrement the stack pointer
 }
 
 uint16_t cpu::get_last_fetched_address(void) {

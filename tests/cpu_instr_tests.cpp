@@ -36,6 +36,29 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - CLI", "[cpu instruct
     REQUIRE(test_cpu.get_status_flags_struct().i == 0);
 }
 
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - PHP", "[cpu instruction]") {
+    // test was the status pushed to the stack?
+    uint8_t cpu_status_at_start = test_cpu.get_status_flags();
+    uint8_t program_counter_at_start = test_cpu.get_program_counter();
+    uint8_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
+
+    // run the command
+    test_cpu.instr_PHP();
+
+    // check to see if the program counter has incremented
+    uint16_t program_counter_now = test_cpu.get_program_counter();
+    CHECK(program_counter_now -1 == program_counter_at_start);
+
+    // check that the stack pointer was decremented upon push
+    uint8_t stack_pointer_now = test_cpu.get_stack_pointer();
+    CHECK(stack_pointer_now + 1 == stack_pointer_at_start);
+
+    // check to see if stack was updated with program status
+    uint8_t result_stack_contents = test_ram.read(STACK_START + stack_pointer_at_start);
+    REQUIRE(result_stack_contents == cpu_status_at_start);
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - SEI", "[cpu instruction]") {
     test_cpu.instr_SEI(); // set IRQ disable bit
     REQUIRE(test_cpu.get_status_flags_struct().i == 1);

@@ -145,7 +145,9 @@ uint8_t cpu::instr_PHA(void) {
 }
 
 uint8_t cpu::instr_PHP(void) {
-    return 0;
+    push_to_stack(get_status_flags());
+    _program_counter++;
+    return 0;   // no more cycles needed
 }
 
 uint8_t cpu::instr_PLA(void) {
