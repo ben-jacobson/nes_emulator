@@ -36,13 +36,19 @@ void cpu::cycle(void) {
     _instr_cycles--;
 }
 
+void cpu::fetch_opcode(void) {
+    _bus_ptr->set_address(_program_counter); // the current program counter position should be right on top of an instruction opcode
+    _instr_opcode = _bus_ptr->read_data(); // read it back and store it in fethed_operand
+    _program_counter++; // increment the 
+}
+
 void cpu::reset(void) {
     // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our hardware doesn't do anything to prevent this, but we may need to in future
     // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator
 
     // Set mask interrupt flag
 
-    // Load program counter from memory vector 0xFFFC and 0xFFFD, which is start location for program control
+    // Set program counter from memory loaded into vector 0xFFFC and 0xFFFD, which is start location for program control
     _bus_ptr->set_address(RESET_VECTOR_HIGH);  
     _program_counter = _bus_ptr->read_data();
     _program_counter = _program_counter << 8; 

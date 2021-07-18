@@ -57,7 +57,7 @@ public:
     void reset(void);   // reset CPU back to original state. 
     bool IRQ(void);     // Interrupt request
     bool NMI(void);     // non maskable interrupt
-    uint8_t fetch_data(void);    
+    void fetch_opcode(void);    
 
     // being a bus device, we need to define these, as a result, they do nothing. 
 	uint8_t read(uint16_t address) override;
@@ -174,8 +174,7 @@ private:
 
     // variables used for processing information, passing data between fetch, clock and whatever instruction being performed.
     uint16_t _fetched_address, _fetched_operand;
-    uint8_t _instr_opcode;
-    uint8_t _instr_cycles;
+    uint8_t _instr_opcode, _instr_cycles;
 
     uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t _accumulator_reg; 
