@@ -99,10 +99,11 @@ bool cpu::NMI(void) {
 }
 
 uint8_t cpu::read(uint16_t address) {
-    return 0; // do nothing
+    return address; // do nothing and surpress warning
 }
 
 void cpu::write(uint16_t address, uint8_t data) {
+    address += data; // to supress warning
     return; // do nothing
 }	
 

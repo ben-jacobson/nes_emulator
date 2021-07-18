@@ -26,21 +26,25 @@ cartridge::~cartridge() {
 uint8_t cartridge::read(uint16_t address) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        if (address >= ROM_ADDRESS_SPACE_START && address <= ROM_ADDRESS_SPACE_END) {
+        if (address >= ROM_ADDRESS_SPACE_START) { //  && address <= ROM_ADDRESS_SPACE_END) { // we won't check that is at end address because it it's the largest value a uint16_t can have
             return read_rom(address);
         }
-        return 0; // TODO!!
+        else {
+            return 0; // TODO!!
+        }
     }
     return 0;
 }
 
 void cartridge::write(uint16_t address, uint8_t data) {
+    // do nothing, we cannot write to ROM
+    address += data; // surpress warning 
     return;
 }	
 
 uint8_t cartridge::read_rom(uint16_t address) {
     // First check if the read is within the specified address range
-    if (address >= ROM_ADDRESS_SPACE_START && address <= ROM_ADDRESS_SPACE_END) {
+    if (address >= ROM_ADDRESS_SPACE_START) { //   && address <= ROM_ADDRESS_SPACE_END) {  // we won't check that is at end address because it it's the largest value a uint16_t can have
         return _rom_data[address - ROM_ADDRESS_SPACE_START]; // new mapped address is offset by _address_space_lower;
     }
     return 0;
