@@ -1,13 +1,16 @@
 #include "cpu.h"
 
+// every address mode assumes the opcode has already been grabbed, the program counter has been incremented and we are now reading the second byte
+
 uint8_t cpu::addr_mode_ABS(void) {
     // In absolute address mode, the second byte of the instruction is the lower 8 bits of the address, with the third byte being the upper 8 bits of the address (little endian)
-    // This means that an instruction can apply to the entire 64Kb range of memory. 
-    // ...assuming the opcode has already been grabbed and we are ready to move forward with the PC
-    uint16_t low = _program_counter;   
+    // This allows an instruction to apply to the entire 64Kb range of memory. 
+    _bus_ptr->set_address(_program_counter);
+    uint8_t low = _bus_ptr->read_data();
     _program_counter++;
 
-    uint16_t high = _program_counter;
+    _bus_ptr->set_address(_program_counter);
+    uint8_t high = _bus_ptr->read_data();
     _program_counter++;
 
     _fetched_address = (high << 8) | low;

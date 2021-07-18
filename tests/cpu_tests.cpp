@@ -125,7 +125,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test set and get stack pointer")
     REQUIRE(result_three == 0x11);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test fetch data", "[cpu]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test fetch process", "[cpu]") {
     // test_cpu->fetch_data();  
     REQUIRE(0 != 0); // temporary fail while we write some 
 }
