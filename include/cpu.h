@@ -59,6 +59,10 @@ public:
     bool NMI(void);     // non maskable interrupt
     void fetch_opcode(void);    
 
+    void debug_set_x_register(uint8_t data);
+    void debug_set_y_register(uint8_t data);
+    void debug_set_acc_register(uint8_t data);
+
     // being a bus device, we need to define these, as a result, they do nothing. 
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	   
@@ -94,6 +98,10 @@ public:
     uint8_t addr_mode_ZP(void);
     uint8_t addr_mode_ZPX(void);
     uint8_t addr_mode_ZPY(void);
+
+    // Instruction set helper functions
+    inline void check_if_zero(uint8_t data);
+    inline void check_if_negative(uint8_t data);    
     
     // Instruction set in alphabetical order
     uint8_t instr_ADC(void);

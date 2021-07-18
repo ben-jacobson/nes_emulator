@@ -1,5 +1,13 @@
 #include "cpu.h"
 
+inline void cpu::check_if_negative(uint8_t data) {
+    _status_flags_reg.n = ((data & 0x80) >> 7) == 1 ? 1 : 0;
+}
+
+inline void cpu::check_if_zero(uint8_t data) {
+    _status_flags_reg.z = data == 0 ? 1: 0;
+}
+
 uint8_t cpu::instr_ADC(void) {
     return 0;
 }
@@ -85,10 +93,16 @@ uint8_t cpu::instr_DEC(void) {
 }
 
 uint8_t cpu::instr_DEX(void) {
+    _x_index_reg--;
+    check_if_negative(_x_index_reg);
+    check_if_zero(_x_index_reg);
     return 0;
 }
 
 uint8_t cpu::instr_DEY(void) {
+    _y_index_reg--;
+    check_if_negative(_y_index_reg);
+    check_if_zero(_y_index_reg);
     return 0;
 }
 
@@ -101,10 +115,16 @@ uint8_t cpu::instr_INC(void) {
 }
 
 uint8_t cpu::instr_INX(void) {
+    _x_index_reg++;
+    check_if_negative(_x_index_reg);
+    check_if_zero(_x_index_reg);
     return 0;
 }
 
 uint8_t cpu::instr_INY(void) {
+    _y_index_reg++;
+    check_if_negative(_y_index_reg);
+    check_if_zero(_y_index_reg);    
     return 0;
 }
 

@@ -11,8 +11,6 @@ cpu::cpu(bus *bus_ptr, ram *ram_ptr)
     // disable the read and write function pointer
     _read_function_ptr = nullptr;
     _write_function_ptr = nullptr;
-
-    _status_flags_reg.u = 1; // unused is left at one for all time    
  
     reset();
 } 
@@ -42,6 +40,18 @@ void cpu::fetch_opcode(void) {
     _program_counter++; // increment the 
 }
 
+void cpu::debug_set_x_register(uint8_t data) {
+    _x_index_reg = data;
+}
+
+void cpu::debug_set_y_register(uint8_t data) {
+    _y_index_reg = data;
+}
+
+void cpu::debug_set_acc_register(uint8_t data) {
+    _accumulator_reg = data;
+}
+
 void cpu::reset(void) {
     // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our hardware doesn't do anything to prevent this, but we may need to in future
     // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator
@@ -58,8 +68,16 @@ void cpu::reset(void) {
     // set the stack pointer back to the end. As the stack pointer moves, it decrements back to STACK_START
     set_stack_pointer(STACK_END);
 
-   _status_flags_reg.i = 1; // interrupt mask is set (IRQ disabled on reset)
-   _status_flags_reg.d = 0; // decimal mode is cleared
+
+    _status_flags_reg.c = 0;
+    _status_flags_reg.z = 1;    // zero flag is initialized as zero
+    _status_flags_reg.i = 1;    // interrupt mask is set (IRQ disabled on reset)
+    _status_flags_reg.d = 0;    // decimal mode is cleared
+    _status_flags_reg.b = 1;
+    _status_flags_reg.u = 1;    // unused is left at one for all time 
+    _status_flags_reg.v = 0;
+    _status_flags_reg.n = 0;
+
 
    // clear the accumulator, x_index and y_index registers
    _accumulator_reg = 0;
