@@ -14,9 +14,6 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags_struct") {
     CHECK(result == (1 << IRQ_FLAG));
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Initialize and check defaults", "[cpu]") {
-    REQUIRE(0 != 0); // temporary fail while we write some code
-}
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
     // test_cpu->cycle();   
@@ -114,33 +111,40 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test fetch data", "[cpu]") {
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test program counter getter", "[cpu]") {
-    //test_cpu->get_program_counter();
-    REQUIRE(0 != 0); // temporary fail while we write some code
+    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0x00);
+    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0x80);
+    test_cpu.reset(); // reset will go to the reset vector, in this instance will read 0x8000 and skip to that 
+
+    uint16_t result = test_cpu.get_program_counter(); 
+    REQUIRE(result == 0x8000); 
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get accumulator register content getter", "[cpu]") {
-    // test_cpu->get_accumulator_reg_content();
-    REQUIRE(0 != 0); // temporary fail while we write some code
+    test_cpu.reset();
+    REQUIRE(test_cpu.get_accumulator_reg_content() == 0); // temporary fail while we write some code
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get x index register content getter", "[cpu]") {
-    // test_cpu->get_x_index_reg_content();
-    REQUIRE(0 != 0); // temporary fail while we write some code
+    test_cpu.reset();
+    REQUIRE(test_cpu.get_x_index_reg_content() == 0); // temporary fail while we write some code
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get y index register content getter", "[cpu]") {
-    // test_cpu->get_y_index_reg_content();
-    REQUIRE(0 != 0); // temporary fail while we write some code
+    test_cpu.reset();
+    REQUIRE(test_cpu.get_y_index_reg_content() == 0); // temporary fail while we write some code
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get stack pointer register content getter", "[cpu]") {
-    // test_cpu->get_stack_pointer_reg_content(); 
-    REQUIRE(0 != 0); // temporary fail while we write some code
+    test_cpu.reset();
+    uint8_t stack_start_condition = test_cpu.get_stack_pointer(); 
+    REQUIRE(stack_start_condition == 0xFF);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get status flag register content getter", "[cpu]") {
-    // test_cpu->get_status_reg_contents();
-    REQUIRE(0 != 0); // temporary fail while we write some code
+    test_cpu.reset(); // reset will go to the reset vector, in this instance will read 0x8000 and skip to that 
+    uint8_t status_regs = test_cpu.get_status_flags();
+    uint8_t test_start_condition = (1 << IRQ_FLAG) | (1 << UNUSED_FLAG); // the only two flags set should be IRQ disable and unused
+    REQUIRE(status_regs == test_start_condition); 
 } 
 
  TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test read function pointer", "[bus]") {

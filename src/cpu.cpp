@@ -60,6 +60,11 @@ void cpu::reset(void) {
 
    _status_flags_reg.i = 1; // interrupt mask is set (IRQ disabled on reset)
    _status_flags_reg.d = 0; // decimal mode is cleared
+
+   // clear the accumulator, x_index and y_index registers
+   _accumulator_reg = 0;
+   _x_index_reg = 0;
+   _y_index_reg = 0;
 } 
 
 bool cpu::IRQ(void) {
