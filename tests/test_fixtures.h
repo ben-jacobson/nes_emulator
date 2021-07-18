@@ -22,6 +22,10 @@ public:
         test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, test_ram._read_function_ptr, test_ram._write_function_ptr);    
         test_bus.register_new_bus_device(RAM_MIRRORA_SPACE_START, RAM_MIRRORA_SPACE_END, another_test_ram._read_function_ptr, another_test_ram._write_function_ptr);    
         test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
+
+        // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU
+        hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0x00); 
+        hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0x80);   
     }
 
     ~emulator_test_fixtures() = default;

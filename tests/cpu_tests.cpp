@@ -1,6 +1,17 @@
 #include "catch.hpp"
 #include "test_fixtures.h"
     
+
+TEST_CASE("cpu - test 16bit splitting logic") {
+    // we use this logic in a lot of private methods, since we can't test it, we'll just test our pattern in isolation instead. 
+
+    uint16_t test_address = 0xABCD;
+    uint8_t test_address_high = ((test_address & 0xFF00) >> 8);
+    uint8_t test_address_low = (test_address & 0x00FF);
+
+    REQUIRE(test_address_high == 0xAB);
+    REQUIRE(test_address_low == 0xCD);
+}
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags") {
     test_cpu.reset(); // after resetting the cpu, the IRQ bit should be 1 (disabled)
     // test that the interrupt disable bit was set (disabled)
@@ -45,49 +56,56 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
-    test_cpu.instr_CLI(); // cpu defaults to IRQ disabled, clear this bit to enable IRQ
-    hack_in_test_rom_data(0xFFFF - ROM_ADDRESS_SPACE_START, 0xBB); 
+    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
+    uint16_t program_counter_at_start = test_cpu.get_program_counter();  
+    uint8_t program_counter_at_start_low = (program_counter_at_start & 0xFF);
+    uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8);     
+
+    hack_in_test_rom_data(0xFFFF - ROM_ADDRESS_SPACE_START, 0xBB); // put something in the IRQ vector
     hack_in_test_rom_data(0xFFFE - ROM_ADDRESS_SPACE_START, 0xAA);
+
+    test_cpu.instr_CLI(); // cpu defaults to IRQ disabled, clear this bit to enable IRQ
     CHECK(test_cpu.get_status_flags_struct().i == 0); // is the interrupt enabled (0)?
-    
-    uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
-    uint16_t program_counter_at_start = test_cpu.get_program_counter();    
-    bool result = test_cpu.IRQ();   
+
+    bool result = test_cpu.IRQ();   // call the IRQ and see if returned true. 
     CHECK(result == true);
 
     // program counter should now be on the stack
-    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start); // these tests are incomplete, and left to fail 
-    CHECK(result_pgm_counter_high == (program_counter_at_start & 0xFF00));
-    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1);
-    CHECK(result_pgm_counter_low == (program_counter_at_start & 0x00FF));
+    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start);  // the high 8 bits of pgm counter were loaded in first
+    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1); // then the low  8 bits of pgm counter
+    CHECK(result_pgm_counter_high == program_counter_at_start_high);
+    CHECK(result_pgm_counter_low == program_counter_at_start_low);
         
     // also status registers
-    uint8_t result_stack_pointer_status_regs = test_ram.read(STACK_START + stack_pointer_at_start - 2);
+    uint8_t result_stack_pointer_status_regs = test_ram.read(stack_pointer_at_start - 2);
     CHECK(result_stack_pointer_status_regs == test_cpu.get_status_flags());
 
     REQUIRE(test_cpu.get_program_counter() == 0xBBAA); // was the program counter set to the IRQ vector?
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
-    hack_in_test_rom_data(0xFFFB - ROM_ADDRESS_SPACE_START, 0xEE);
+    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
+    uint16_t program_counter_at_start = test_cpu.get_program_counter();  
+    uint8_t program_counter_at_start_low = (program_counter_at_start & 0xFF);
+    uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8); 
+
+    hack_in_test_rom_data(0xFFFB - ROM_ADDRESS_SPACE_START, 0xEE);  // put something in the NMI vector
     hack_in_test_rom_data(0xFFFA - ROM_ADDRESS_SPACE_START, 0xFF); 
 
-    uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
-    uint16_t program_counter_at_start = test_cpu.get_program_counter();        
     bool result = test_cpu.NMI();   
     CHECK(result == true);
 
     // program counter should now be on the stack
-    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start); // these tests are incomplete, and left to fail 
-    CHECK(result_pgm_counter_high == (program_counter_at_start & 0xFF00));
+    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start); 
     uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1);
-    CHECK(result_pgm_counter_low == (program_counter_at_start & 0x00FF));
+    CHECK(result_pgm_counter_high == program_counter_at_start_high);
+    CHECK(result_pgm_counter_low == program_counter_at_start_low);
         
     // also status registers
-    uint8_t result_stack_pointer_status_regs = test_ram.read(STACK_START + stack_pointer_at_start - 2);
+    uint8_t result_stack_pointer_status_regs = test_ram.read(stack_pointer_at_start - 2);
     CHECK(result_stack_pointer_status_regs == test_cpu.get_status_flags());
 
-    REQUIRE(test_cpu.get_program_counter() == 0xEEFF);  // was the program counter set to the NMI vector?
+    REQUIRE(test_cpu.get_program_counter() == 0xEEFF); // was the program counter set to the NMI vector?
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test set and get stack pointer") {

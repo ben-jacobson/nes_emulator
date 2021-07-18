@@ -4,10 +4,6 @@
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction decoder") {
     // provide the CPU with a bit of data to work with. 
     hack_in_test_rom_data(ROM_ADDRESS_SPACE_START - 0x8000, 0xEA); // NOP instruction
-
-    // hack in the reset vector to be our 0x8000 address and reset the CPU
-    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0x00); 
-    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0x80);
     uint8_t result_rom = test_cart.read(RESET_VECTOR_HIGH);
     CHECK(result_rom == 0x80);
 
@@ -40,22 +36,22 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - CLI", "[cpu instruct
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - PHP", "[cpu instruction]") {
     // test was the status pushed to the stack?
     uint8_t cpu_status_at_start = test_cpu.get_status_flags();
-    uint8_t program_counter_at_start = test_cpu.get_program_counter();
-    uint8_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
+    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
+    uint16_t program_counter_at_start = test_cpu.get_program_counter();
 
     // run the command
     test_cpu.instr_PHP();
 
     // check to see if the program counter has incremented
     uint16_t program_counter_now = test_cpu.get_program_counter();
-    CHECK(program_counter_now -1 == program_counter_at_start);
+    CHECK(program_counter_now == program_counter_at_start + 1);
 
     // check that the stack pointer was decremented upon push
-    uint8_t stack_pointer_now = test_cpu.get_stack_pointer();
-    CHECK(stack_pointer_now + 1 == stack_pointer_at_start);
+    uint16_t stack_pointer_now = STACK_START + test_cpu.get_stack_pointer();
+    CHECK(stack_pointer_now == stack_pointer_at_start - 1);
 
     // check to see if stack was updated with program status
-    uint8_t result_stack_contents = test_ram.read(STACK_START + stack_pointer_at_start);
+    uint8_t result_stack_contents = test_ram.read(stack_pointer_at_start);
     REQUIRE(result_stack_contents == cpu_status_at_start);
 }
 

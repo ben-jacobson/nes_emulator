@@ -61,6 +61,7 @@ uint8_t cpu::instr_CLD(void) {
 
 uint8_t cpu::instr_CLI(void) {
     _status_flags_reg.i = 0;
+    _program_counter++;
     return 0;
 }
 
@@ -188,6 +189,7 @@ uint8_t cpu::instr_SED(void) {
 
 uint8_t cpu::instr_SEI(void) {
     _status_flags_reg.i = 1;
+    _program_counter++;
     return 0;
 }
 

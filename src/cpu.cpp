@@ -155,11 +155,8 @@ void cpu::set_stack_pointer(uint16_t address) {
 }
 
 void cpu::program_counter_to_stack(void) {
-    // put the high 8 bits on the stack at the current pointer
-    push_to_stack(_program_counter & 0xFF00);
-    
-    // then put the low 8 bits on the stack at the current pointer
-    push_to_stack(_program_counter & 0x00FF);    
+    push_to_stack(((_program_counter & 0xFF00) >> 8));   // put the high 8 bits on the stack at the current pointer
+    push_to_stack((_program_counter & 0x00FF));   // then put the low 8 bits on the stack at the current pointer    
 }
 
 void cpu::push_to_stack(uint8_t data) {
