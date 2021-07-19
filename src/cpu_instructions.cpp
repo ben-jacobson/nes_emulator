@@ -1,13 +1,5 @@
 #include "cpu.h"
 
-inline void cpu::check_if_negative(uint8_t data) {
-    _status_flags_reg.n = ((data & 0x80) >> 7) == 1 ? 1 : 0;
-}
-
-inline void cpu::check_if_zero(uint8_t data) {
-    _status_flags_reg.z = data == 0 ? 1: 0;
-}
-
 uint8_t cpu::instr_ADC(void) {
     return 0;
 }

@@ -8238,7 +8238,7 @@ namespace Catch {
             // (To go back to the test and change execution, jump over the throw, next)
             CATCH_BREAK_INTO_DEBUGGER();
         }
-        if (m_reaction.shouldThrow) {
+            if (m_reaction.shouldThrow) {
 #if !defined(CATCH_CONFIG_DISABLE_EXCEPTIONS)
             throw Catch::TestFailureException();
 #else

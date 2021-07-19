@@ -11,7 +11,7 @@ cpu::cpu(bus *bus_ptr, ram *ram_ptr)
     // disable the read and write function pointer
     _read_function_ptr = nullptr;
     _write_function_ptr = nullptr;
- 
+
     reset();
 } 
 
@@ -22,14 +22,18 @@ cpu::~cpu() {
 void cpu::cycle(void) {
     if (_instr_cycles == 0) {
         // The program counter will point to an address where there is some data stored.
+        _bus_ptr->set_address(_program_counter);
+
         // read the data at program counter (8 bits)
-        // increment the program counter
-        // Decode the data retrieved at PGMCounter
-        // Run this through our decoded_instruction set
-        // address mode will tell you if you need more clock cycles
-        // instruction will tell you if you need more clock cycles (Likely just zero or one)
-        // add those cycles to the amount of cycles required by that specific instruction in lookup
-        // execute the instruction
+        _instr_opcode = _bus_ptr->read_data();
+        
+        // Decode the data retrieved at PGMCounter, then run this through our decoded addres mode
+        _instr_cycles = _opcode_decoder_lookup[_instr_opcode].cycles_needed + 1;   // +1 to offset the immediate loss after this if statement. We still need those clock pulses after         
+        _instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
+        _instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
+
+        // increment the program counter, ready for the next opcode
+        _program_counter++;
     }
     _instr_cycles--;
 }
@@ -53,10 +57,10 @@ void cpu::debug_set_acc_register(uint8_t data) {
 }
 
 void cpu::reset(void) {
-    // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our hardware doesn't do anything to prevent this, but we may need to in future
-    // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator
+    // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our emulation doesn't do anything to prevent this, but we may need to in future
+    // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator but we'll implement it anyway
 
-    // Set mask interrupt flag
+    _instr_cycles = 6;
 
     // Set program counter from memory loaded into vector 0xFFFC and 0xFFFD, which is start location for program control
     _bus_ptr->set_address(RESET_VECTOR_HIGH);  
@@ -68,7 +72,6 @@ void cpu::reset(void) {
     // set the stack pointer back to the end. As the stack pointer moves, it decrements back to STACK_START
     set_stack_pointer(STACK_END);
 
-
     _status_flags_reg.c = 0;
     _status_flags_reg.z = 1;    // zero flag is initialized as zero
     _status_flags_reg.i = 1;    // interrupt mask is set (IRQ disabled on reset)
@@ -77,7 +80,6 @@ void cpu::reset(void) {
     _status_flags_reg.u = 1;    // unused is left at one for all time 
     _status_flags_reg.v = 0;
     _status_flags_reg.n = 0;
-
 
    // clear the accumulator, x_index and y_index registers
    _accumulator_reg = 0;

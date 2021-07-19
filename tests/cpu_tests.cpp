@@ -27,8 +27,59 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags_struct") {
 
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
-    // test_cpu->cycle();   
-    REQUIRE(0 != 0); // temporary fail while we write some 
+    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);        // set reset vector so that CPU knows where to go to look for start of program
+    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0xEE);
+    hack_in_test_rom_data(0xEEDD - ROM_ADDRESS_SPACE_START, 0xEA); // a nop instruction, do nothing
+    hack_in_test_rom_data(0xEEDE - ROM_ADDRESS_SPACE_START, 0xE8); // an inx instruction, increment X index
+    hack_in_test_rom_data(0xEEDF - ROM_ADDRESS_SPACE_START, 0x08); // a PHP instruction, push program status to stack
+    test_cpu.reset(); // program will start at address EEDD
+
+    test_bus.set_address(0xEEDD);
+    uint8_t rom_sense_check = test_bus.read_data();
+    CHECK (rom_sense_check == 0xEA);
+
+    uint16_t program_counter = test_cpu.get_program_counter(); 
+    CHECK(program_counter == 0xEEDD);
+
+    // the cpu takes 6 clock cycles to commence
+    for (uint8_t i = 0; i < 6; i++) {
+        test_cpu.cycle();
+    }    
+
+    test_cpu.cycle(); // the first cycle after the 6 reset cycles kicks off execution
+    uint8_t last_fetched_opcode = test_cpu.get_last_fetched_opcode(); 
+    CHECK(last_fetched_opcode == 0xEA);    
+    test_cpu.cycle();
+    test_cpu.cycle(); // NOP takes two clock cycles, so will require two pulses to get to next instruction
+
+    program_counter = test_cpu.get_program_counter(); 
+    CHECK(program_counter == 0xEEDE);     // inx instruction at this point
+    test_cpu.cycle(); // to enter the new instruction
+    last_fetched_opcode = test_cpu.get_last_fetched_opcode(); 
+    CHECK(last_fetched_opcode == 0xE8);
+    uint8_t x_index_contents = test_cpu.get_x_index_reg_content();
+    CHECK(x_index_contents == 1);
+    test_cpu.cycle();
+    test_cpu.cycle(); // INX takes two clock cycles
+
+    uint8_t stack_pointer = test_cpu.get_stack_pointer();
+    program_counter = test_cpu.get_program_counter(); 
+    CHECK(program_counter == 0xEEDF); // PHP instruction  
+    
+    test_cpu.cycle();
+    last_fetched_opcode = test_cpu.get_last_fetched_opcode(); 
+    CHECK(last_fetched_opcode == 0x08);
+
+    uint8_t status_flags = test_cpu.get_status_flags();
+    test_bus.set_address(STACK_START + stack_pointer);
+    uint8_t stack_contents = test_bus.read_data();
+    CHECK(stack_contents == status_flags);
+    test_cpu.cycle();       
+    test_cpu.cycle();
+    test_cpu.cycle();   // PHP takes 3 instruction cycles
+
+    program_counter = test_cpu.get_program_counter(); 
+    CHECK(program_counter == 0xEEE0);         
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {

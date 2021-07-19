@@ -1,6 +1,7 @@
 #include "cpu.h"
 
 // every address mode assumes the opcode has already been grabbed, the program counter has been incremented and we are now reading the second byte
+// there is no need to increment the program counter after this, the cpu cycle function will handle this. 
 
 uint8_t cpu::addr_mode_ABS(void) {
     // In absolute address mode, the second byte of the instruction is the lower 8 bits of the address, with the third byte being the upper 8 bits of the address (little endian)
@@ -11,7 +12,6 @@ uint8_t cpu::addr_mode_ABS(void) {
 
     _bus_ptr->set_address(_program_counter);
     uint8_t high = _bus_ptr->read_data();
-    _program_counter++;
 
     _fetched_address = (high << 8) | low;
     return 0; 
@@ -36,7 +36,6 @@ uint8_t cpu::addr_mode_IMM(void) {
     // the second byte of the instruction contains the operand, with no further memory addressing required. Return zero after incrementing the program counter    
     _bus_ptr->set_address(_program_counter);
     _fetched_operand = _bus_ptr->read_data(); // grab a copy of the operand from the program counter directly, then increment.
-    _program_counter++;
     return 0; // todo
 }
 
@@ -65,7 +64,6 @@ uint8_t cpu::addr_mode_ZP(void) {
     // this address mode takes only the second byte as it's address, and assumes that the third byte is all zero. in hardware this is faster, but probably doens't make much difference to an emulator
     _bus_ptr->set_address(_program_counter);
     _fetched_address = (_bus_ptr->read_data()) & 0x00FF;
-    _program_counter++;
     return 0;
 }
 
@@ -73,7 +71,6 @@ uint8_t cpu::addr_mode_ZPX(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the x_index register. 
     _bus_ptr->set_address(_program_counter);
     _fetched_address = (_bus_ptr->read_data() + _x_index_reg) & 0x00FF;
-    _program_counter++;
     return 0; 
 }
 
@@ -81,6 +78,5 @@ uint8_t cpu::addr_mode_ZPY(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the y_index register. 
     _bus_ptr->set_address(_program_counter);
     _fetched_address = (_bus_ptr->read_data() + _y_index_reg) & 0x00FF;
-    _program_counter++;
     return 0;
 }
