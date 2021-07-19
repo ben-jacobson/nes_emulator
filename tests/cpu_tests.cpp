@@ -158,7 +158,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get stack pointer register 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get status flag register content getter", "[cpu]") {
     test_cpu.reset(); // reset will go to the reset vector, in this instance will read 0x8000 and skip to that 
     uint8_t status_regs = test_cpu.get_status_flags();
-    uint8_t test_start_condition = (1 << IRQ_FLAG) | (1 << UNUSED_FLAG); // the only two flags set should be IRQ disable and unused
+    uint8_t test_start_condition = (1 << ZERO_FLAG) | (1 << IRQ_FLAG) | (1 << BREAK_FLAG) | (1 << UNUSED_FLAG); // the only two flags set should be IRQ disable and unused
     REQUIRE(status_regs == test_start_condition); 
 } 
 

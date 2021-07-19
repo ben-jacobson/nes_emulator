@@ -100,8 +100,13 @@ public:
     uint8_t addr_mode_ZPY(void);
 
     // Instruction set helper functions
-    inline void check_if_zero(uint8_t data);
-    inline void check_if_negative(uint8_t data);    
+    inline void check_if_negative(uint8_t data) {
+        _status_flags_reg.n = ((data & 0x80) >> 7) == 1 ? 1 : 0;
+    }
+
+    inline void check_if_zero(uint8_t data) {
+        _status_flags_reg.z = data == 0 ? 1: 0;
+    } 
     
     // Instruction set in alphabetical order
     uint8_t instr_ADC(void);
