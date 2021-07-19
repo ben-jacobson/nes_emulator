@@ -44,7 +44,13 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
     CHECK(test_cpu.get_program_counter() == 0x8000);
 
     // call fetch and check that it returned an instruction
-    test_cpu.cycle();      //was test_cpu.fetch_opcode();
+
+    // the cpu takes 6 clock cycles to commence
+    for (uint8_t i = 0; i < 6; i++) {
+        test_cpu.cycle();
+    }  
+
+    test_cpu.cycle(); // then cycle into the first instruction
     uint8_t last_fetched_opcode = test_cpu.get_last_fetched_opcode();
     CHECK(last_fetched_opcode == 0xEA);
 

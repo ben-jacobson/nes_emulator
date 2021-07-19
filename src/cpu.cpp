@@ -28,7 +28,7 @@ void cpu::cycle(void) {
         _instr_opcode = _bus_ptr->read_data();
         
         // Decode the data retrieved at PGMCounter, then run this through our decoded addres mode
-        _instr_cycles = _opcode_decoder_lookup[_instr_opcode].cycles_needed + 1;   // +1 to offset the immediate loss after this if statement. We still need those clock pulses after         
+        _instr_cycles = _opcode_decoder_lookup[_instr_opcode].cycles_needed; 
         _instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
         _instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
 
