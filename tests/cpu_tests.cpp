@@ -46,11 +46,14 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
         test_cpu.cycle();
     }    
 
+    CHECK (test_cpu.debug_get_cycle_count() == 6);
+
     test_cpu.cycle(); // the first cycle after the 6 reset cycles kicks off execution
     uint8_t last_fetched_opcode = test_cpu.get_last_fetched_opcode(); 
     CHECK(last_fetched_opcode == 0xEA);    
     test_cpu.cycle();
     test_cpu.cycle(); // NOP takes two clock cycles, so will require two pulses to get to next instruction
+    CHECK (test_cpu.debug_get_cycle_count() == 8);
 
     program_counter = test_cpu.get_program_counter(); 
     CHECK(program_counter == 0xEEDE);     // inx instruction at this point
@@ -61,6 +64,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
     CHECK(x_index_contents == 1);
     test_cpu.cycle();
     test_cpu.cycle(); // INX takes two clock cycles
+    CHECK (test_cpu.debug_get_cycle_count() == 11);
 
     uint8_t stack_pointer = test_cpu.get_stack_pointer();
     program_counter = test_cpu.get_program_counter(); 
@@ -77,6 +81,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
     test_cpu.cycle();       
     test_cpu.cycle();
     test_cpu.cycle();   // PHP takes 3 instruction cycles
+    CHECK (test_cpu.debug_get_cycle_count() == 14);
 
     program_counter = test_cpu.get_program_counter(); 
     CHECK(program_counter == 0xEEE0);         

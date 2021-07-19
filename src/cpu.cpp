@@ -36,12 +36,17 @@ void cpu::cycle(void) {
         _program_counter++;
     }
     _instr_cycles--;
+    _cycle_count++;
 }
 
-void cpu::fetch_opcode(void) {
+/*void cpu::fetch_opcode(void) {
     _bus_ptr->set_address(_program_counter); // the current program counter position should be right on top of an instruction opcode
     _instr_opcode = _bus_ptr->read_data(); // read it back and store it in fethed_operand
     _program_counter++; // increment the 
+}*/ 
+
+uint16_t cpu::debug_get_cycle_count(void) {
+    return _cycle_count;
 }
 
 void cpu::debug_set_x_register(uint8_t data) {
@@ -85,6 +90,8 @@ void cpu::reset(void) {
    _accumulator_reg = 0;
    _x_index_reg = 0;
    _y_index_reg = 0;
+
+   _cycle_count = 0;
 } 
 
 bool cpu::IRQ(void) {
