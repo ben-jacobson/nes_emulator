@@ -3,11 +3,11 @@
 #include <SDL2/SDL_ttf.h>
 #include <iostream>
 
-class emulator_status_graphics
+class status_graphics
 {
 	public:
-		emulator_status_graphics(SDL_Renderer* renderer, const char* font_filename, int ptsize);
-		~emulator_status_graphics();
+		status_graphics(SDL_Renderer* renderer, const char* font_filename, int ptsize);
+		~status_graphics();
 		
 		void set_font_width(uint8_t font_width);
 		void set_font_height(uint8_t font_height);

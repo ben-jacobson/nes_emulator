@@ -53,8 +53,9 @@ int main()
 
 	uint8_t font_size = 14; 
 	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
-	emulator_status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
-	ram_status_output debug_ram_display(renderer, font_fullpath.c_str(), font_size, &nes_ram);
+	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
+	memory_status_graphics debug_ram_display(RAM_ADDRESS_SPACE_START, renderer, 0, 0, font_fullpath.c_str(), font_size, &nes_bus);
+	memory_status_graphics debug_rom_display(ROM_ADDRESS_SPACE_START, renderer, 0, 18 * font_size, font_fullpath.c_str(), font_size, &nes_bus);
 
 	SDL_Event event_handler; 
 	bool quit = false; 
@@ -73,7 +74,8 @@ int main()
 		SDL_RenderClear(renderer); // clear the screen
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
 		test_message.draw_to_buffer(text_to_render);		
-		debug_ram_display.display_ram_contents(0, 0);
+		debug_ram_display.display_contents();
+		debug_rom_display.display_contents(); 
 
 		// nes_cpu.cycle();
 
