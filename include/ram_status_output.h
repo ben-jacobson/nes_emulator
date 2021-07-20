@@ -7,7 +7,7 @@
 class ram_status_output : public emulator_status_graphics
 {
 public:
-	ram_status_output(SDL_Renderer* renderer, TTF_Font* font_obj, int ptsize, ram* ram_ptr);
+	ram_status_output(SDL_Renderer* renderer, const char* font_filename, int ptsize, ram* ram_ptr);
 	~ram_status_output() = default;
     
     void display_ram_contents(uint16_t x, uint16_t y);

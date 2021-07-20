@@ -1,6 +1,5 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 
 #include <iostream>
 #include <string>
@@ -54,15 +53,8 @@ int main()
 
 	uint8_t font_size = 14; 
 	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
-	TTF_Font* c64_font = TTF_OpenFont(font_fullpath.c_str(), font_size);
-
-    if (c64_font == NULL) {
-		std::cout << "Error - font not found, error code: " << TTF_GetError() << std::endl;    	 
-	    exit(EXIT_FAILURE);
-    }    	
-
-	emulator_status_graphics test_message(renderer, c64_font, font_size);  
-	ram_status_output debug_ram_display(renderer, c64_font, font_size, &nes_ram);
+	emulator_status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
+	ram_status_output debug_ram_display(renderer, font_fullpath.c_str(), font_size, &nes_ram);
 
 	SDL_Event event_handler; 
 	bool quit = false; 
@@ -102,7 +94,6 @@ int main()
 	}
 
 	// tidy up
-	TTF_CloseFont(c64_font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

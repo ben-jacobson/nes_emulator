@@ -1,7 +1,7 @@
 #include "ram_status_output.h"
 
-ram_status_output::ram_status_output(SDL_Renderer* renderer, TTF_Font* font_obj, int ptsize, ram* ram_ptr)
-    : emulator_status_graphics(renderer, font_obj, ptsize)
+ram_status_output::ram_status_output(SDL_Renderer* renderer, const char* font_filename, int ptsize, ram* ram_ptr)
+    : emulator_status_graphics(renderer, font_filename, ptsize)
 {
     _ram_ptr = ram_ptr;
 }
