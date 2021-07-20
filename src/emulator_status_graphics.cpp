@@ -28,6 +28,18 @@ void emulator_status_graphics::set_font_height(uint8_t font_height) {
     _font_height = font_height;
 }
 
+<<<<<<< HEAD
+=======
+emulator_status_graphics::~emulator_status_graphics() {
+    if (TTF_WasInit())  // prevent the handler from deleting ths font twice
+	    TTF_CloseFont(_font);
+
+	SDL_DestroyTexture(_text_texture);    
+	SDL_FreeSurface(_text_surface);
+    TTF_Quit();
+}
+
+>>>>>>> temp
 void emulator_status_graphics::set_colour(SDL_Color colour) {
     _colour = colour;
 }
