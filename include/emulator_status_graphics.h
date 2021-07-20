@@ -6,7 +6,7 @@
 class emulator_status_graphics
 {
 	public:
-		emulator_status_graphics(SDL_Renderer* renderer, TTF_Font* font_obj, int ptsize);
+		emulator_status_graphics(SDL_Renderer* renderer, const char* font_filename, int ptsize);
 		~emulator_status_graphics();
 		
 		void set_font_width(uint8_t font_width);

@@ -1,23 +1,26 @@
 #include "emulator_status_graphics.h"
 
-emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, TTF_Font* font_obj, int ptsize) {
-    _renderer = renderer;
-
+emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, const char* font_filename, int ptsize) {
+    _renderer = renderer; 
     _font_size = ptsize;
-    _font = font_obj;
-    
     _x_pos = 0; 
-    _y_pos = 0; 
+    _y_pos = 0;
+
+    if(!TTF_WasInit() && TTF_Init() != 0) {
+        std::cout << "TTF_Init unsuccessful: " << TTF_GetError() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    _font = TTF_OpenFont(font_filename, _font_size);
+
+    if (_font == NULL) {
+		std::cout << "Error - font not found, error code: " << TTF_GetError() << std::endl;    	 
+	    exit(EXIT_FAILURE);
+    }    		
 
     set_colour({255, 255, 255, 255}); // Assuming a black background, text is white by default.
     set_font_width(_font_size);
     set_font_height(_font_size); // if not specified, simply make the font square to the font_size
-}
-
-emulator_status_graphics::~emulator_status_graphics() {
-	SDL_DestroyTexture(_text_texture);    
-	SDL_FreeSurface(_text_surface);
-    TTF_Quit();
 }
 
 void emulator_status_graphics::set_font_width(uint8_t font_width) {
@@ -29,9 +32,8 @@ void emulator_status_graphics::set_font_height(uint8_t font_height) {
 }
 
 emulator_status_graphics::~emulator_status_graphics() {
-    if (TTF_WasInit()) { // prevent the handler from deleting ths font twice
-	    TTF_CloseFont(_font);
-    }
+    if (TTF_WasInit())  // prevent the handler from deleting ths font twice
+	    TTF_CloseFont(_font); 
 
 	SDL_DestroyTexture(_text_texture);    
 	SDL_FreeSurface(_text_surface);
