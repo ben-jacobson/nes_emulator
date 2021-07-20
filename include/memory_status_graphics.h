@@ -1,6 +1,6 @@
 #pragma once
 
-#include "emulator_status_graphics.h"
+#include "status_graphics.h"
 #include "ram.h"
 #include <iomanip>
 

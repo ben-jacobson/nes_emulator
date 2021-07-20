@@ -1,4 +1,4 @@
-#include "ram_status_output.h"
+#include "memory_status_graphics.h"
 
 ram_status_output::ram_status_output(SDL_Renderer* renderer, const char* font_filename, int ptsize, ram* ram_ptr)
     : emulator_status_graphics(renderer, font_filename, ptsize)

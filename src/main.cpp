@@ -5,8 +5,8 @@
 #include <string>
 
 #include "memory_map.h"
-#include "emulator_status_graphics.h"
-#include "ram_status_output.h"
+#include "status_graphics.h"
+#include "memory_status_graphics.h"
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"

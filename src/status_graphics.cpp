@@ -1,4 +1,4 @@
-#include "emulator_status_graphics.h"
+#include "status_graphics.h"
 
 emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, const char* font_filename, int ptsize) {
     _renderer = renderer; 
@@ -32,11 +32,12 @@ void emulator_status_graphics::set_font_height(uint8_t font_height) {
 }
 
 emulator_status_graphics::~emulator_status_graphics() {
-    if (TTF_WasInit())  // prevent the handler from deleting ths font twice
-	    TTF_CloseFont(_font); 
+    if (TTF_WasInit()) {  // prevent the handler from deleting ths font twice
+	    TTF_CloseFont(_font);
+    } 
 
-	SDL_DestroyTexture(_text_texture);    
-	SDL_FreeSurface(_text_surface);
+    SDL_DestroyTexture(_text_texture);    
+    SDL_FreeSurface(_text_surface);
     TTF_Quit();
 }
 
