@@ -7,7 +7,7 @@ emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, TTF_F
     _font = font_obj;
     
     _x_pos = 0; 
-    _y_pos = 0;
+    _y_pos = 0; 
 
     set_colour({255, 255, 255, 255}); // Assuming a black background, text is white by default.
     set_font_width(_font_size);
