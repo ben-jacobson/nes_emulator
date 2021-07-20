@@ -45,6 +45,16 @@ int main()
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
+	// create a placeholder rectangle for when we eventually want to render some display
+	SDL_Surface* placeholder_game_display_area;
+	SDL_Rect *placeholder_game_display_rect;
+	placeholder_game_display_rect->x = 20;
+	placeholder_game_display_rect->y = 20;
+	placeholder_game_display_rect->w = 256 * 4; // scaled up to 4x
+	placeholder_game_display_rect->h = 240 * 4;
+	uint32_t gray_color = 0xFFFFFFFF;
+	SDL_FillRect(placeholder_game_display_area, placeholder_game_display_rect, gray_color);
+
 	// initialize our font object
     if(!TTF_WasInit() && TTF_Init() != 0) {
         std::cout << "TTF_Init unsuccessful: " << TTF_GetError() << std::endl;
@@ -72,6 +82,7 @@ int main()
 		}
 
 		SDL_RenderClear(renderer); // clear the screen
+	
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
 		test_message.draw_to_buffer(text_to_render);		
 		debug_ram_display.display_contents();
