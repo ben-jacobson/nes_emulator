@@ -4,7 +4,7 @@ emulator_status_graphics::emulator_status_graphics(SDL_Renderer* renderer, const
     _renderer = renderer; 
     _font_size = ptsize;
     _x_pos = 0; 
-    _y_pos = 0;
+    _y_pos = 0; 
 
     if(!TTF_WasInit() && TTF_Init() != 0) {
         std::cout << "TTF_Init unsuccessful: " << TTF_GetError() << std::endl;
