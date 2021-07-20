@@ -32,8 +32,9 @@ void emulator_status_graphics::set_font_height(uint8_t font_height) {
 }
 
 emulator_status_graphics::~emulator_status_graphics() {
-    if (TTF_WasInit())  // prevent the handler from deleting ths font twice
+    if (TTF_WasInit()) { // prevent the handler from deleting ths font twice
 	    TTF_CloseFont(_font);
+    }
 
 	SDL_DestroyTexture(_text_texture);    
 	SDL_FreeSurface(_text_surface);
