@@ -46,15 +46,15 @@ int main()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
 	// create a placeholder rectangle for when we eventually want to render some display
-	SDL_Surface* placeholder_game_display_area;
-	SDL_Rect *placeholder_game_display_rect;
-	placeholder_game_display_rect->x = 20;
-	placeholder_game_display_rect->y = 20;
-	placeholder_game_display_rect->w = 256 * 4; // scaled up to 4x
-	placeholder_game_display_rect->h = 240 * 4;
-	uint32_t gray_color = 0xFFFFFFFF;
-	SDL_FillRect(placeholder_game_display_area, placeholder_game_display_rect, gray_color);
-
+	SDL_Surface* placeholder_game_display_area = SDL_CreateRGBSurface(20, 20, 256 * 4, 240 * 4, 0, 0, 0, 0);
+	/*SDL_Rect placeholder_game_display_rect;
+	placeholder_game_display_rect.x = 20;
+	placeholder_game_display_rect.y = 20;
+	placeholder_game_display_rect.w = 256 * 4; // scaled up to 4x
+	placeholder_game_display_rect.h = 240 * 4;*/ 
+	SDL_FillRect(placeholder_game_display_area, NULL, SDL_MapRGB(placeholder_game_display_area->format, 255, 255, 255));
+	//SDL_Texture* placeholder_game_display = SDL_CreateTextureFromSurface(renderer, placeholder_game_display_area);
+	
 	// initialize our font object
     if(!TTF_WasInit() && TTF_Init() != 0) {
         std::cout << "TTF_Init unsuccessful: " << TTF_GetError() << std::endl;
@@ -82,7 +82,10 @@ int main()
 		}
 
 		SDL_RenderClear(renderer); // clear the screen
-	
+		
+		//draw the game area placeholder
+//		SDL_RenderCopy(renderer, placeholder_game_display, NULL, &placeholder_game_display_rect);
+
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
 		test_message.draw_to_buffer(text_to_render);		
 		debug_ram_display.display_contents();
@@ -107,6 +110,9 @@ int main()
 	}
 
 	// tidy up
+	SDL_FreeSurface(placeholder_game_display_area);
+	//SDL_DestroyTexture(placeholder_game_display);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
