@@ -46,7 +46,7 @@ class cpu : public bus_device
 {
 public:
     // constrcutor and destructor
-	cpu(bus *bus_ptr, ram *ram_ptr);
+	cpu(bus *bus_ptr);
 	~cpu();
 
     uint16_t _cycle_count;
@@ -185,8 +185,6 @@ public:
     uint8_t instr_ZZZ(void); // for any illegal opcodes
 
 private:
-    ram* _ram_ptr;  // store a pointer to ram so that we can send write commands to it, sorta like how the CPU controls the chip enables
-
     void init_opcode_decoder_lookup(void);
     void set_opcode(uint8_t index, std::string name, std::function<uint8_t(void)> instruction, std::function<uint8_t(void)> address_mode, uint8_t instruction_bytes, uint8_t cycles_needed);
     void program_counter_to_stack(void);

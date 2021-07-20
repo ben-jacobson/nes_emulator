@@ -19,15 +19,19 @@ int main()
 
 	// initialize our bus, ram and cpu
 	bus nes_bus;
-	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END); // temporarily mapped to 0x000 through to 0x7FF for now
-	cpu nes_cpu(&nes_bus, &nes_ram);  // todo, add the PPU
+	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 	cartridge nes_cart(&nes_bus, CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
+	cpu nes_cpu(&nes_bus);  // todo, add the PPU
+
+	nes_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
+	nes_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
 
 	// Attempt to init SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {        
 		std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
 		return 0;
     }
+
 
 	// start by creating a base path
 	char *base_path = SDL_GetBasePath();
@@ -55,8 +59,8 @@ int main()
     std::string text_to_render; 
 
 	while (!quit) { // main application running loop
-		while (SDL_PollEvent(&event_handler) != 0) {//Handle events on queue
-			if (event_handler.type == SDL_QUIT) {			//User requests quit
+		while (SDL_PollEvent(&event_handler) != 0) {		// Handle events on queue
+			if (event_handler.type == SDL_QUIT) {			// If user requests quit
 				quit = true;
 			}
 		}
@@ -81,7 +85,7 @@ int main()
 
 		if (y_pos <= 0 || y_pos + test_message.get_text_height(text_to_render) >= SCREEN_HEIGHT) {
 			y_speed = -y_speed;
-		}		
+		}	
 	}
 
 	// tidy up
