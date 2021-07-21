@@ -8,6 +8,7 @@
 #include "status_graphics.h"
 #include "memory_status_graphics.h"
 #include "instr_trace_graphics.h"
+
 #include "bus.h"
 #include "cpu.h"
 #include "ram.h"
@@ -104,9 +105,9 @@ int main()
 
 	// set up our display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
-	instr_trace_graphics debug_instr_trace(&nes_bus, ROM_ADDRESS_SPACE_START, renderer, font_fullpath.c_str(), font_size, 20, 560);
+	instr_trace_graphics debug_instr_trace(&nes_bus, ROM_ADDRESS_SPACE_START, renderer, font_fullpath.c_str(), font_size, 20, 520);
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 560, 20, font_fullpath.c_str(), font_size, &nes_bus);
-	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 560, 40 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
+	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 560, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
 	//bus* bus_ptr, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y
 

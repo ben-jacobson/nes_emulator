@@ -15,7 +15,7 @@ public:
     void display_contents();
 
 private:
-    static constexpr uint8_t INSTRUCTIONS_TO_DISPLAY = 10;
+    static constexpr uint8_t INSTRUCTIONS_TO_DISPLAY = 12;
     uint16_t _start_address;
     bus* _bus_ptr;
     uint16_t _preset_display_x, _preset_display_y; 
