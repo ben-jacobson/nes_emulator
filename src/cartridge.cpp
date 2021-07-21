@@ -23,6 +23,22 @@ cartridge::~cartridge() {
     delete[] _rom_data; // free the memory. 
 }
 
+void cartridge::load_content_from_stream(std::string bytecode, uint16_t start_address) {
+    std::istringstream tokenizer(bytecode);
+    std::string token;
+    uint16_t address = start_address;
+
+    while (std::getline(tokenizer, token, ' ') && address < ROM_ADDRESS_SPACE_END) {
+        _rom_data[address] = (uint8_t)strtol(token.c_str(), NULL, 16);
+        address++;
+    } 
+}
+
+/*void cartridge::load_content_from_file(std::string filename, uint16_t start_address) {
+    // TODO
+    start_address++;
+}*/
+
 uint8_t cartridge::read(uint16_t address) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {

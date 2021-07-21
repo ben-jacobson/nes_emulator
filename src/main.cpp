@@ -69,8 +69,12 @@ int main()
 	cartridge nes_cart(&nes_bus, CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
 	cpu nes_cpu(&nes_bus);  // todo, add the PPU
 
+	// register the devices that live on the bus
 	nes_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
+
+	// load some content into the ROM
+	nes_cart.load_content_from_stream("E8 E8 EA CA"); // INX, INX, NOP, DEX
 
 	// Attempt to init SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {        

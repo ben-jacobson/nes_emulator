@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iomanip>
+
 #include "bus_device.h"
 #include "memory_map.h"
 
@@ -13,6 +15,8 @@ public:
 	uint8_t read_rom(uint16_t address); 
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	
+	void load_content_from_stream(std::string bytecode, uint16_t start_address = 0);
+	void load_content_from_file(std::string filename, uint16_t start_address = 0);
 
 	// for outputting to test functions, and our debug view
 	uint8_t debug_read(uint16_t relative_address);	// for rom output view, not for actual use in emulation
