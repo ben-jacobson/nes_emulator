@@ -58,6 +58,8 @@ int main()
 {
 	constexpr uint16_t SCREEN_WIDTH = 1280;
 	constexpr uint16_t SCREEN_HEIGHT = 720;
+	// constexpr uint8_t TARGET_FRAMERATE = 60;  60 fps
+	// constexpr uint16_t SCREEN_TICKS_PER_FRAME = 1000 / TARGET_FRAMERATE;
 
 	// initialize our bus, ram and cpu
 	bus nes_bus;
@@ -98,9 +100,7 @@ int main()
 	uint8_t font_size = 14; 
 	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
 	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
-	status_graphics test_message_two(renderer, font_fullpath.c_str(), font_size);  
 	test_message.set_colour({128, 128, 128, 255});
-	//test_message_two.set_colour({128, 128, 128, 255});
 
 	// set up memory status graphic objects
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 550, 20, font_fullpath.c_str(), font_size, &nes_bus);
@@ -114,13 +114,6 @@ int main()
     std::string text_to_render; 
 
 	while (!quit) { // main application running loop
-		// Handle all events on queue
-		while (SDL_PollEvent(&event_handler) != 0) {		
-			if (event_handler.type == SDL_QUIT) {	
-				quit = true;
-			}
-		}
-
 		// clear the screen
 		SDL_RenderClear(renderer); 
 		
@@ -153,6 +146,13 @@ int main()
 
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		SDL_Delay(16); 
+
+		// Handle all events on queue
+		while (SDL_PollEvent(&event_handler) != 0) {		
+			if (event_handler.type == SDL_QUIT) {	
+				quit = true;
+			}
+		}		
 	}
 
 	// tidy up
