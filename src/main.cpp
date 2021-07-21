@@ -16,6 +16,7 @@
 
 class game_display_placeholder_output {
 public:
+	static constexpr uint16_t RECT_WIDTH = 256, RECT_HEIGHT = 240;	// matches resolution of the original nes. 
 
 	game_display_placeholder_output(SDL_Renderer* renderer, uint16_t x_pos, uint16_t y_pos, uint8_t scale) {
 		_renderer = renderer;
@@ -47,8 +48,6 @@ public:
 	}
 
 private:
-	static constexpr uint16_t RECT_WIDTH = 256, RECT_HEIGHT = 240;	// matches resolution of the original nes. 
-
 	uint16_t _xpos, _ypos; 
 	SDL_Renderer* _renderer;
 	SDL_Surface* _surface; 
@@ -109,9 +108,9 @@ int main()
 
 	// set up our display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
-	instr_trace_graphics debug_instr_trace(&nes_bus, ROM_ADDRESS_SPACE_START, renderer, font_fullpath.c_str(), font_size, 20, 520);
-	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 560, 20, font_fullpath.c_str(), font_size, &nes_bus);
-	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 560, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
+	instr_trace_graphics debug_instr_trace(&nes_bus, ROM_ADDRESS_SPACE_START, renderer, font_fullpath.c_str(), font_size, 0, 520);
+	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 20, font_fullpath.c_str(), font_size, &nes_bus);
+	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
 	//bus* bus_ptr, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y
 
@@ -121,6 +120,9 @@ int main()
 	uint16_t x_pos = 100, y_pos = 100; 
 	int8_t x_speed = 2, y_speed = 2; 
     std::string text_to_render; 
+
+	// reset the cpu before kicking off the loop. Not totally necessary but good practice
+	nes_cpu.reset();
 
 	while (!quit) { // main application running loop
 		// clear the screen

@@ -13,10 +13,14 @@ cartridge::cartridge(bus* bus_ptr, uint16_t address_space_lower, uint16_t addres
     _rom_data = new uint8_t[ROM_SIZE_BYTES]; // allocate the ROM within heap memory to a specified size
     // I'm happy to just use a C style array, the needs of this are really simple. 
 
-    // initialize the ram content to all zeros
+    // initialize the rom content to all zeros
     for (uint16_t i = 0; i < ROM_SIZE_BYTES; i++) {
         _rom_data[i] = 0; // initialize rom with all zeros
     }
+
+    // set up the reset vector start position of 0x8000
+    _rom_data[RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START] = 0x00;
+    _rom_data[RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START] = 0x80;
 }
 
 cartridge::~cartridge() {
