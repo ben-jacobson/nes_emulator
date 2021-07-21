@@ -91,7 +91,7 @@ public:
     uint8_t addr_mode_ABS(void);
     uint8_t addr_mode_ABSX(void);
     uint8_t addr_mode_ABSY(void);
-    uint8_t addr_mode_ACCUM(void);
+    uint8_t addr_mode_ACC(void);
     uint8_t addr_mode_IMM(void);
     uint8_t addr_mode_IMP(void);
     uint8_t addr_mode_INDI(void);

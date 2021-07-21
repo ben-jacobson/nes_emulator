@@ -20,7 +20,7 @@ void cpu::init_opcode_decoder_lookup(void) {
     set_opcode(0x06,     "ASL",     instr(instr_ASL),    addr(addr_mode_ZP),     2,    5);
     set_opcode(0x08,     "PHP",     instr(instr_PHP),    addr(addr_mode_IMP),     1,    3);
     set_opcode(0x09,     "ORA",     instr(instr_ORA),    addr(addr_mode_IMM),     2,    2);
-    set_opcode(0x0A,     "ASL",     instr(instr_ASL),    addr(addr_mode_ACCUM),     1,    2);
+    set_opcode(0x0A,     "ASL",     instr(instr_ASL),    addr(addr_mode_ACC),     1,    2);
     set_opcode(0x0D,     "ORA",     instr(instr_ORA),    addr(addr_mode_ABS),     3,    4);
     set_opcode(0x0E,     "ASL",     instr(instr_ASL),    addr(addr_mode_ABS),     3,    6);    
     
@@ -42,7 +42,7 @@ void cpu::init_opcode_decoder_lookup(void) {
     set_opcode(0x26,     "ROL",     instr(instr_ROL),    addr(addr_mode_ZP),     2,    5);
     set_opcode(0x28,     "PLP",     instr(instr_PLP),    addr(addr_mode_IMP),     1,    4);
     set_opcode(0x29,     "AND",     instr(instr_AND),    addr(addr_mode_IMM),     2,    2);
-    set_opcode(0x2A,     "ROL",     instr(instr_ROL),    addr(addr_mode_ACCUM),     1,    2);
+    set_opcode(0x2A,     "ROL",     instr(instr_ROL),    addr(addr_mode_ACC),     1,    2);
     set_opcode(0x2C,     "BIT",     instr(instr_BIT),    addr(addr_mode_ABS),     3,    4);
     set_opcode(0x2D,     "AND",     instr(instr_AND),    addr(addr_mode_ABS),     3,    4);
     set_opcode(0x2E,     "ROL",     instr(instr_ROL),    addr(addr_mode_ABS),     3,    6);
@@ -64,7 +64,7 @@ void cpu::init_opcode_decoder_lookup(void) {
     set_opcode(0x46,     "LSR",     instr(instr_LSR),    addr(addr_mode_ZP),     2,    5);
     set_opcode(0x48,     "PHA",     instr(instr_PHA),    addr(addr_mode_IMP),     1,    3);
     set_opcode(0x49,     "EOR",     instr(instr_EOR),    addr(addr_mode_IMM),     2,    2);
-    set_opcode(0x4A,     "LSR",     instr(instr_LSR),    addr(addr_mode_ACCUM),     1,    2);
+    set_opcode(0x4A,     "LSR",     instr(instr_LSR),    addr(addr_mode_ACC),     1,    2);
     set_opcode(0x4C,     "JMP",     instr(instr_JMP),    addr(addr_mode_ABS),     3,    3);
     set_opcode(0x4D,     "EOR",     instr(instr_EOR),    addr(addr_mode_ABS),     3,    4);
     set_opcode(0x4E,     "LSR",     instr(instr_LSR),    addr(addr_mode_ABS),     3,    6);
@@ -86,7 +86,7 @@ void cpu::init_opcode_decoder_lookup(void) {
     set_opcode(0x66,     "ROR",     instr(instr_ROR),    addr(addr_mode_ZP),     2,    5);
     set_opcode(0x68,     "PLA",     instr(instr_PLA),    addr(addr_mode_IMP),     1,    4);
     set_opcode(0x69,     "ADC",     instr(instr_ADC),    addr(addr_mode_IMM),     2,    2);
-    set_opcode(0x6A,     "ROR",     instr(instr_ROR),    addr(addr_mode_ACCUM),     1,    2);
+    set_opcode(0x6A,     "ROR",     instr(instr_ROR),    addr(addr_mode_ACC),     1,    2);
     set_opcode(0x6C,     "JMP",     instr(instr_JMP),    addr(addr_mode_INDI),     3,    5);
     set_opcode(0x6D,     "ADC",     instr(instr_ADC),    addr(addr_mode_ABS),     3,    4);
     set_opcode(0x6E,     "ROR",     instr(instr_ROR),    addr(addr_mode_ABSX),     3,    7);

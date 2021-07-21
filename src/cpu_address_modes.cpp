@@ -25,7 +25,7 @@ uint8_t cpu::addr_mode_ABSY(void) {
     return 0; // todo
 }
 
-uint8_t cpu::addr_mode_ACCUM(void) {
+uint8_t cpu::addr_mode_ACC(void) {
     // this address mode enacts it's instructions on the accumulator,
     // e.g ASL, LSR, ROL and ROR
     // All ACCUM address mode op codes require 2 clock cycles and every opcode will know to operate on the ACC, hence we return 0 so as to add no clock cycles
