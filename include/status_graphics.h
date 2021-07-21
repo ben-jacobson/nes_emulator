@@ -28,7 +28,7 @@ class status_graphics
 		SDL_Renderer* _renderer; 			// Pointer to main renderer
 		SDL_Surface* _text_surface; 		// Surface to paint text onto
 		SDL_Texture* _text_texture;  		// The surface with text on it converted into a texture
-		SDL_Rect _text_texture_rect;		// A rectangle blitting region containing the texture rendered onto a rectangle
+		SDL_Rect _text_texture_rect;		// A rectangle containing the texture rendered onto a rectangle
 
 	protected:
 		int _font_size; 					// font point size

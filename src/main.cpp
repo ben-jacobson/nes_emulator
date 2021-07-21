@@ -98,7 +98,9 @@ int main()
 	uint8_t font_size = 14; 
 	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
 	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
+	status_graphics test_message_two(renderer, font_fullpath.c_str(), font_size);  
 	test_message.set_colour({128, 128, 128, 255});
+	//test_message_two.set_colour({128, 128, 128, 255});
 
 	// set up memory status graphic objects
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 550, 20, font_fullpath.c_str(), font_size, &nes_bus);
@@ -131,13 +133,13 @@ int main()
 
 		// draw the moving text, which helps us see if we are rendering at an acceptable FPS
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
-		test_message.draw_to_buffer(text_to_render);		
+		test_message.draw_to_buffer(text_to_render, x_pos, y_pos);	
+		//test_message_two.draw_to_buffer(text_to_render, x_pos - 10, y_pos - 10);		
 
 		// update the display with new info from renderer
 		SDL_RenderPresent(renderer);	
 
 		// update all of our text posiitons, 
-		test_message.set_position(x_pos, y_pos);
 		x_pos += x_speed;  //controls the rect's x coordinate 
 		y_pos += y_speed;  // controls the rect's y coordinate		
 

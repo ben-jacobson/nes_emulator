@@ -14,13 +14,14 @@ status_graphics::status_graphics(SDL_Renderer* renderer, const char* font_filena
     _font = TTF_OpenFont(font_filename, _font_size);
 
     if (_font == NULL) {
-		std::cout << "Error - font not found, error code: " << TTF_GetError() << std::endl;    	 
-	    exit(EXIT_FAILURE);
-    }    		
+        std::cout << "Error - font not found, error code: " << TTF_GetError() << std::endl;    	 
+        exit(EXIT_FAILURE);
+    }   
 
     set_colour({255, 255, 255, 255}); // Assuming a black background, text is white by default.
     set_font_width(_font_size);
     set_font_height(_font_size); // if not specified, simply make the font square to the font_size
+
 }
 
 void status_graphics::set_font_width(uint8_t font_width) {
@@ -34,11 +35,11 @@ void status_graphics::set_font_height(uint8_t font_height) {
 status_graphics::~status_graphics() {
     if (TTF_WasInit()) {  // prevent the handler from deleting ths font twice
 	    TTF_CloseFont(_font);
+        TTF_Quit();
     } 
 
     SDL_DestroyTexture(_text_texture);    
     SDL_FreeSurface(_text_surface);
-    TTF_Quit();
 }
 
 void status_graphics::set_colour(SDL_Color colour) {
@@ -83,15 +84,18 @@ uint16_t status_graphics::get_last_rendered_text_height(void) {
 }
 
 void status_graphics::draw_to_buffer(std::string text_to_render) {
-    _text_surface = TTF_RenderText_Solid(_font, text_to_render.c_str(), _colour); // convert message into a texture
-    _text_texture = SDL_CreateTextureFromSurface(_renderer, _text_surface);
-
-	_text_texture_rect.x = _x_pos; 
+    _text_texture_rect.x = _x_pos; 
 	_text_texture_rect.y = _y_pos; 		
 	_text_texture_rect.w = text_to_render.length() * _font_width; 
 	_text_texture_rect.h = _font_height;  
 
+     _text_surface = TTF_RenderText_Solid(_font, text_to_render.c_str(), _colour); // convert message into a texture, just once
+     _text_texture = SDL_CreateTextureFromSurface(_renderer, _text_surface); 
+    
     SDL_RenderCopy(_renderer, _text_texture, NULL, &_text_texture_rect); // copy any new textures to the renderer
+
+    SDL_DestroyTexture(_text_texture);
+    SDL_FreeSurface(_text_surface);
 }
 
 void status_graphics::draw_to_buffer(std::string text_to_render, uint16_t x_pos, uint16_t y_pos) {

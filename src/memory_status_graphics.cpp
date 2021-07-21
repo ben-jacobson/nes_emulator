@@ -30,7 +30,7 @@ void memory_status_graphics::display_contents(uint16_t x, uint16_t y) {
             if (i % 8 == 0) {   // at end of every 8 columns create a new line
                 draw_to_buffer(memory_contents_line.str(), x, y + ((rows + 1) * _font_height)); // + 1 to offset header line
                 memory_contents_line = std::stringstream(); // string streams don't have a working clear method, so this will have to do 
-                memory_contents_line << "0x" << std::setfill('0') << std::setw(4) << std::uppercase << std::hex << (uint16_t)i << ": ";                
+                memory_contents_line << "0x" << std::setfill('0') << std::setw(4) << std::uppercase << std::hex << _START_ADDRESS + (uint16_t)i << ": ";                
                 rows++;
             }                
         }
