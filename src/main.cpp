@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-/*
+
 #include "memory_map.h"
 #include "status_graphics.h"
 #include "memory_status_graphics.h"
@@ -56,8 +56,10 @@ private:
 	SDL_Texture* _texture;
 };
 
+
 int main()
 {
+
 	constexpr uint16_t SCREEN_WIDTH = 1280;
 	constexpr uint16_t SCREEN_HEIGHT = 720;
 	// constexpr uint8_t TARGET_FRAMERATE = 60;  60 fps
@@ -81,29 +83,24 @@ int main()
 		std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
 		return 0;
     }
-
+	
 	// start by creating a base path
 	char *base_path = SDL_GetBasePath();
 	//size_t base_path_len = strlen(base_path);
-	
+
     if (!base_path) {
         base_path = SDL_strdup("./");
-    }   // std::cout << "Base path set at: " << test << std::endl;
+    }   
 	
     // On success, setup SDL window and rendered
 	SDL_Window* window = SDL_CreateWindow("6502 Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
-
-	// initialize our font object
-    if(!TTF_WasInit() && TTF_Init() != 0) {
-        std::cout << "TTF_Init unsuccessful: " << TTF_GetError() << std::endl;
-        exit(EXIT_FAILURE);
-	}
-
 	uint8_t font_size = 14; 
-	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
+
+	std::string font_fullpath = (std::string)base_path;
+	font_fullpath.append("C64_Pro_Mono-STYLE.ttf"); 
 	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
 	test_message.set_colour({128, 128, 128, 255});
 
@@ -172,10 +169,7 @@ int main()
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    return EXIT_SUCCESS;
-}*/
+	return EXIT_SUCCESS;
 
-int main()
-{
 	std::cout << "yes" << std::endl;
 }
