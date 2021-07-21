@@ -12,6 +12,48 @@
 #include "ram.h"
 #include "cartridge.h"
 
+class game_display_placeholder_output {
+public:
+
+	game_display_placeholder_output(SDL_Renderer* renderer, uint16_t x_pos, uint16_t y_pos, uint8_t scale) {
+		_renderer = renderer;
+
+		_rect.x = x_pos;
+		_rect.y = y_pos;
+		_rect.w = RECT_WIDTH * scale; 
+		_rect.h = RECT_HEIGHT * scale;		
+
+		// create a placeholder rectangle for when we eventually want to render some display
+		_surface = SDL_CreateRGBSurface(0, _rect.w, _rect.h, 32, 0, 0, 0, 0); // 32 bit pixel depth
+
+		if (_surface == NULL) {
+			std::cout << "CreateRGBSurface failed: " << SDL_GetError() << std::endl;
+			exit(1);
+		}
+
+		SDL_FillRect(_surface, NULL, SDL_MapRGB(_surface->format, 255, 255, 255));
+		_texture = SDL_CreateTextureFromSurface(_renderer, _surface);
+	}
+
+	~game_display_placeholder_output() {
+		SDL_FreeSurface(_surface);
+		SDL_DestroyTexture(_texture);
+	}
+
+	void draw(void) {
+		SDL_RenderCopy(_renderer, _texture, NULL, &_rect);
+	}
+
+private:
+	static constexpr uint16_t RECT_WIDTH = 256, RECT_HEIGHT = 240;	// matches resolution of the original nes. 
+
+	uint16_t _xpos, _ypos; 
+	SDL_Renderer* _renderer;
+	SDL_Surface* _surface; 
+	SDL_Rect _rect;
+	SDL_Texture* _texture;
+};
+
 int main()
 {
 	constexpr uint16_t SCREEN_WIDTH = 1280;
@@ -45,21 +87,7 @@ int main()
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
-	// create a placeholder rectangle for when we eventually want to render some display
-	SDL_Surface* placeholder_game_display_area = SDL_CreateRGBSurface(0, 256 * 4, 240 * 4, 32, 0, 0, 0, 0);
-
-	if (placeholder_game_display_area == NULL) {
-		std::cout << "CreateRGBSurface failed: " << SDL_GetError() << std::endl;
-		exit(1);
-	}
-
-	SDL_Rect placeholder_game_display_rect;
-	placeholder_game_display_rect.x = 20;
-	placeholder_game_display_rect.y = 20;
-	placeholder_game_display_rect.w = 256 * 4; // scaled up to 4x
-	placeholder_game_display_rect.h = 240 * 4;
-	SDL_FillRect(placeholder_game_display_area, NULL, SDL_MapRGB(placeholder_game_display_area->format, 255, 255, 255));
-	SDL_Texture* placeholder_game_display = SDL_CreateTextureFromSurface(renderer, placeholder_game_display_area);
+	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	
 	// initialize our font object
     if(!TTF_WasInit() && TTF_Init() != 0) {
@@ -70,8 +98,8 @@ int main()
 	uint8_t font_size = 14; 
 	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
 	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
-	memory_status_graphics debug_ram_display("RAM Contents:", RAM_ADDRESS_SPACE_START, renderer, 0, 0, font_fullpath.c_str(), font_size, &nes_bus);
-	memory_status_graphics debug_rom_display("ROM Contents:", ROM_ADDRESS_SPACE_START, renderer, 0, 18 * font_size, font_fullpath.c_str(), font_size, &nes_bus);
+	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 550, 20, font_fullpath.c_str(), font_size, &nes_bus);
+	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 550, 20 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
 	SDL_Event event_handler; 
 	bool quit = false; 
@@ -81,28 +109,30 @@ int main()
     std::string text_to_render; 
 
 	while (!quit) { // main application running loop
-		while (SDL_PollEvent(&event_handler) != 0) {		// Handle events on queue
-			if (event_handler.type == SDL_QUIT) {			// If user requests quit
+		// Handle all events on queue
+		while (SDL_PollEvent(&event_handler) != 0) {		
+			if (event_handler.type == SDL_QUIT) {	
 				quit = true;
 			}
 		}
 
-		SDL_RenderClear(renderer); // clear the screen
+		// clear the screen
+		SDL_RenderClear(renderer); 
 		
 		//draw the game area placeholder
-		SDL_RenderCopy(renderer, placeholder_game_display, NULL, &placeholder_game_display_rect); // copy any new textures to the renderer
+		placeholder_game_area_rect.draw();	
 
-		
+		// draw the moving text, which helps us see if we are rendering at an acceptable FPS
 		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
 		test_message.draw_to_buffer(text_to_render);		
-		debug_ram_display.display_contents();
-		debug_rom_display.display_contents(); 
 
-		// nes_cpu.cycle();
+		// draw the debug emulator status items
+		debug_ram_display.display_contents();
+		debug_rom_display.display_contents(); 		
 
 		SDL_RenderPresent(renderer);	// update the display with new info from renderer
-		SDL_Delay(16); // Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 
+		// update all of our text posiitons, 
 		test_message.set_position(x_pos, y_pos);
 		x_pos += x_speed;  //controls the rect's x coordinate 
 		y_pos += y_speed;  // controls the rect's y coordinate		
@@ -114,12 +144,12 @@ int main()
 		if (y_pos <= 0 || y_pos + test_message.get_text_height(text_to_render) >= SCREEN_HEIGHT) {
 			y_speed = -y_speed;
 		}	
+
+		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
+		SDL_Delay(16); 
 	}
 
 	// tidy up
-	SDL_FreeSurface(placeholder_game_display_area);
-	SDL_DestroyTexture(placeholder_game_display);
-
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
