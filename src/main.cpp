@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+/*
 #include "memory_map.h"
 #include "status_graphics.h"
 #include "memory_status_graphics.h"
@@ -172,4 +173,9 @@ int main()
     SDL_Quit();
 
     return EXIT_SUCCESS;
+}*/
+
+int main()
+{
+	std::cout << "yes" << std::endl;
 }

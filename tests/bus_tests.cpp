@@ -12,6 +12,13 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for correct registration or
     REQUIRE(test_bus.device_index == 4);
 }
 
+TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test writing to read only device") {
+    test_bus.set_address(ROM_ADDRESS_SPACE_START + 10); // this will revert to our cartridge, which is read only
+    test_bus.write_data(0xFF);
+    uint8_t result = test_bus.read_data();
+    REQUIRE(result == 0x00); // as in the write function failed, did not crash the program or throw an exception
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test bus device clearing function") {
     // the test fixture registered three devices
     test_bus.clear_bus_devices();
