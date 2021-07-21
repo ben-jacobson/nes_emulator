@@ -37,9 +37,6 @@ status_graphics::~status_graphics() {
 	    TTF_CloseFont(_font);
         TTF_Quit();
     } 
-
-    SDL_DestroyTexture(_text_texture);    
-    SDL_FreeSurface(_text_surface);
 }
 
 void status_graphics::set_colour(SDL_Color colour) {
