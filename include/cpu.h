@@ -38,6 +38,7 @@ struct opcode {
     std::string name;
     std::function<uint8_t(void)> instruction;
     std::function<uint8_t(void)> address_mode;
+    std::string address_mode_name;
     uint8_t instruction_bytes;
     uint8_t cycles_needed;
 };
@@ -186,7 +187,8 @@ public:
 
 private:
     void init_opcode_decoder_lookup(void);
-    void set_opcode(uint8_t index, std::string name, std::function<uint8_t(void)> instruction, std::function<uint8_t(void)> address_mode, uint8_t instruction_bytes, uint8_t cycles_needed);
+    void set_opcode(uint8_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
+
     void program_counter_to_stack(void);
     void push_to_stack(uint8_t data);
 

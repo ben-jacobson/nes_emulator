@@ -24,7 +24,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruc
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ACCUM", "[cpu instruction]") {
     // instructions with the address mode act upon the accumulator. nothing to do except return 0
-    REQUIRE(test_cpu.addr_mode_ACCUM() == 0);
+    REQUIRE(test_cpu.addr_mode_ACC() == 0);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruction]") {
