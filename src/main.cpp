@@ -31,7 +31,7 @@ public:
 			exit(1);
 		}
 
-		SDL_FillRect(_surface, NULL, SDL_MapRGB(_surface->format, 255, 255, 255));
+		SDL_FillRect(_surface, NULL, SDL_MapRGB(_surface->format, 64, 64, 64));
 		_texture = SDL_CreateTextureFromSurface(_renderer, _surface);
 	}
 
@@ -98,6 +98,9 @@ int main()
 	uint8_t font_size = 14; 
 	std::string font_fullpath = ((std::string)base_path).append("C64_Pro_Mono-STYLE.ttf").c_str();
 	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
+	test_message.set_colour({128, 128, 128, 255});
+
+	// set up memory status graphic objects
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 550, 20, font_fullpath.c_str(), font_size, &nes_bus);
 	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 550, 20 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
@@ -122,15 +125,16 @@ int main()
 		//draw the game area placeholder
 		placeholder_game_area_rect.draw();	
 
-		// draw the moving text, which helps us see if we are rendering at an acceptable FPS
-		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
-		test_message.draw_to_buffer(text_to_render);		
-
 		// draw the debug emulator status items
 		debug_ram_display.display_contents();
 		debug_rom_display.display_contents(); 		
 
-		SDL_RenderPresent(renderer);	// update the display with new info from renderer
+		// draw the moving text, which helps us see if we are rendering at an acceptable FPS
+		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
+		test_message.draw_to_buffer(text_to_render);		
+
+		// update the display with new info from renderer
+		SDL_RenderPresent(renderer);	
 
 		// update all of our text posiitons, 
 		test_message.set_position(x_pos, y_pos);
