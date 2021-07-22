@@ -30,7 +30,8 @@ void processor_status_graphics::display_contents(void) {
     uint8_t flag_bit = 0;
 
     draw_to_buffer("Processor Status", _preset_display_x, _preset_display_y);
-    draw_to_buffer("C Z I D B U V N", _preset_display_x, _preset_display_y + _font_height);
+    draw_to_buffer("N V U B D I Z C", _preset_display_x, _preset_display_y + _font_height);
+
     
     //std::cout << "processor flags:" << (uint16_t)flags << std::endl;
     

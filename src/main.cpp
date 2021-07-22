@@ -75,7 +75,7 @@ int main()
 	nes_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
 
 	// Load some content into the ROM
-	nes_cart.load_content_from_stream("E8 E8 EA CA"); // INX, INX, NOP, DEX
+	nes_cart.load_content_from_stream("E8 E8 EA CA 58 78"); // INX, INX, NOP, DEX, CLI, SEI
 
 	// Init SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {        
@@ -184,7 +184,7 @@ int main()
 
 					case SDLK_DELETE:
 						nes_cpu.reset();
-						std::cout << "CPU reset." << std::endl;
+						std::cout << "CPU reset" << std::endl;
 						break;
 
 					case SDLK_TAB:
