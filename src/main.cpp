@@ -132,9 +132,17 @@ int main()
 
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
-			if (event_handler.type == SDL_QUIT) {	
-				quit = true;
-			}
+			switch (event_handler.type) {
+				case SDL_KEYDOWN:
+					std::cout << "Key press detected" << std::endl;
+					break;
+				case SDL_KEYUP:					
+					std::cout << "Key release detected" << std::endl;
+					break;
+				case SDL_QUIT:
+					quit = true;
+					break;
+			}			
 		}		
 	}
 
