@@ -56,7 +56,6 @@ private:
 	SDL_Texture* _texture;
 };
 
-
 int main()
 {
 	constexpr uint16_t SCREEN_WIDTH = 1280;
@@ -68,25 +67,24 @@ int main()
 	bus nes_bus;
 	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 	cartridge nes_cart(&nes_bus, CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
-	cpu nes_cpu(&nes_bus);  // todo, add the PPU
+	cpu nes_cpu(&nes_bus);  
 
 	// register the devices that live on the bus
 	nes_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
 
-	// load some content into the ROM
+	// Load some content into the ROM
 	nes_cart.load_content_from_stream("E8 E8 EA CA"); // INX, INX, NOP, DEX
 
-	// Attempt to init SDL
+	// Init SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {        
 		std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
 		return 0;
     }
 	
-	// start by creating a base path
+	// Create a base path for loading in assets
 	char *base_path = SDL_GetBasePath();
-	//size_t base_path_len = strlen(base_path);
-
+	
     if (!base_path) {
         base_path = SDL_strdup("./");
     }   
@@ -96,12 +94,10 @@ int main()
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
+	// Some font objects
 	uint8_t font_size = 14; 
-
 	std::string font_fullpath = (std::string)base_path;
 	font_fullpath.append("C64_Pro_Mono-STYLE.ttf"); 
-//	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
-//	test_message.set_colour({128, 128, 128, 255});
 
 	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
@@ -113,10 +109,6 @@ int main()
 	SDL_Event event_handler; 
 	bool quit = false; 
 
-/*	uint16_t x_pos = 100, y_pos = 100; 
-	int8_t x_speed = 2, y_speed = 2; 
-    std::string text_to_render; */
-
 	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
 
@@ -127,34 +119,18 @@ int main()
 		//draw the game area placeholder
 		placeholder_game_area_rect.draw();	
 
-		// draw the debug emulator status items
+		// draw the debug emulator status displays
 		debug_instr_trace.display_contents();	
 		debug_ram_display.display_contents();
 		debug_rom_display.display_contents(); 	
 
-		// draw the moving text, which helps us see if we are rendering at an acceptable FPS
-		//text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
-		//test_message.draw_to_buffer(text_to_render, x_pos, y_pos);	
-
 		// update the display with new info from renderer
 		SDL_RenderPresent(renderer);	
-
-		// update all of our text posiitons, 
-		/*x_pos += x_speed;  //controls the rect's x coordinate 
-		y_pos += y_speed;  // controls the rect's y coordinate		
-
-		if (x_pos <= 0 || x_pos + test_message.get_text_width(text_to_render) >= SCREEN_WIDTH) {
-			x_speed = -x_speed;
-		}
-
-		if (y_pos <= 0 || y_pos + test_message.get_text_height(text_to_render) >= SCREEN_HEIGHT) {
-			y_speed = -y_speed;
-		}*/
 
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		SDL_Delay(16); 
 
-		// Handle all events on queue
+		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
 			if (event_handler.type == SDL_QUIT) {	
 				quit = true;
@@ -168,6 +144,4 @@ int main()
     SDL_Quit();
 
 	return EXIT_SUCCESS;
-
-	std::cout << "yes" << std::endl;
 }
