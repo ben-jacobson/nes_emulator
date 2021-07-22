@@ -13,7 +13,7 @@ public:
 	instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y);
 	~instr_trace_graphics() = default;
 
-    void display_contents();
+    void display_contents(void);
 
 private:
     static constexpr uint8_t INSTRUCTIONS_TO_DISPLAY = 12;

@@ -7,6 +7,7 @@
 
 #include "memory_map.h"
 #include "status_graphics.h"
+#include "processor_status_graphics.h"
 #include "memory_status_graphics.h"
 #include "instr_trace_graphics.h"
 
@@ -102,6 +103,7 @@ int main()
 	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	instr_trace_graphics debug_instr_trace(&nes_cpu, &nes_bus, renderer, font_fullpath.c_str(), font_size, 0, 520);
+	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520);
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 20, font_fullpath.c_str(), font_size, &nes_bus);
 	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
@@ -124,6 +126,7 @@ int main()
 
 		// draw the debug emulator status displays
 		debug_instr_trace.display_contents();	
+		debug_processor_status.display_contents();
 		debug_ram_display.display_contents();
 		debug_rom_display.display_contents(); 	
 
