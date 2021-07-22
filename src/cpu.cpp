@@ -6,11 +6,11 @@ cpu::cpu(bus *bus_ptr)
     _opcode_decoder_lookup = new opcode[OPCODE_COUNT];      // we need 256 of these, each instruction is used as its index
     init_opcode_decoder_lookup();
 
-    // disable the read and write function pointer
-    _read_function_ptr = nullptr;
+    // disable the read and write function pointers
+    _read_function_ptr = nullptr; 
     _write_function_ptr = nullptr;
 
-    reset();
+    //  reset(); // don't reset this, we want to initalise everything first, then manually run reset after setting up your bus devices.
 } 
 
 cpu::~cpu() {
@@ -37,12 +37,6 @@ void cpu::cycle(void) {
     _cycle_count++;
 }
 
-/*void cpu::fetch_opcode(void) {
-    _bus_ptr->set_address(_program_counter); // the current program counter position should be right on top of an instruction opcode
-    _instr_opcode = _bus_ptr->read_data(); // read it back and store it in fethed_operand
-    _program_counter++; // increment the 
-}*/ 
-
 uint16_t cpu::debug_get_cycle_count(void) {
     return _cycle_count;
 }
@@ -60,11 +54,12 @@ void cpu::debug_set_acc_register(uint8_t data) {
 }
 
 void cpu::reset(void) {
+    // WARNING - Do not call this function before registering devices on the bus, it will not function properly and may throw an exception
+
     // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our emulation doesn't do anything to prevent this, but we may need to in future
     // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator but we'll implement it anyway
 
     _instr_cycles = 6;
-
     // Set program counter from memory loaded into vector 0xFFFC and 0xFFFD, which is start location for program control
     _bus_ptr->set_address(RESET_VECTOR_HIGH);  
     _program_counter = _bus_ptr->read_data();

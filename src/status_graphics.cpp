@@ -21,7 +21,6 @@ status_graphics::status_graphics(SDL_Renderer* renderer, const char* font_filena
     set_colour({255, 255, 255, 255}); // Assuming a black background, text is white by default.
     set_font_width(_font_size);
     set_font_height(_font_size); // if not specified, simply make the font square to the font_size
-
 }
 
 void status_graphics::set_font_width(uint8_t font_width) {
@@ -60,13 +59,13 @@ uint16_t status_graphics::get_y_pos(void) {
 
 uint16_t status_graphics::get_text_width(std::string text) {
     int width = 0; 
-    TTF_SizeText(_font, text.c_str(), &width, nullptr);
+    TTF_SizeText(_font, text.c_str(), &width, NULL);
     return (uint16_t)width; 
 }   
 
 uint16_t status_graphics::get_text_height(std::string text) {
     int height = 0; 
-    TTF_SizeText(_font, text.c_str(), nullptr, &height);
+    TTF_SizeText(_font, text.c_str(), NULL, &height);
     return (uint16_t)height; 
 }
 
@@ -86,8 +85,8 @@ void status_graphics::draw_to_buffer(std::string text_to_render) {
 	_text_texture_rect.w = text_to_render.length() * _font_width; 
 	_text_texture_rect.h = _font_height;  
 
-     _text_surface = TTF_RenderText_Solid(_font, text_to_render.c_str(), _colour); // convert message into a texture, just once
-     _text_texture = SDL_CreateTextureFromSurface(_renderer, _text_surface); 
+    _text_surface = TTF_RenderText_Solid(_font, text_to_render.c_str(), _colour); // convert message into a texture, just once
+    _text_texture = SDL_CreateTextureFromSurface(_renderer, _text_surface); 
     
     SDL_RenderCopy(_renderer, _text_texture, NULL, &_text_texture_rect); // copy any new textures to the renderer
 

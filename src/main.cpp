@@ -59,7 +59,6 @@ private:
 
 int main()
 {
-
 	constexpr uint16_t SCREEN_WIDTH = 1280;
 	constexpr uint16_t SCREEN_HEIGHT = 720;
 	// constexpr uint8_t TARGET_FRAMERATE = 60;  60 fps
@@ -101,25 +100,24 @@ int main()
 
 	std::string font_fullpath = (std::string)base_path;
 	font_fullpath.append("C64_Pro_Mono-STYLE.ttf"); 
-	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
-	test_message.set_colour({128, 128, 128, 255});
+//	status_graphics test_message(renderer, font_fullpath.c_str(), font_size);  
+//	test_message.set_colour({128, 128, 128, 255});
 
-	// set up our display objects, 
+	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	instr_trace_graphics debug_instr_trace(&nes_cpu, &nes_bus, ROM_ADDRESS_SPACE_START, renderer, font_fullpath.c_str(), font_size, 0, 520);
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 20, font_fullpath.c_str(), font_size, &nes_bus);
 	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
-	//bus* bus_ptr, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y
-
+	// SDL event handler
 	SDL_Event event_handler; 
 	bool quit = false; 
 
-	uint16_t x_pos = 100, y_pos = 100; 
+/*	uint16_t x_pos = 100, y_pos = 100; 
 	int8_t x_speed = 2, y_speed = 2; 
-    std::string text_to_render; 
+    std::string text_to_render; */
 
-	// reset the cpu before kicking off the loop. Not totally necessary but good practice
+	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
 
 	while (!quit) { // main application running loop
@@ -130,13 +128,13 @@ int main()
 		placeholder_game_area_rect.draw();	
 
 		// draw the debug emulator status items
+		debug_instr_trace.display_contents();	
 		debug_ram_display.display_contents();
 		debug_rom_display.display_contents(); 	
-		debug_instr_trace.display_contents();	
 
 		// draw the moving text, which helps us see if we are rendering at an acceptable FPS
-		text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
-		test_message.draw_to_buffer(text_to_render, x_pos, y_pos);	
+		//text_to_render = "x: " + std::to_string(x_pos) + ", y: " + std::to_string(y_pos);
+		//test_message.draw_to_buffer(text_to_render, x_pos, y_pos);	
 
 		// update the display with new info from renderer
 		SDL_RenderPresent(renderer);	
@@ -151,7 +149,7 @@ int main()
 
 		if (y_pos <= 0 || y_pos + test_message.get_text_height(text_to_render) >= SCREEN_HEIGHT) {
 			y_speed = -y_speed;
-		}*/	
+		}*/
 
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		SDL_Delay(16); 
