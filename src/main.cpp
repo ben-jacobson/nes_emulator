@@ -112,6 +112,7 @@ int main()
 
 	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
+	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
 
 	while (!quit) { // main application running loop
 		// clear the screen
@@ -147,13 +148,34 @@ int main()
 			std::cout << "Right Key" << std::endl;
 		}
 
+		if (run_mode) {
+			// nes_cpu.cycle(); 
+		}
+
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
 			if (event_handler.type == SDL_KEYUP) {
 				key_event = &event_handler.key;
-				// std::cout << "Key release detected: " << key_event->keysym.sym << std::endl;
 
 				switch (key_event->keysym.sym) {
+					case SDLK_F5:
+						// toggle run mode
+						run_mode = !run_mode; 
+						break;
+
+					case SDLK_SPACE:
+						if (!run_mode)  // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
+							nes_cpu.cycle();
+						break;
+
+					case SDLK_DELETE:
+						nes_cpu.reset();
+						break;
+
+					case SDLK_TAB:
+						// allow editing for a memory region
+						break;
+
 					case SDLK_ESCAPE:
 						quit = true;	// quit the program
 						break;																	
