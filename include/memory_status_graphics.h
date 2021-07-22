@@ -7,8 +7,8 @@
 class memory_status_graphics : public status_graphics
 {
 public:
-	memory_status_graphics(std::string display_heading, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, bus* bus_ptr);
-	memory_status_graphics(std::string display_heading, uint16_t start_address, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y, const char* font_filename, int ptsize, bus* bus_ptr);    
+	memory_status_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, std::string display_heading, uint16_t start_address);
+	memory_status_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y, std::string display_heading, uint16_t start_address);    
 	~memory_status_graphics() = default;
     
     void display_contents(uint16_t x, uint16_t y);
@@ -23,5 +23,3 @@ private:
     uint16_t _preset_display_x, _preset_display_y; 
     bus* _bus_ptr;
 };
-
-

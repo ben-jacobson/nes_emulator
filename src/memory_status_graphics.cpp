@@ -1,14 +1,14 @@
 #include "memory_status_graphics.h"
 
-memory_status_graphics::memory_status_graphics(std::string display_heading, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, bus* bus_ptr)
+memory_status_graphics::memory_status_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, std::string display_heading, uint16_t start_address)
     : status_graphics(renderer, font_filename, ptsize), _START_ADDRESS(start_address)
 {
     _bus_ptr = bus_ptr;
     _display_heading = display_heading;
 }
 
-memory_status_graphics::memory_status_graphics(std::string display_heading, uint16_t start_address, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y, const char* font_filename, int ptsize, bus* bus_ptr)
-    : memory_status_graphics(display_heading, start_address, renderer, font_filename, ptsize, bus_ptr)
+memory_status_graphics::memory_status_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y, std::string display_heading, uint16_t start_address)
+    : memory_status_graphics(bus_ptr, renderer, font_filename, ptsize, display_heading, start_address)
 {
     _preset_display_x = preset_display_x;
     _preset_display_y = preset_display_y;

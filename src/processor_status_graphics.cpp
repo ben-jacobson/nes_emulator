@@ -9,30 +9,11 @@ processor_status_graphics::processor_status_graphics(cpu* cpu_ptr, SDL_Renderer*
 }
 
 void processor_status_graphics::display_contents(void) {
-    /*
-    set_colour({0, 255, 0, 255}); // green
-    draw_to_buffer(">", _preset_display_x, _preset_display_y + (_font_height * INSTRUCTIONS_TO_DISPLAY / 2)); // should be 6 down
-
-    set_colour({255, 255, 255, 255}); // green
-    draw_to_buffer("Instruction Trace", _preset_display_x + 20, _preset_display_y);
-
-    std::string decoded_instruction;
-    //_current_address = _start_address - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
-    _current_address = _cpu_ptr->get_program_counter() - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
-
-    for (uint8_t i = 0; i < INSTRUCTIONS_TO_DISPLAY; i++) {
-        _bus_ptr->set_address(_current_address);
-        fetch_and_decode_next_instruction();
-        draw_to_buffer(_decoded_instruction, _preset_display_x + 20, _preset_display_y + ((i + 1) * _font_height));
-    }
-    */
     uint8_t flags = _cpu_ptr->get_status_flags();
     uint8_t flag_bit = 0;
 
     draw_to_buffer("Processor Status", _preset_display_x, _preset_display_y);
     draw_to_buffer("N V U B D I Z C", _preset_display_x, _preset_display_y + _font_height);
-
-    
     //std::cout << "processor flags:" << (uint16_t)flags << std::endl;
     
     for (uint8_t i = 8; i > 0; i--) {
@@ -43,4 +24,26 @@ void processor_status_graphics::display_contents(void) {
     }
 
     //Render a view of the registers - ACC, X, Y. Also showing the stack pointer, program counter and the number of cycles elapsed since reset
+    std::stringstream register_values;
+    register_values << "PC: " << "0x" << std::setfill('0') << std::setw(4) << std::uppercase << std::hex << _cpu_ptr->get_program_counter() << " ";
+    register_values << "SP: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)_cpu_ptr->get_stack_pointer() << " ";
+    set_colour({255, 255, 255, 255}); // White
+    draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 4));
+
+    register_values = std::stringstream();
+    uint8_t acc_reg = _cpu_ptr->get_accumulator_reg_content();
+    uint8_t x_reg = _cpu_ptr->get_x_index_reg_content();
+    uint8_t y_reg = _cpu_ptr->get_y_index_reg_content();
+
+    register_values << "ACC: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)acc_reg << " ";
+    register_values << "(" << (uint16_t)acc_reg << ") ";
+    register_values << "X: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)x_reg << " ";
+    register_values << "(" << (uint16_t)x_reg << ") ";
+    register_values << "Y: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)y_reg << " ";
+    register_values << "(" << (uint16_t)y_reg << ") ";
+    draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 5));
+
+    register_values = std::stringstream();
+    register_values << "Cycles: " << _cpu_ptr->debug_get_cycle_count();
+    draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 6));
 }

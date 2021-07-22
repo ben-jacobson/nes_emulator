@@ -104,8 +104,8 @@ int main()
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	instr_trace_graphics debug_instr_trace(&nes_cpu, &nes_bus, renderer, font_fullpath.c_str(), font_size, 0, 520);
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520);
-	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 20, font_fullpath.c_str(), font_size, &nes_bus);
-	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
+	memory_status_graphics debug_ram_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
+	memory_status_graphics debug_rom_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", ROM_ADDRESS_SPACE_START);
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
@@ -149,7 +149,7 @@ int main()
 		}
 
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
-		SDL_Delay(16); 
+		//SDL_Delay(16); 
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them slightly differently
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
