@@ -41,6 +41,13 @@ uint16_t cpu::debug_get_cycle_count(void) {
     return _cycle_count;
 }
 
+bool cpu::finished_instruction(void) {
+    if (_instr_cycles < 1) {
+        return true;
+    }
+    return false;
+}
+
 void cpu::debug_set_x_register(uint8_t data) {
     _x_index_reg = data;
 }

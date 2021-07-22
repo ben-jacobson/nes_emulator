@@ -79,6 +79,7 @@ public:
     uint8_t get_y_index_reg_content(void);
     uint8_t get_status_flags(void);
     status_flags get_status_flags_struct(void);
+    bool finished_instruction(void);
 
     uint16_t get_last_fetched_address(void);
     uint8_t get_last_fetched_operand(void);

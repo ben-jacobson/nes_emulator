@@ -113,6 +113,7 @@ int main()
 	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
 	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
+	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
 
 	while (!quit) { // main application running loop
 		// clear the screen
@@ -152,6 +153,15 @@ int main()
 			// nes_cpu.cycle(); 
 		}
 
+		if (single_cycle) {
+			nes_cpu.cycle();
+
+			if (nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
+				std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
+				single_cycle = false;
+			}
+		}
+
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
 			if (event_handler.type == SDL_KEYUP) {
@@ -166,8 +176,7 @@ int main()
 
 					case SDLK_SPACE:
 						if (!run_mode)  // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
-							nes_cpu.cycle();
-							std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
+						single_cycle = true;
 						break;
 
 					case SDLK_DELETE:
