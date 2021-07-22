@@ -10,7 +10,7 @@ cpu::cpu(bus *bus_ptr)
     _read_function_ptr = nullptr; 
     _write_function_ptr = nullptr;
 
-    //  reset(); // don't reset this, we want to initalise everything first, then manually run reset after setting up your bus devices.
+    //  reset(); // don't reset the cpu in the contructor, the user may not have had the chance to register the devices on the bus, so this may not work properly and may even thrown an exception.
 } 
 
 cpu::~cpu() {
