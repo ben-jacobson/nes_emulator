@@ -1,6 +1,6 @@
 #include "instr_trace_graphics.h"
 
-instr_trace_graphics::instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y)
+instr_trace_graphics::instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y)
     : status_graphics(renderer, font_filename, ptsize)
 {
     _bus_ptr = bus_ptr;
@@ -8,8 +8,6 @@ instr_trace_graphics::instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, uint16_t 
     
     _preset_display_x = preset_display_x;
     _preset_display_y = preset_display_y;
-
-    _start_address = start_address;
 }
 
 void instr_trace_graphics::display_contents() {
@@ -31,18 +29,14 @@ void instr_trace_graphics::display_contents() {
 }
 
 void instr_trace_graphics::fetch_and_decode_next_instruction(void) {
-    uint16_t current_address = _bus_ptr->read_address();
     uint8_t opcode = _bus_ptr->read_data(); // we are already at the address
     std::string instruction_name = _cpu_ptr->_opcode_decoder_lookup[opcode].name;
     std::string address_mode = _cpu_ptr->_opcode_decoder_lookup[opcode].address_mode_name;
     uint8_t instruction_bytes = _cpu_ptr->_opcode_decoder_lookup[opcode].instruction_bytes;
     uint8_t operand; 
     
-
-    // "0x8000: 0xBB 0xAA 0xFF. INDX: STX 126 50"
-
     std::stringstream decoded_line;
-    decoded_line << "0x" << std::setfill('0') << std::setw(4) << std::uppercase << std::hex << current_address << ": ";
+    decoded_line << "0x" << std::setfill('0') << std::setw(4) << std::uppercase << std::hex << _current_address << ": ";
     decoded_line << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)opcode << " " << instruction_name << " ";
 
     if (instruction_bytes > 1) {

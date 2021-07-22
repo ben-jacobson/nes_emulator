@@ -101,7 +101,7 @@ int main()
 
 	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
-	instr_trace_graphics debug_instr_trace(&nes_cpu, &nes_bus, ROM_ADDRESS_SPACE_START, renderer, font_fullpath.c_str(), font_size, 0, 520);
+	instr_trace_graphics debug_instr_trace(&nes_cpu, &nes_bus, renderer, font_fullpath.c_str(), font_size, 0, 520);
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 20, font_fullpath.c_str(), font_size, &nes_bus);
 	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 

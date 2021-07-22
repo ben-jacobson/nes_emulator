@@ -10,14 +10,14 @@
 class instr_trace_graphics : public status_graphics
 {
 public:
-	instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, uint16_t start_address, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y);
+	instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y);
 	~instr_trace_graphics() = default;
 
     void display_contents();
 
 private:
     static constexpr uint8_t INSTRUCTIONS_TO_DISPLAY = 12;
-    uint16_t _start_address, _current_address;
+    uint16_t _current_address;
     uint8_t last_instruction_width;
     std::string _decoded_instruction;
 
