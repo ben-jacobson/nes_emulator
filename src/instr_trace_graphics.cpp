@@ -20,7 +20,8 @@ void instr_trace_graphics::display_contents() {
     draw_to_buffer("Instruction Trace", _preset_display_x + 20, _preset_display_y);
 
     std::string decoded_instruction;
-    _current_address = _start_address - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
+    //_current_address = _start_address - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
+    _current_address = _cpu_ptr->get_program_counter() - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
 
     for (uint8_t i = 0; i < INSTRUCTIONS_TO_DISPLAY; i++) {
         _bus_ptr->set_address(_current_address);

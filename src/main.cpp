@@ -160,20 +160,24 @@ int main()
 				switch (key_event->keysym.sym) {
 					case SDLK_F5:
 						// toggle run mode
+						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
 						run_mode = !run_mode; 
 						break;
 
 					case SDLK_SPACE:
 						if (!run_mode)  // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
 							nes_cpu.cycle();
+							std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
 						break;
 
 					case SDLK_DELETE:
 						nes_cpu.reset();
+						std::cout << "CPU reset." << std::endl;
 						break;
 
 					case SDLK_TAB:
 						// allow editing for a memory region
+						std::cout << "Coming soon: memory editing," << std::endl;
 						break;
 
 					case SDLK_ESCAPE:
