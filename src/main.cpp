@@ -117,6 +117,8 @@ int main()
 	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
 	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
 
+	std::cout << "Emulator started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
+
 	while (!quit) { // main application running loop
 		// clear the screen
 		SDL_RenderClear(renderer); 
@@ -132,6 +134,19 @@ int main()
 
 		// update the display with new info from renderer
 		SDL_RenderPresent(renderer);	
+
+		if (run_mode) {
+			nes_cpu.cycle(); 
+		}
+
+		if (single_cycle) {
+			nes_cpu.cycle();
+
+			if (nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
+				std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
+				single_cycle = false;
+			}
+		}
 
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		SDL_Delay(16); 
@@ -151,19 +166,7 @@ int main()
 		if (keystates[SDL_SCANCODE_RIGHT]) {
 			std::cout << "Right Key" << std::endl;
 		}
-
-		if (run_mode) {
-			// nes_cpu.cycle(); 
-		}
-
-		if (single_cycle) {
-			nes_cpu.cycle();
-
-			if (nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
-				std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
-				single_cycle = false;
-			}
-		}
+		
 
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
