@@ -44,7 +44,7 @@ void instr_trace_graphics::fetch_and_decode_next_instruction(void) {
             _current_address++;
             _bus_ptr->set_address(_current_address);
             operand = _bus_ptr->read_data();
-            decoded_line << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << operand << " ";
+            decoded_line << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)operand << " ";
         }
     }
 
