@@ -105,8 +105,9 @@ int main()
 	memory_status_graphics debug_ram_display("RAM Contents", RAM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 20, font_fullpath.c_str(), font_size, &nes_bus);
 	memory_status_graphics debug_rom_display("ROM Contents", ROM_ADDRESS_SPACE_START, renderer, 20 + 512 + 20, 25 + (18 * font_size), font_fullpath.c_str(), font_size, &nes_bus);
 
-	// SDL event handler
+	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
+	SDL_KeyboardEvent *key_event;
 	bool quit = false; 
 
 	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
@@ -130,19 +131,38 @@ int main()
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		SDL_Delay(16); 
 
+		// For gameplay keypresses, we don't want any delay on the keys, so we handle them slightly differently
+		const Uint8* keystates = SDL_GetKeyboardState(NULL);
+
+		if (keystates[SDL_SCANCODE_UP]) {
+			std::cout << "Up Key" << std::endl;
+		}
+		if (keystates[SDL_SCANCODE_DOWN]) {
+			std::cout << "Down Key" << std::endl;
+		}
+		if (keystates[SDL_SCANCODE_LEFT]) {
+			std::cout << "Left Key" << std::endl;
+		}
+		if (keystates[SDL_SCANCODE_RIGHT]) {
+			std::cout << "Right Key" << std::endl;
+		}
+
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
-			switch (event_handler.type) {
-				case SDL_KEYDOWN:
-					std::cout << "Key press detected" << std::endl;
-					break;
-				case SDL_KEYUP:					
-					std::cout << "Key release detected" << std::endl;
-					break;
-				case SDL_QUIT:
-					quit = true;
-					break;
-			}			
+			if (event_handler.type == SDL_KEYUP) {
+				key_event = &event_handler.key;
+				// std::cout << "Key release detected: " << key_event->keysym.sym << std::endl;
+
+				switch (key_event->keysym.sym) {
+					case SDLK_ESCAPE:
+						quit = true;	// quit the program
+						break;																	
+				}
+			}
+
+			else if (event_handler.type == SDL_QUIT) {
+				quit = true;
+			}
 		}		
 	}
 
