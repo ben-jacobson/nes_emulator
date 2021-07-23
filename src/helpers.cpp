@@ -1,12 +1,21 @@
 #include "helpers.h"
 
-bool hex_key(int ksym) {
+/*bool hex_key(int ksym) {
     for (auto& key : HEX_KEYS) {
         if (ksym == key)
             return true; 
 	}
 	return false;
+}*/ 
+
+bool hex_key(char character) {
+    for (auto& key : HEX_KEYS) {
+        if (character == key)
+            return true; 
+	}
+	return false;    
 }
+
 
 game_display_placeholder_output::game_display_placeholder_output(SDL_Renderer* renderer, uint16_t x_pos, uint16_t y_pos, uint8_t scale) {
     _renderer = renderer;

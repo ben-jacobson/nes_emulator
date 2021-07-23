@@ -69,7 +69,9 @@ int main()
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
 	SDL_KeyboardEvent *key_event;
-	bool quit = false; 
+	std::string address_peek_text_input; 
+	uint8_t address_peek_chars_inputted = 0; // when we've entered 4 chars, it will auto-complete
+	SDL_StopTextInput();
 
 	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
@@ -77,6 +79,8 @@ int main()
 	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
 
 	std::cout << "Emulator started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
+
+	bool quit = false; 
 
 	while (!quit) { // main application running loop
 		// clear the screen
@@ -131,11 +135,21 @@ int main()
 			if (event_handler.type == SDL_KEYUP) {
 				key_event = &event_handler.key;
 
-				if (hex_key(key_event->keysym.sym)) {
-					std::cout << "Hex Key pressed" << std::endl;
-				}
-
 				switch (key_event->keysym.sym) {
+					case SDLK_TAB:
+						address_peek_text_input = std::string(); // clear it
+						SDL_StartTextInput();
+						break;
+					case SDLK_RETURN:
+						if (SDL_IsTextInputActive()) {
+							std::string padded_text_input = std::string(4 - address_peek_text_input.length(), '0') + address_peek_text_input;
+							std::cout << "User entered: " << padded_text_input << std::endl; // todo, put this into own function
+							address_peek_text_input = std::string(); // clear it
+							address_peek_chars_inputted = 0;
+							SDL_StopTextInput();
+						}
+						break;
+
 					case SDLK_F5:
 						// toggle run mode
 						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
@@ -153,14 +167,25 @@ int main()
 						std::cout << "CPU reset" << std::endl;
 						break;
 
-					case SDLK_TAB:
-						// allow editing for a memory region
-						std::cout << "Coming soon: memory editing," << std::endl;
-						break;
-
 					case SDLK_ESCAPE:
 						quit = true;	// quit the program
 						break;																	
+				}
+			}
+			else if (event_handler.type == SDL_TEXTINPUT) {		
+				char key_pressed = toupper(event_handler.text.text[0]);
+				if (hex_key(key_pressed)) {	 // only append if a hex key
+					address_peek_text_input += key_pressed;
+					std::cout << "Char: " << address_peek_text_input << std::endl;
+					address_peek_chars_inputted++;
+				}
+
+				if (address_peek_chars_inputted >= 4) {
+					std::string padded_text_input = std::string(4 - address_peek_text_input.length(), '0') + address_peek_text_input;
+					std::cout << "User entered: " << padded_text_input << std::endl; // todo, put this into own function
+					address_peek_text_input = std::string(); // clear it
+					address_peek_chars_inputted = 0;
+					SDL_StopTextInput();					
 				}
 			}
 

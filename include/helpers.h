@@ -4,9 +4,12 @@
 #include <iostream>
 #include <vector>
 
-const std::vector<SDL_Keycode> HEX_KEYS = {SDLK_0, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_a, SDLK_b, SDLK_c, SDLK_d, SDLK_e, SDLK_f};
+//const std::vector<SDL_Keycode> HEX_KEYS = {SDLK_0, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_a, SDLK_b, SDLK_c, SDLK_d, SDLK_e, SDLK_f};
+//bool hex_key(SDL_Keycode ksym); 
 
-bool hex_key(SDL_Keycode ksym); 
+const std::vector<char> HEX_KEYS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+bool hex_key(char character); 
 
 class game_display_placeholder_output {
 public:
