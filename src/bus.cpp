@@ -25,10 +25,10 @@ uint8_t bus::read_data(void) {
     int device_index = get_index_of_connected_device(_address);
 
     if (device_index != -1) {
-        _data = devices_connected_to_bus[device_index]._read_function_ptr(_address);        
+        _data = devices_connected_to_bus[device_index]._read_function_ptr(_address);      
         return _data;
     }
-    return 0;
+    return 0; // return 0 if not found in any valid memory
 }
 
 void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr) {
