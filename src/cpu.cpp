@@ -190,6 +190,11 @@ void cpu::program_counter_to_stack(void) {
     push_to_stack(_program_counter & 0x00FF);   // then put the low 8 bits on the stack at the current pointer    
 }
 
+void cpu::program_counter_to_stack(uint8_t offset) {
+    push_to_stack(((_program_counter + offset) & 0xFF00) >> 8);   // put the high 8 bits on the stack at the current pointer
+    push_to_stack((_program_counter + offset) & 0x00FF);   // then put the low 8 bits on the stack at the current pointer    
+}
+
 void cpu::push_to_stack(uint8_t data) {
     // the address will be the stack start page + the offset pointer
     _bus_ptr->set_address(STACK_START + _stack_pointer);

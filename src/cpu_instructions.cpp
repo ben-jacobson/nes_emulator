@@ -41,6 +41,9 @@ uint8_t cpu::instr_BPL(void) {
 }
 
 uint8_t cpu::instr_BRK(void) {
+    program_counter_to_stack(2); // PC+2 is pushed to stack
+    push_to_stack(get_status_flags());
+    _status_flags_reg.b = 1; 
     return 0;
 }
 

@@ -62,7 +62,33 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
     CHECK(test_cpu._opcode_decoder_lookup[0xEA].cycles_needed == 2);
     REQUIRE(test_cpu._opcode_decoder_lookup[0xEA].instruction != nullptr); // I'd like to have another crack at this later, test that the function has been set to the correct one.
 }
-    
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - BRK", "[cpu instruction]") {
+    uint16_t program_counter_at_start = test_cpu.get_program_counter();
+    uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
+
+    test_cpu.instr_BRK(); // force break
+    uint8_t status_reg_at_start = test_cpu.get_status_flags(); // status reg is pushed to stack with the break flag set, so this needs to be checked after the instruction has run.
+
+    // we should see PC+2 pushed to the stack first 
+    test_bus.set_address(STACK_END - stack_pointer_at_start); 
+    uint8_t pc_high = test_bus.read_data();
+    test_bus.set_address(STACK_END - stack_pointer_at_start - 1);
+    uint8_t pc_low = test_bus.read_data();
+    uint16_t recreated_pc = (pc_high << 8) | pc_low;
+    uint16_t expected_result = program_counter_at_start + 2;
+    REQUIRE(recreated_pc == expected_result);
+
+    // the status register should be pushed to the stack
+    test_bus.set_address(STACK_END - stack_pointer_at_start - 2);
+    uint8_t status_reg_test = test_bus.read_data();
+    REQUIRE(status_reg_test == status_reg_at_start);
+
+    // the break flag should be set to 1
+    status_reg_test = test_cpu.get_status_flags_struct().b;
+    REQUIRE(status_reg_test == 1);
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - CLI", "[cpu instruction]") {
     test_cpu.instr_CLI(); // clear IRQ disable bit
     REQUIRE(test_cpu.get_status_flags_struct().i == 0);

@@ -26,6 +26,8 @@ public:
         // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU
         hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0x00); 
         hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0x80);   
+
+        test_cpu.reset();
     }
 
     ~emulator_test_fixtures() = default;
