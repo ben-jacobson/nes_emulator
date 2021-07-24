@@ -33,7 +33,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction helper - test check if
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction decoder") {
     // provide the CPU with a bit of data to work with. 
-    hack_in_test_rom_data(ROM_ADDRESS_SPACE_START - 0x8000, 0xEA); // NOP instruction
+    hack_in_test_rom_data(PGM_ROM_ADDRESS_SPACE_START - 0x8000, 0xEA); // NOP instruction
     uint8_t result_rom = test_cart.read(RESET_VECTOR_HIGH);
     CHECK(result_rom == 0x80);
 

@@ -27,11 +27,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags_struct") {
 
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
-    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);        // set reset vector so that CPU knows where to go to look for start of program
-    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0xEE);
-    hack_in_test_rom_data(0xEEDD - ROM_ADDRESS_SPACE_START, 0xEA); // a nop instruction, do nothing
-    hack_in_test_rom_data(0xEEDE - ROM_ADDRESS_SPACE_START, 0xE8); // an inx instruction, increment X index
-    hack_in_test_rom_data(0xEEDF - ROM_ADDRESS_SPACE_START, 0x08); // a PHP instruction, push program status to stack
+    hack_in_test_rom_data(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);        // set reset vector so that CPU knows where to go to look for start of program
+    hack_in_test_rom_data(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
+    hack_in_test_rom_data(0xEEDD - PGM_ROM_ADDRESS_SPACE_START, 0xEA); // a nop instruction, do nothing
+    hack_in_test_rom_data(0xEEDE - PGM_ROM_ADDRESS_SPACE_START, 0xE8); // an inx instruction, increment X index
+    hack_in_test_rom_data(0xEEDF - PGM_ROM_ADDRESS_SPACE_START, 0x08); // a PHP instruction, push program status to stack
     test_cpu.reset(); // program will start at address EEDD
 
     test_bus.set_address(0xEEDD);
@@ -83,8 +83,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
     // put some data into the reset vector, which is a section of ROM memory
-    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0xDD);
-    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0xEE);
+    hack_in_test_rom_data(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);
+    hack_in_test_rom_data(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
 
     uint8_t reset_vector_low = test_cart.read_rom(RESET_VECTOR_LOW);
     CHECK(reset_vector_low == 0xDD); // check that it landed properly in ROM
@@ -114,8 +114,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
     uint8_t program_counter_at_start_low = (program_counter_at_start & 0x00FF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8);     
 
-    hack_in_test_rom_data(0xFFFF - ROM_ADDRESS_SPACE_START, 0xBB); // put something in the IRQ vector
-    hack_in_test_rom_data(0xFFFE - ROM_ADDRESS_SPACE_START, 0xAA);
+    hack_in_test_rom_data(0xFFFF - PGM_ROM_ADDRESS_SPACE_START, 0xBB); // put something in the IRQ vector
+    hack_in_test_rom_data(0xFFFE - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
 
     CHECK(test_cpu.get_status_flags_struct().i == 0); // is the interrupt enabled (0)?
 
@@ -141,8 +141,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
     uint8_t program_counter_at_start_low = (program_counter_at_start & 0xFF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8); 
 
-    hack_in_test_rom_data(0xFFFB - ROM_ADDRESS_SPACE_START, 0xEE);  // put something in the NMI vector
-    hack_in_test_rom_data(0xFFFA - ROM_ADDRESS_SPACE_START, 0xFF); 
+    hack_in_test_rom_data(0xFFFB - PGM_ROM_ADDRESS_SPACE_START, 0xEE);  // put something in the NMI vector
+    hack_in_test_rom_data(0xFFFA - PGM_ROM_ADDRESS_SPACE_START, 0xFF); 
 
     bool result = test_cpu.NMI();   
     CHECK(result == true);
@@ -176,8 +176,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test set and get stack pointer")
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test program counter getter", "[cpu]") {
-    hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0x00);
-    hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0x80);
+    hack_in_test_rom_data(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0x00);
+    hack_in_test_rom_data(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0x80);
     test_cpu.reset(); // reset will go to the reset vector, in this instance will read 0x8000 and skip to that 
 
     uint16_t result = test_cpu.get_program_counter(); 

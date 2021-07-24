@@ -24,8 +24,8 @@ public:
         test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
 
         // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU
-        hack_in_test_rom_data(RESET_VECTOR_LOW - ROM_ADDRESS_SPACE_START, 0x00); 
-        hack_in_test_rom_data(RESET_VECTOR_HIGH - ROM_ADDRESS_SPACE_START, 0x80);   
+        hack_in_test_rom_data(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0x00); 
+        hack_in_test_rom_data(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0x80);   
 
         test_cpu.reset();
     }
@@ -34,7 +34,8 @@ public:
 
     void hack_in_test_rom_data(uint16_t relative_address, uint8_t data) {
         // hacks some data into the rom via it's rom pointer. Uses relative addresses, i.e not in the global address space. Address 0x0000 is is address 0x0000 
-        uint8_t* cart_ptr = test_cart.get_rom_pointer();    
+        
+        uint8_t* cart_ptr = test_cart.get_rom_pointer();   
         *(cart_ptr + relative_address) = data;
     }    
 };

@@ -2,8 +2,8 @@
 #include "test_fixtures.h"
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruction]") {
-    hack_in_test_rom_data(0x8000 - ROM_ADDRESS_SPACE_START, 0xEE);
-    hack_in_test_rom_data(0x8001 - ROM_ADDRESS_SPACE_START, 0xDD);
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
+    hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0xDD);
 
     test_cpu.set_program_counter(0x8000); 
     uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
@@ -29,7 +29,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ACCUM", "[cpu instr
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruction]") {
     // in IMM address mode, the second byte of the instruction is the operand. 
-    hack_in_test_rom_data(0x8000 - ROM_ADDRESS_SPACE_START, 0xAA);
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_IMM();
     uint8_t fetched_operand = test_cpu.get_last_fetched_operand();
@@ -59,7 +59,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruction]") {
     // this address mode fetches only the second byte, and uses it as an address on page zero. 
-    hack_in_test_rom_data(0x8000 - ROM_ADDRESS_SPACE_START, 0xBB);
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZP();
     uint16_t address_fetched = test_cpu.get_last_fetched_address();
@@ -69,7 +69,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruct
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPX", "[cpu instruction]") {
     // this address mode works exactly the same as ZP, except it adds the value of the X register to the address.
     test_cpu.reset();
-    hack_in_test_rom_data(0x8000 - ROM_ADDRESS_SPACE_START, 0xFC);
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xFC);
 
     // set the X register for a known state
     test_cpu.instr_INX(); // 1
@@ -96,7 +96,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPX", "[cpu instruc
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPY", "[cpu instruction]") {
     // this address mode works exactly the same as ZP, except it adds the value of the Y register to the address.
     test_cpu.reset();
-    hack_in_test_rom_data(0x8000 - ROM_ADDRESS_SPACE_START, 0xFC);
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xFC);
 
     // set the Y register for a known state
     test_cpu.instr_INY(); // 1

@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520);
 	memory_peek_graphics debug_memory_peek(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520 + (font_size * 8)); // 7 lines below processor status
 	memory_status_graphics debug_ram_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
-	memory_status_graphics debug_rom_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", ROM_ADDRESS_SPACE_START);
+	memory_status_graphics debug_rom_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", 0xC000); // temporarily while we are testing our emulator //PGM_ROM_ADDRESS_SPACE_START);
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
