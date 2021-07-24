@@ -84,6 +84,9 @@ uint8_t cpu::instr_CPY(void) {
 }
 
 uint8_t cpu::instr_DEC(void) {
+    _bus_ptr->set_address(_fetched);
+    uint8_t value = _bus_ptr->read_data();
+    _bus_ptr->write_data(value - 1);    
     return 0;
 }
 
@@ -106,6 +109,9 @@ uint8_t cpu::instr_EOR(void) {
 }
 
 uint8_t cpu::instr_INC(void) {
+    _bus_ptr->set_address(_fetched);
+    uint8_t value = _bus_ptr->read_data();
+    _bus_ptr->write_data(value + 1);
     return 0;
 }
 
@@ -119,7 +125,7 @@ uint8_t cpu::instr_INX(void) {
 uint8_t cpu::instr_INY(void) {
     _y_index_reg++;
     check_if_negative(_y_index_reg);
-    check_if_zero(_y_index_reg);    
+    check_if_zero(_y_index_reg); 
     return 0;
 }
 
@@ -133,14 +139,23 @@ uint8_t cpu::instr_JSR(void) {
 }
 
 uint8_t cpu::instr_LDA(void) {
+    _accumulator_reg = (_fetched & 0xFF);       // we can only accept the lower 8 bits
+    check_if_negative(_accumulator_reg);
+    check_if_zero(_accumulator_reg);      
     return 0;
 }
 
 uint8_t cpu::instr_LDX(void) {
+    _x_index_reg = (_fetched & 0xFF);       // we can only accept the lower 8 bits
+    check_if_negative(_x_index_reg);
+    check_if_zero(_x_index_reg);  
     return 0;
 }
 
 uint8_t cpu::instr_LDY(void) {
+    _y_index_reg = (_fetched & 0xFF);       // we can only accept the lower 8 bits
+    check_if_negative(_y_index_reg);
+    check_if_zero(_y_index_reg);      
     return 0;
 }
 
@@ -149,6 +164,7 @@ uint8_t cpu::instr_LSR(void) {
 }
 
 uint8_t cpu::instr_NOP(void) {
+    // do nothing
     return 0;
 }
 
@@ -207,14 +223,20 @@ uint8_t cpu::instr_SEI(void) {
 }
 
 uint8_t cpu::instr_STA(void) {
+    _bus_ptr->set_address(_fetched);
+    _bus_ptr->write_data(_accumulator_reg); 
     return 0;
 }
 
 uint8_t cpu::instr_STX(void) {
+    _bus_ptr->set_address(_fetched);
+    _bus_ptr->write_data(_x_index_reg);
     return 0;
 }
 
 uint8_t cpu::instr_STY(void) {
+    _bus_ptr->set_address(_fetched);
+    _bus_ptr->write_data(_y_index_reg);  
     return 0;
 }
 
@@ -243,5 +265,6 @@ uint8_t cpu::instr_TYA(void) {
 }
 
 uint8_t cpu::instr_ZZZ(void) {
+    // do nothing
     return 0;
 }

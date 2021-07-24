@@ -36,11 +36,11 @@ void processor_status_graphics::display_contents(void) {
     uint8_t y_reg = _cpu_ptr->get_y_index_reg_content();
 
     register_values << "ACC: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)acc_reg << " ";
-    register_values << "(" << (uint16_t)acc_reg << ") ";
+    register_values << "(" << std::dec << (uint16_t)acc_reg << ") ";
     register_values << "X: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)x_reg << " ";
-    register_values << "(" << (uint16_t)x_reg << ") ";
+    register_values << "(" << std::dec << (uint16_t)x_reg << ") ";
     register_values << "Y: " << "0x" << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (uint16_t)y_reg << " ";
-    register_values << "(" << (uint16_t)y_reg << ") ";
+    register_values << "(" << std::dec << (uint16_t)y_reg << ") ";
     draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 5));
 
     register_values = std::stringstream();
