@@ -124,6 +124,7 @@ uint8_t cpu::instr_INY(void) {
 }
 
 uint8_t cpu::instr_JMP(void) {
+    set_program_counter(_fetched);
     return 0;
 }
 

@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 
 					case SDLK_DELETE:		// RESET CPU
 						nes_cpu.reset();
-						single_cycle = true; // do this so that the processor can progress the first 6 clock cycles and pause on the first instruction
+						single_cycle = true; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 						std::cout << "CPU reset" << std::endl;
 						break;
 

@@ -64,9 +64,9 @@ void cpu::reset(void) {
     // WARNING - Do not call this function before registering devices on the bus, it will not function properly and may throw an exception
 
     // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our emulation doesn't do anything to prevent this, but we may need to in future
-    // System initialization usually takes 6 clock cycles, unsure if this is relevant to our high level emulator but we'll implement it anyway
+    // System initialization usually takes 7 clock cycles, unsure if this is relevant to our high level emulator but we'll implement it anyway
 
-    _instr_cycles = 6;
+    _instr_cycles = 7;
     // Set program counter from memory loaded into vector 0xFFFC and 0xFFFD, which is start location for program control
     _bus_ptr->set_address(RESET_VECTOR_HIGH);  
     _program_counter = _bus_ptr->read_data();
