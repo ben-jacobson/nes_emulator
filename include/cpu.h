@@ -81,8 +81,7 @@ public:
     status_flags get_status_flags_struct(void);
     bool finished_instruction(void);
 
-    uint16_t get_last_fetched_address(void);
-    uint8_t get_last_fetched_operand(void);
+    uint16_t get_last_fetched(void);
     uint8_t get_last_fetched_opcode(void);
     uint8_t get_last_fetched_instr_cycles(void);
 
@@ -195,7 +194,7 @@ private:
     void push_to_stack(uint8_t data);
 
     // variables used for processing information, passing data between fetch, clock and whatever instruction being performed.
-    uint16_t _fetched_address, _fetched_operand;
+    uint16_t _fetched; // used for whatever fetched address, data or operand from the instruction. We need to be vague because the different address modes use this to prepare data for instructions
     uint8_t _instr_opcode, _instr_cycles;
 
     uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 

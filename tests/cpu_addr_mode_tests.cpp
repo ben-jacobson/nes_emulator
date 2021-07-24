@@ -10,7 +10,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruc
     CHECK(program_counter_at_start == 0x8000);
 
     test_cpu.addr_mode_ABS();
-    uint16_t last_fetched_address = test_cpu.get_last_fetched_address();
+    uint16_t last_fetched_address = test_cpu.get_last_fetched();
     REQUIRE(last_fetched_address == 0xDDEE);
 }
 
@@ -32,7 +32,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
     hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_IMM();
-    uint8_t fetched_operand = test_cpu.get_last_fetched_operand();
+    uint8_t fetched_operand = test_cpu.get_last_fetched();
     REQUIRE(fetched_operand == 0xAA);
 }
 
@@ -62,7 +62,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruct
     hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZP();
-    uint16_t address_fetched = test_cpu.get_last_fetched_address();
+    uint16_t address_fetched = test_cpu.get_last_fetched();
     REQUIRE(address_fetched == 0x00BB);
 }
 
@@ -82,14 +82,14 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPX", "[cpu instruc
     // Todo - do something that puts something into the X register. 
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZPX();
-    uint16_t address_fetched = test_cpu.get_last_fetched_address();
+    uint16_t address_fetched = test_cpu.get_last_fetched();
     REQUIRE(address_fetched == 0x00FF);
 
     // zero page addressing should never cross the page boundary
     test_cpu.instr_INX(); // 4
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZPX();
-    address_fetched = test_cpu.get_last_fetched_address();
+    address_fetched = test_cpu.get_last_fetched();
     REQUIRE(address_fetched == 0x0000);
 }
 
@@ -109,13 +109,13 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPY", "[cpu instruc
     // Todo - do something that puts something into the X register. 
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZPY();
-    uint16_t address_fetched = test_cpu.get_last_fetched_address();
+    uint16_t address_fetched = test_cpu.get_last_fetched();
     REQUIRE(address_fetched == 0x00FF);
 
     // zero page addressing should never cross the page boundary
     test_cpu.instr_INY(); // 4
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZPY();
-    address_fetched = test_cpu.get_last_fetched_address();
+    address_fetched = test_cpu.get_last_fetched();
     REQUIRE(address_fetched == 0x0000); // FF will have overflowed back to 00
 }

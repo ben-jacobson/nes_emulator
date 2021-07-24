@@ -30,7 +30,7 @@ cartridge::~cartridge() { // we no longer use a heap array so this is not used a
 void cartridge::load_content_from_stream(std::string bytecode, uint16_t destination_address) {      // allows for quick overwriting of character rom
     std::istringstream tokenizer(bytecode);
     std::string token;
-    uint16_t address = destination_address;
+    uint16_t address = destination_address - PGM_ROM_ADDRESS_SPACE_START;
 
     while (std::getline(tokenizer, token, ' ') && address < PGM_ROM_ADDRESS_SPACE_END) {
         _pgm_rom_data[address] = (uint8_t)strtol(token.c_str(), NULL, 16);

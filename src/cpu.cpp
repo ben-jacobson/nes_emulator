@@ -202,12 +202,8 @@ void cpu::push_to_stack(uint8_t data) {
     _stack_pointer--; //     decrement the stack pointer
 }
 
-uint16_t cpu::get_last_fetched_address(void) {
-    return _fetched_address;
-}
-
-uint8_t cpu::get_last_fetched_operand(void) {
-    return _fetched_operand;
+uint16_t cpu::get_last_fetched(void) {
+    return _fetched;
 }
 
 uint8_t cpu::get_last_fetched_opcode(void) {

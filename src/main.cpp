@@ -58,6 +58,9 @@ int main(int argc, char *argv[])
 		}
 		else {
 			std::cout << "Loaded " << rom_fullpath << std::endl;
+
+			// temporarily set the reset vector, so that CPU starts at 0xC000 to run the tests;
+			nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // DELETE THIS LINE!
 		}
 	}
 	
@@ -72,6 +75,12 @@ int main(int argc, char *argv[])
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
+	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
+	nes_cpu.reset();
+	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
+	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
+	std::cout << "Emulator started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
+
 	// Some font objects
 	uint8_t font_size = 14; 
 	std::string font_fullpath = (std::string)base_path;
@@ -83,20 +92,13 @@ int main(int argc, char *argv[])
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520);
 	memory_peek_graphics debug_memory_peek(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520 + (font_size * 8)); // 7 lines below processor status
 	memory_status_graphics debug_ram_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
-	memory_status_graphics debug_rom_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", 0xC000); // temporarily while we are testing our emulator //PGM_ROM_ADDRESS_SPACE_START);
+	memory_status_graphics debug_rom_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
 	SDL_KeyboardEvent *key_event;
 	memory_peek_text_input_processor memory_peek_text_input;
 	SDL_StopTextInput();	// stop text input by default
-
-	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
-	nes_cpu.reset();
-	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
-	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
-
-	std::cout << "Emulator started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
 
 	bool quit = false; 
 

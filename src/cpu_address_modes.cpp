@@ -13,7 +13,7 @@ uint8_t cpu::addr_mode_ABS(void) {
     _bus_ptr->set_address(_program_counter);
     uint8_t high = _bus_ptr->read_data();
 
-    _fetched_address = (high << 8) | low;
+    _fetched = (high << 8) | low;
     return 0; 
 }
 
@@ -35,7 +35,7 @@ uint8_t cpu::addr_mode_ACC(void) {
 uint8_t cpu::addr_mode_IMM(void) {
     // the second byte of the instruction contains the operand, with no further memory addressing required. Return zero after incrementing the program counter    
     _bus_ptr->set_address(_program_counter);
-    _fetched_operand = _bus_ptr->read_data(); // grab a copy of the operand from the program counter directly, then increment.
+    _fetched = _bus_ptr->read_data(); // grab a copy of the operand from the program counter directly, then increment.
     return 0; // todo
 }
 
@@ -63,20 +63,20 @@ uint8_t cpu::addr_mode_REL(void) {
 uint8_t cpu::addr_mode_ZP(void) {
     // this address mode takes only the second byte as it's address, and assumes that the third byte is all zero. in hardware this is faster, but probably doens't make much difference to an emulator
     _bus_ptr->set_address(_program_counter);
-    _fetched_address = (_bus_ptr->read_data()) & 0x00FF;
+    _fetched = (_bus_ptr->read_data()) & 0x00FF;
     return 0;
 }
 
 uint8_t cpu::addr_mode_ZPX(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the x_index register. 
     _bus_ptr->set_address(_program_counter);
-    _fetched_address = (_bus_ptr->read_data() + _x_index_reg) & 0x00FF;
+    _fetched = (_bus_ptr->read_data() + _x_index_reg) & 0x00FF;
     return 0; 
 }
 
 uint8_t cpu::addr_mode_ZPY(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the y_index register. 
     _bus_ptr->set_address(_program_counter);
-    _fetched_address = (_bus_ptr->read_data() + _y_index_reg) & 0x00FF;
+    _fetched = (_bus_ptr->read_data() + _y_index_reg) & 0x00FF;
     return 0;
 }
