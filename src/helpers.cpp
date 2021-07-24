@@ -16,7 +16,6 @@ bool hex_key(char character) {
 	return false;    
 }
 
-
 game_display_placeholder_output::game_display_placeholder_output(SDL_Renderer* renderer, uint16_t x_pos, uint16_t y_pos, uint8_t scale) {
     _renderer = renderer;
 
@@ -61,13 +60,17 @@ uint16_t memory_peek_text_input_processor::process(void) {
 }
  
 bool memory_peek_text_input_processor::add_character(char input) {
-    text_input += input;
-    _char_count++;
+	char key_pressed = toupper(input);
+    
+	if (hex_key(key_pressed)) {	 // only append if a hex key
+        text_input += key_pressed;
+        _char_count++;
 
-    std::cout << "Character: " << input << std::endl;
+        std::cout << "Character: " << key_pressed << std::endl;
 
-    if (_char_count >= 4) {
-        return true; 
+        if (_char_count >= 4) {
+            return true; 
+        }
     }
     return false;
 }

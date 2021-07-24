@@ -97,6 +97,7 @@ int main()
 		// update the display with new info from renderer
 		SDL_RenderPresent(renderer);	
 
+		// process the CPU as needed by the user
 		if (run_mode) {
 			nes_cpu.cycle(); 
 		}
@@ -113,19 +114,20 @@ int main()
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		//SDL_Delay(16); 
 
-		// For gameplay keypresses, we don't want any delay on the keys, so we handle them slightly differently
+		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
 
 		if (keystates[SDL_SCANCODE_UP]) {
 			std::cout << "Up Key" << std::endl;
 		}
-		if (keystates[SDL_SCANCODE_DOWN]) {
+		else if (keystates[SDL_SCANCODE_DOWN]) { // being a DPad, it's not possible to press up and down at the same time, either one or the other will be pressed
 			std::cout << "Down Key" << std::endl;
 		}
+
 		if (keystates[SDL_SCANCODE_LEFT]) {
 			std::cout << "Left Key" << std::endl;
 		}
-		if (keystates[SDL_SCANCODE_RIGHT]) {
+		else if (keystates[SDL_SCANCODE_RIGHT]) { // being a DPad, it's not possible to press left and right at the same time, either one or the other will be pressed
 			std::cout << "Right Key" << std::endl;
 		}
 		
@@ -135,28 +137,28 @@ int main()
 				key_event = &event_handler.key;
 
 				switch (key_event->keysym.sym) {
-					case SDLK_TAB:
+					case SDLK_TAB:	// Enter memory peek mode
 						SDL_StartTextInput();
 						break;
-					case SDLK_RETURN:
+
+					case SDLK_RETURN:	// Finish memory peek mode
 						if (SDL_IsTextInputActive()) {
-							uint16_t byte_val = memory_peek_text_input.process();							
+							uint16_t byte_val = memory_peek_text_input.process();		// if user presses less than 4 chars, pad with zeros and go with what was entered						
 							SDL_StopTextInput();
 						}
 						break;
 
-					case SDLK_F5:
-						// toggle run mode
+					case SDLK_F5: // Toggle run mode
 						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
 						run_mode = !run_mode; 
 						break;
 
-					case SDLK_SPACE:
+					case SDLK_SPACE:	// Single cycle through CPU
 						if (!run_mode)  // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
 						single_cycle = true;
 						break;
 
-					case SDLK_DELETE:
+					case SDLK_DELETE:		// RESET CPU
 						nes_cpu.reset();
 						single_cycle = true; // do this so that the processor can progress the first 6 clock cycles and pause on the first instruction
 						std::cout << "CPU reset" << std::endl;
@@ -168,12 +170,9 @@ int main()
 				}
 			}
 			else if (event_handler.type == SDL_TEXTINPUT) {		
-				char key_pressed = toupper(event_handler.text.text[0]);
-				if (hex_key(key_pressed)) {	 // only append if a hex key
-					if (memory_peek_text_input.add_character(key_pressed)) {
-						uint16_t byte_val = memory_peek_text_input.process();							
-						SDL_StopTextInput();
-					}
+				if (memory_peek_text_input.add_character(event_handler.text.text[0])) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
+					uint16_t byte_val = memory_peek_text_input.process();							
+					SDL_StopTextInput();
 				}
 			}
 
