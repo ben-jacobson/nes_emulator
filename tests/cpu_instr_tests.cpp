@@ -63,7 +63,13 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
     REQUIRE(test_cpu._opcode_decoder_lookup[0xEA].instruction != nullptr); // I'd like to have another crack at this later, test that the function has been set to the correct one.
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - BRK", "[cpu instruction]") {
+/*
+        Some instruction tests were written, however it was deemed impractical to continue. 
+        There exists a number of great test roms for 6502, which have been used to develop the instructions and made these tests a bit redundant
+        Writing a unit test for every instruction in all combinations of address modes and processor states just isn't feasible.
+*/
+
+/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - BRK", "[cpu instruction]") {
     uint16_t program_counter_at_start = test_cpu.get_program_counter();
     uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
 
@@ -213,5 +219,5 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - SEI", "[cpu instruct
     test_cpu.instr_SEI(); // set IRQ disable bit
     REQUIRE(test_cpu.get_status_flags_struct().i == 1);
 }
-
+*/
 
