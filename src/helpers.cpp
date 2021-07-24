@@ -45,3 +45,29 @@ game_display_placeholder_output::~game_display_placeholder_output() {
 void game_display_placeholder_output::draw(void) {
     SDL_RenderCopy(_renderer, _texture, NULL, &_rect);
 }
+
+memory_peek_text_input_processor::memory_peek_text_input_processor() {
+    _char_count = 0;
+}
+
+uint16_t memory_peek_text_input_processor::process(void) {
+    std::string padded_text_input = std::string(4 - text_input.length(), '0') + text_input;
+    uint16_t byte_val = strtol(padded_text_input.c_str(), NULL, 16);
+    std::cout << "User entered: " << std::hex << byte_val << std::endl;
+    text_input = std::string(); // clear the string
+    _char_count = 0;		// reset out char count*/
+
+    return byte_val;
+}
+ 
+bool memory_peek_text_input_processor::add_character(char input) {
+    text_input += input;
+    _char_count++;
+
+    std::cout << "Character: " << input << std::endl;
+
+    if (_char_count >= 4) {
+        return true; 
+    }
+    return false;
+}

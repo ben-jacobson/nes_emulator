@@ -26,3 +26,15 @@ private:
 	SDL_Rect _rect;
 	SDL_Texture* _texture;
 };
+
+class memory_peek_text_input_processor {
+public: 
+	memory_peek_text_input_processor();
+	~memory_peek_text_input_processor() = default;
+	uint16_t process(void);
+	bool add_character(char input);
+
+private:
+	std::string text_input;
+	uint8_t _char_count;
+};

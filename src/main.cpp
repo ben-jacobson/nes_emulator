@@ -69,9 +69,8 @@ int main()
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
 	SDL_KeyboardEvent *key_event;
-	std::string address_peek_text_input; 
-	uint8_t address_peek_chars_inputted = 0; // when we've entered 4 chars, it will auto-complete
-	SDL_StopTextInput();
+	memory_peek_text_input_processor memory_peek_text_input;
+	SDL_StopTextInput();	// stop text input by default
 
 	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
@@ -137,15 +136,11 @@ int main()
 
 				switch (key_event->keysym.sym) {
 					case SDLK_TAB:
-						address_peek_text_input = std::string(); // clear it
 						SDL_StartTextInput();
 						break;
 					case SDLK_RETURN:
 						if (SDL_IsTextInputActive()) {
-							std::string padded_text_input = std::string(4 - address_peek_text_input.length(), '0') + address_peek_text_input;
-							std::cout << "User entered: " << padded_text_input << std::endl; // todo, put this into own function
-							address_peek_text_input = std::string(); // clear it
-							address_peek_chars_inputted = 0;
+							uint16_t byte_val = memory_peek_text_input.process();							
 							SDL_StopTextInput();
 						}
 						break;
@@ -175,17 +170,10 @@ int main()
 			else if (event_handler.type == SDL_TEXTINPUT) {		
 				char key_pressed = toupper(event_handler.text.text[0]);
 				if (hex_key(key_pressed)) {	 // only append if a hex key
-					address_peek_text_input += key_pressed;
-					std::cout << "Char: " << address_peek_text_input << std::endl;
-					address_peek_chars_inputted++;
-				}
-
-				if (address_peek_chars_inputted >= 4) {
-					std::string padded_text_input = std::string(4 - address_peek_text_input.length(), '0') + address_peek_text_input;
-					std::cout << "User entered: " << padded_text_input << std::endl; // todo, put this into own function
-					address_peek_text_input = std::string(); // clear it
-					address_peek_chars_inputted = 0;
-					SDL_StopTextInput();					
+					if (memory_peek_text_input.add_character(key_pressed)) {
+						uint16_t byte_val = memory_peek_text_input.process();							
+						SDL_StopTextInput();
+					}
 				}
 			}
 
