@@ -1,13 +1,5 @@
 #include "helpers.h"
 
-/*bool hex_key(int ksym) {
-    for (auto& key : HEX_KEYS) {
-        if (ksym == key)
-            return true; 
-	}
-	return false;
-}*/ 
-
 bool hex_key(char character) {
     for (auto& key : HEX_KEYS) {
         if (character == key)
@@ -52,7 +44,8 @@ memory_peek_text_input_processor::memory_peek_text_input_processor() {
 uint16_t memory_peek_text_input_processor::process(void) {
     std::string padded_text_input = std::string(4 - text_input.length(), '0') + text_input;
     uint16_t byte_val = strtol(padded_text_input.c_str(), NULL, 16);
-    std::cout << "User entered: " << std::hex << byte_val << std::endl;
+    
+    //std::cout << "User entered: " << std::hex << byte_val << std::endl;
     text_input = std::string(); // clear the string
     _char_count = 0;		// reset out char count*/
 
@@ -66,7 +59,7 @@ bool memory_peek_text_input_processor::add_character(char input) {
         text_input += key_pressed;
         _char_count++;
 
-        std::cout << "Character: " << key_pressed << std::endl;
+        //std::cout << "Character: " << key_pressed << std::endl;
 
         if (_char_count >= 4) {
             return true; 

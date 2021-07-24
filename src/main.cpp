@@ -142,11 +142,12 @@ int main()
 				switch (key_event->keysym.sym) {
 					case SDLK_TAB:	// Enter memory peek mode
 						SDL_StartTextInput();
+						debug_memory_peek.activate_cursor();
 						break;
 
 					case SDLK_RETURN:	// Finish memory peek mode
 						if (SDL_IsTextInputActive()) {
-							uint16_t byte_val = memory_peek_text_input.process();		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+							debug_memory_peek.set_address(memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
 							SDL_StopTextInput();
 						}
 						break;
@@ -172,9 +173,13 @@ int main()
 						break;																	
 				}
 			}
-			else if (event_handler.type == SDL_TEXTINPUT) {		
-				if (memory_peek_text_input.add_character(event_handler.text.text[0])) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
-					uint16_t byte_val = memory_peek_text_input.process();							
+			else if (event_handler.type == SDL_TEXTINPUT) {
+				char key_pressed = event_handler.text.text[0];	
+
+				debug_memory_peek.input_partial_address(key_pressed);
+
+				if (memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
+					debug_memory_peek.set_address(memory_peek_text_input.process());							
 					SDL_StopTextInput();
 				}
 			}
