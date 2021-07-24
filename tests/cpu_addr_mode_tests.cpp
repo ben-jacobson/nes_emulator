@@ -2,16 +2,16 @@
 #include "test_fixtures.h"
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruction]") {
-    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
-    hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0xDD);
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
+    hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
 
     test_cpu.set_program_counter(0x8000); 
     uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
     CHECK(program_counter_at_start == 0x8000);
 
-    test_cpu.addr_mode_ABS();
+    test_cpu.addr_mode_ABS();   // we aren't calling cycle, so the address mode code will act on this instruction
     uint16_t last_fetched_address = test_cpu.get_last_fetched();
-    REQUIRE(last_fetched_address == 0xDDEE);
+    REQUIRE(last_fetched_address == 0xBBAA);
 }
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSX", "[cpu instruction]") {

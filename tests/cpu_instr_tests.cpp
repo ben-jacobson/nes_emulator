@@ -46,7 +46,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
     // call fetch and check that it returned an instruction
 
     // the cpu takes 6 clock cycles to commence
-    for (uint8_t i = 0; i < 6; i++) {
+    for (uint8_t i = 0; i < RESET_CYCLES; i++) {
         test_cpu.cycle();
     }  
 

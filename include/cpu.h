@@ -11,6 +11,7 @@
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
 constexpr uint8_t OPCODE_COUNT = 255;
+constexpr uint8_t RESET_CYCLES = 7; // 7 clock cycles to reset CPU, the datasheet says 6, but our test rom says 7.
 
 enum status_flags_map : uint8_t {
     CARRY_FLAG      = 0,          // carry flag         
