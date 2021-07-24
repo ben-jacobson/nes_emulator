@@ -18,6 +18,8 @@ output/*.exe
 output/nes_emulator
 output/tests
 output/tests.exe
+output/*.rom
+output/*.nes
 
 # Precompiled Headers
 *.gch

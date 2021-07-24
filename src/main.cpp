@@ -17,12 +17,19 @@
 #include "ram.h"
 #include "cartridge.h"
 
-int main()
+int main(int argc, char *argv[])
 {
 	constexpr uint16_t SCREEN_WIDTH = 1280;
 	constexpr uint16_t SCREEN_HEIGHT = 720;
 	// constexpr uint8_t TARGET_FRAMERATE = 60;  60 fps
 	// constexpr uint16_t SCREEN_TICKS_PER_FRAME = 1000 / TARGET_FRAMERATE;
+
+	// Create a base path for loading in assets
+	char *base_path = SDL_GetBasePath();
+	
+    if (!base_path) {
+        base_path = SDL_strdup("./");
+    }   
 
 	// initialize our bus, ram and cpu
 	bus nes_bus;
@@ -34,21 +41,31 @@ int main()
 	nes_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
 
-	// Load some content into the ROM
-	nes_cart.load_content_from_stream("E8 E8 EA CA 58 78"); // INX, INX, NOP, DEX, CLI, SEI
+	// Check to see if we can load a ROM
+	if (argc < 2) {
+		std::cout << "No ROM file specified in argument, loading default test code" << std::endl;
+		nes_cart.load_content_from_stream("E8 E8 EA CA 58 78"); // INX, INX, NOP, DEX, CLI, SEI
+	}
+	else {
+		std::string rom_fullpath = (std::string)base_path;
+		rom_fullpath.append(argv[1]); 
+		
+		std::cout << "reading: " << rom_fullpath << std::endl;
 
+		if (!nes_cart.load_rom(rom_fullpath)) {
+			std::cout << "Could not load ROM file: " << rom_fullpath << ", errno: " << errno << std::endl;
+			return 0;
+		}
+		else {
+			std::cout << "Loaded " << rom_fullpath << std::endl;
+		}
+	}
+	
 	// Init SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {        
 		std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
 		return 0;
     }
-	
-	// Create a base path for loading in assets
-	char *base_path = SDL_GetBasePath();
-	
-    if (!base_path) {
-        base_path = SDL_strdup("./");
-    }   
 	
     // On success, setup SDL window and rendered
 	SDL_Window* window = SDL_CreateWindow("6502 Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
