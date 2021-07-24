@@ -12,6 +12,12 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for correct registration or
     REQUIRE(test_bus.device_index == 4);
 }
 
+TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for invalid memory location") {
+    test_bus.set_address(0x1234); // on my linux machine this causes a segmentation fault.
+    uint8_t result = test_bus.read_data();
+    REQUIRE(result == 0);
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test writing to read only device") {
     test_bus.set_address(ROM_ADDRESS_SPACE_START + 10); // this will revert to our cartridge, which is read only
     test_bus.write_data(0xFF);
