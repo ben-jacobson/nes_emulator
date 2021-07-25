@@ -45,13 +45,27 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
 }*/
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instruction]") {
-    REQUIRE(0 != 0); // yet to be implemented
+    // Absolute Indirect works just like Absolute, except that it pulls data from that address to become the new program counter. Pretty much this is like a pointer
+
+    // start by entering an address for the mode to read
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x10);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x80);
+    hack_in_test_rom_data(0x8010 - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
+    hack_in_test_rom_data(0x8011 - PGM_ROM_ADDRESS_SPACE_START, 0xFF);    
+
+    test_cpu.set_program_counter(0x8000); 
+    uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
+    CHECK(program_counter_at_start == 0x8000);
+
+    test_cpu.addr_mode_INDI();   // we aren't calling cycle, so the address mode code will act on this instruction
+    uint16_t last_fetched_address = test_cpu.get_last_fetched();
+    REQUIRE(last_fetched_address == 0xFFEE);    
 }
 
-/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMP", "[cpu instruction]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMP", "[cpu instruction]") {
     // implied mode does not mutate the instruction, so therefore will simply return 0 and do nothing else
     REQUIRE(test_cpu.addr_mode_IMP() == 0); // yet to be implemented
-}*/
+}
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruction]") {
     REQUIRE(0 != 0); // yet to be implemented

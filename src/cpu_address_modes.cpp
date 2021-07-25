@@ -42,7 +42,28 @@ uint8_t cpu::addr_mode_IMM(void) {
 }
 
 uint8_t cpu::addr_mode_INDI(void) {
-    return 0; // todo
+    // In indirect address mode, this works a bit like a pointer
+    // it grabs the address first just like you would in ABS
+    // then the data from that location becomes the new address
+    uint16_t indirect_address = 0;
+    
+    _bus_ptr->set_address(_program_counter);
+    uint8_t low = _bus_ptr->read_data();
+    _program_counter++;
+
+    _bus_ptr->set_address(_program_counter);
+    uint8_t high = _bus_ptr->read_data();
+
+    indirect_address = (high << 8) | low;
+    _bus_ptr->set_address(indirect_address); 
+    low = _bus_ptr->read_data();
+
+    _bus_ptr->set_address(indirect_address + 1);    
+    high = _bus_ptr->read_data();
+
+    _fetched = (high << 8) | low;
+    _program_counter++;    // not sure if the PC is supposed to move to the indirect address before this.
+    return 0; 
 }
 
 uint8_t cpu::addr_mode_INDX(void) {
