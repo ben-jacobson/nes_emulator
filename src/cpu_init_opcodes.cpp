@@ -7,9 +7,10 @@
 
 void cpu::init_opcode_decoder_lookup(void) {
     // start by filling out the illegal opcodes
-    for (uint8_t i = 0; i < OPCODE_COUNT; i++) {
-        set_opcode(i, instr(instr_ZZZ), "ZZZ", addr(addr_mode_IMP), "ZZZ", 0, 2); 
+    for (uint16_t i = 0; i < OPCODE_COUNT; i++) {
+        set_opcode(i, instr(instr_ZZZ), "ZZZ", addr(addr_mode_IMP), "ZZZ", 1, 2); 
     }
+    
 
     // then we'll build out the ones we want
     // I built this code in Excel, my second favourite IDE :)
@@ -199,11 +200,13 @@ void cpu::init_opcode_decoder_lookup(void) {
 
 }   
 
-void cpu::set_opcode(uint8_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed) {
-    _opcode_decoder_lookup[index].name = name;
-    _opcode_decoder_lookup[index].instruction = instruction;
-    _opcode_decoder_lookup[index].address_mode = address_mode;
-    _opcode_decoder_lookup[index].address_mode_name = address_mode_name;
-    _opcode_decoder_lookup[index].instruction_bytes = instruction_bytes;
-    _opcode_decoder_lookup[index].cycles_needed = cycles_needed;
+void cpu::set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed) {
+    if (index < OPCODE_COUNT) {
+        _opcode_decoder_lookup[index].name = name;
+        _opcode_decoder_lookup[index].instruction = instruction;
+        _opcode_decoder_lookup[index].address_mode = address_mode;
+        _opcode_decoder_lookup[index].address_mode_name = address_mode_name;
+        _opcode_decoder_lookup[index].instruction_bytes = instruction_bytes;
+        _opcode_decoder_lookup[index].cycles_needed = cycles_needed;
+    }
 }

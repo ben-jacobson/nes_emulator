@@ -10,7 +10,7 @@
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
 
-constexpr uint8_t OPCODE_COUNT = 255;
+constexpr uint16_t OPCODE_COUNT = 256;
 constexpr uint8_t RESET_CYCLES = 7; // 7 clock cycles to reset CPU, the datasheet says 6, but our test rom says 7.
 
 enum status_flags_map : uint8_t {
@@ -188,7 +188,7 @@ public:
 
 private:
     void init_opcode_decoder_lookup(void);
-    void set_opcode(uint8_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
+    void set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
 
     void program_counter_to_stack(void);
     void program_counter_to_stack(uint8_t offset);

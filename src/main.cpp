@@ -120,14 +120,10 @@ int main(int argc, char *argv[])
 		SDL_RenderPresent(renderer);	
 
 		// process the CPU as needed by the user
-		if (run_mode) {
-			nes_cpu.cycle(); 	
-		}
-
-		if (single_cycle) {
+		if (run_mode || single_cycle) {
 			nes_cpu.cycle();
 
-			if (nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
+			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
 				std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
 				single_cycle = false;
 			}
