@@ -19,11 +19,15 @@ uint8_t cpu::addr_mode_ABS(void) {
 }
 
 uint8_t cpu::addr_mode_ABSX(void) {
-    return 0; // todo
+    addr_mode_ABS();
+    _fetched += _x_index_reg;
+    return 0;
 }
 
 uint8_t cpu::addr_mode_ABSY(void) {
-    return 0; // todo
+    addr_mode_ABS();
+    _fetched += _y_index_reg;
+    return 0;
 }
 
 uint8_t cpu::addr_mode_ACC(void) {
@@ -45,7 +49,7 @@ uint8_t cpu::addr_mode_INDI(void) {
     // In indirect address mode, this works a bit like a pointer
     // it grabs the address first just like you would in ABS
     // then the data from that location becomes the new address
-    uint16_t indirect_address = 0;
+    //uint16_t indirect_address = 0;
     
     _bus_ptr->set_address(_program_counter);
     uint8_t low = _bus_ptr->read_data();
@@ -54,15 +58,16 @@ uint8_t cpu::addr_mode_INDI(void) {
     _bus_ptr->set_address(_program_counter);
     uint8_t high = _bus_ptr->read_data();
 
-    indirect_address = (high << 8) | low;
-    _bus_ptr->set_address(indirect_address); 
+    _program_counter = (high << 8) | low;       // we've just read the address from the instructions 2nd and 3rd byte
+    _bus_ptr->set_address(_program_counter); 
     low = _bus_ptr->read_data();
 
-    _bus_ptr->set_address(indirect_address + 1);    
+    _program_counter++;
+    _bus_ptr->set_address(_program_counter);    
     high = _bus_ptr->read_data();
 
-    _fetched = (high << 8) | low;
-    _program_counter++;    // not sure if the PC is supposed to move to the indirect address before this.
+    _fetched = (high << 8) | low;               // the address points to a new address, which we now have. 
+    _program_counter++;   
     return 0; 
 }
 
@@ -80,6 +85,20 @@ uint8_t cpu::addr_mode_IMP(void) {
 }
 
 uint8_t cpu::addr_mode_REL(void) {
+    _bus_ptr->set_address(_program_counter);
+    uint8_t offset = _bus_ptr->read_data();
+
+    // we could just cast the offset to an int8_t but wheres the fun in that?? 
+    if (offset >> 7 == 1) { // check if MSB is a 1
+        offset = ~offset; // invert it
+        offset += 1;    // and add one to get the unsigned value
+        _fetched = _program_counter - offset; 
+    }
+    else {
+        _fetched = _program_counter + offset; 
+    }
+
+    _program_counter++;    
     return 0; // todo
 }
 

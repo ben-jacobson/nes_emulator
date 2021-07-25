@@ -14,13 +14,35 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruc
     REQUIRE(last_fetched_address == 0xBBAA);
 }
 
-/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSX", "[cpu instruction]") {
-    REQUIRE(0 != 0); // yet to be implemented
-}*/
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSX", "[cpu instruction]") {
+    // this address mode takes the effective address from PC and PC+1, then adds the X index to it. 
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x00);
+    hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x02);
+    test_cpu.debug_set_x_register(0x01);
 
-/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSY", "[cpu instruction]") {
-    REQUIRE(0 != 0); // yet to be implemented
-}*/
+    test_cpu.set_program_counter(0x8000); 
+    uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
+    CHECK(program_counter_at_start == 0x8000);
+
+    test_cpu.addr_mode_ABSX();   // we aren't calling cycle, so the address mode code will act on this instruction
+    uint16_t last_fetched_address = test_cpu.get_last_fetched();
+    REQUIRE(last_fetched_address == 0x0201);    
+}
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSY", "[cpu instruction]") {
+    // this address mode takes the effective address from PC and PC+1, then adds the X index to it. 
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x00);
+    hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x03);
+    test_cpu.debug_set_y_register(0x02);
+
+    test_cpu.set_program_counter(0x8000); 
+    uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
+    CHECK(program_counter_at_start == 0x8000);
+
+    test_cpu.addr_mode_ABSY();   // we aren't calling cycle, so the address mode code will act on this instruction
+    uint16_t last_fetched_address = test_cpu.get_last_fetched();
+    REQUIRE(last_fetched_address == 0x0302);   
+}
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ACCUM", "[cpu instruction]") {
     // instructions with the address mode act upon the accumulator. nothing to do except return 0
@@ -67,9 +89,42 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMP", "[cpu instruc
     REQUIRE(test_cpu.addr_mode_IMP() == 0); // yet to be implemented
 }
 
-/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruction]") {
-    REQUIRE(0 != 0); // yet to be implemented
-}*/
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruction]") {
+    // relative addressing simply moved the program counter forward or backward, depending on the operand found in the second byte. 
+    uint16_t pc_at_start = 0x8000;
+
+    // test for incrementing PC
+    uint8_t offset = 0b11111110; // twos complement for -2
+    hack_in_test_rom_data(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cpu.set_program_counter(pc_at_start);  
+    test_cpu.addr_mode_REL();
+    uint16_t result = test_cpu.get_last_fetched();
+    CHECK(result == pc_at_start - 2);
+
+    // tests for decrementing PC
+    offset = 0b00000011; // twos complement for +3
+    hack_in_test_rom_data(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cpu.set_program_counter(pc_at_start);  
+    test_cpu.addr_mode_REL();
+    result = test_cpu.get_last_fetched();
+    REQUIRE(result == pc_at_start + 3);    
+
+    // tests for incrementing to the extreme case
+    offset = 0b01111111; // twos complement for +127
+    hack_in_test_rom_data(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cpu.set_program_counter(pc_at_start);  
+    test_cpu.addr_mode_REL();
+    result = test_cpu.get_last_fetched();
+    REQUIRE(result == pc_at_start + 127);       
+
+    // test for decrementing to the extreme case
+    offset = 0b10000000; // twos complement for -128
+    hack_in_test_rom_data(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cpu.set_program_counter(pc_at_start);  
+    test_cpu.addr_mode_REL();
+    result = test_cpu.get_last_fetched();
+    REQUIRE(result == pc_at_start - 128);       
+}
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruction]") {
     // this address mode fetches only the second byte, and uses it as an address on page zero. 
