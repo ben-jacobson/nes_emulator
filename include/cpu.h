@@ -89,6 +89,12 @@ public:
     void set_stack_pointer(uint16_t offset_address);
     uint8_t get_stack_pointer(void); 
 
+    void program_counter_to_stack(void);
+    void program_counter_to_stack(uint8_t offset);
+    void program_counter_from_stack(void);
+    void push_to_stack(uint8_t data);
+    uint8_t pull_from_stack(void);    
+
     // Functions are for setting the addressing modes, in alphabetical order
     uint8_t addr_mode_ABS(void);
     uint8_t addr_mode_ABSX(void);
@@ -189,10 +195,6 @@ public:
 private:
     void init_opcode_decoder_lookup(void);
     void set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
-
-    void program_counter_to_stack(void);
-    void program_counter_to_stack(uint8_t offset);
-    void push_to_stack(uint8_t data);
 
     // variables used for processing information, passing data between fetch, clock and whatever instruction being performed.
     uint16_t _fetched; // used for whatever fetched address, data or operand from the instruction. We need to be vague because the different address modes use this to prepare data for instructions

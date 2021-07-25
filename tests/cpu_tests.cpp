@@ -25,7 +25,6 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags_struct") {
     CHECK(result == (1 << IRQ_FLAG));
 }
 
-
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
     hack_in_test_rom_data(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);        // set reset vector so that CPU knows where to go to look for start of program
     hack_in_test_rom_data(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
@@ -65,12 +64,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
 
     program_counter = test_cpu.get_program_counter(); 
     CHECK(program_counter == 0xEEDF); // PHP instruction  
-    uint8_t stack_pointer = test_cpu.get_stack_pointer();
     test_cpu.cycle();       
     last_fetched_opcode = test_cpu.get_last_fetched_opcode(); 
     CHECK(last_fetched_opcode == 0x08);
     uint8_t status_flags = test_cpu.get_status_flags();
-    test_bus.set_address(STACK_START + stack_pointer);
+    test_bus.set_address(STACK_START + test_cpu.get_stack_pointer());
     uint8_t stack_contents = test_bus.read_data();
     CHECK(stack_contents == status_flags);
     test_cpu.cycle();
@@ -106,10 +104,10 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") { 
+    test_cpu.reset();
     test_cpu.set_program_counter(0xAADD);    // emulate being at a random address
     test_cpu.instr_CLI(); // cpu defaults to IRQ disabled, clear this bit to enable IRQ
 
-    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
     uint16_t program_counter_at_start = test_cpu.get_program_counter();  
     uint8_t program_counter_at_start_low = (program_counter_at_start & 0x00FF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8);     
@@ -120,23 +118,23 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
     CHECK(test_cpu.get_status_flags_struct().i == 0); // is the interrupt enabled (0)?
 
     bool result = test_cpu.IRQ();   // call the IRQ and see if returned true. 
+    uint16_t stack_pointer_test = STACK_START + test_cpu.get_stack_pointer();
     CHECK(result == true);
     
     // program counter should now be on the stack
-    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start);  // the high 8 bits of pgm counter were loaded in first
-    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1); // then the low 8 bits of pgm counter
+    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_test + 2);  // the high 8 bits of pgm counter were loaded in first
+    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_test + 1); // then the low 8 bits of pgm counter
     CHECK(result_pgm_counter_high == program_counter_at_start_high);
     CHECK(result_pgm_counter_low == program_counter_at_start_low);
         
     // also status registers
-    uint8_t result_stack_pointer_status_regs = test_ram.read(stack_pointer_at_start - 2);
+    uint8_t result_stack_pointer_status_regs = test_ram.read(stack_pointer_test);
     CHECK(result_stack_pointer_status_regs == test_cpu.get_status_flags());
 
     REQUIRE(test_cpu.get_program_counter() == 0xBBAA); // was the program counter set to the IRQ vector?
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
-    uint16_t stack_pointer_at_start = STACK_START + test_cpu.get_stack_pointer();
     uint16_t program_counter_at_start = test_cpu.get_program_counter();  
     uint8_t program_counter_at_start_low = (program_counter_at_start & 0xFF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8); 
@@ -148,13 +146,14 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
     CHECK(result == true);
 
     // program counter should now be on the stack
-    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_at_start); 
-    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_at_start - 1);
+    uint16_t stack_pointer_test = STACK_START + test_cpu.get_stack_pointer();
+    uint8_t result_pgm_counter_high = test_ram.read(stack_pointer_test + 2); 
+    uint8_t result_pgm_counter_low = test_ram.read(stack_pointer_test + 1);
     CHECK(result_pgm_counter_high == program_counter_at_start_high);
     CHECK(result_pgm_counter_low == program_counter_at_start_low);
         
     // also status registers
-    uint8_t result_stack_pointer_status_regs = test_ram.read(stack_pointer_at_start - 2);
+    uint8_t result_stack_pointer_status_regs = test_ram.read(stack_pointer_test);
     CHECK(result_stack_pointer_status_regs == test_cpu.get_status_flags());
 
     REQUIRE(test_cpu.get_program_counter() == 0xEEFF); // was the program counter set to the NMI vector?
@@ -202,7 +201,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get y index register conten
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get stack pointer register content getter", "[cpu]") {
     test_cpu.reset();
     uint8_t stack_start_condition = test_cpu.get_stack_pointer(); 
-    REQUIRE(stack_start_condition == 0xFF);
+    REQUIRE(stack_start_condition == 0xFD); // we load 3 items onto the stack after reset
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get status flag register content getter", "[cpu]") {
@@ -212,11 +211,48 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get status flag register co
     REQUIRE(status_regs == test_start_condition); 
 } 
 
- TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test read function pointer", "[bus]") {
+ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test read function pointer", "[cpu]") {
     // the CPU's read and write functions do nothing, so we test that 
     REQUIRE(test_cpu._read_function_ptr == nullptr);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test write function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test write function pointer", "[cpu]") {
     REQUIRE(test_cpu._write_function_ptr == nullptr);
 }
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test push to stack", "[cpu]") {
+    uint8_t stack_pointer_at_start = test_cpu.get_stack_pointer();
+    test_cpu.push_to_stack(0xDE);
+
+    // Check that the stack pointer was decremented. The SP is decremented before the item is placed on the stack
+    uint8_t result_stack_pointer = test_cpu.get_stack_pointer();
+    CHECK(result_stack_pointer == stack_pointer_at_start - 1);
+
+    // check that the memory was altered in the right place
+    test_bus.set_address(STACK_START + result_stack_pointer);   // because we place the item on the top of the stack after incrementing, it should appear at the current location.
+    uint8_t result_data_on_stack = test_bus.read_data();
+    CHECK(result_data_on_stack == 0xDE);
+}
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test pull from stack", "[cpu]") {
+
+    // put something on the stack and test for retrieval
+    test_cpu.push_to_stack(0xDE);
+    uint8_t stack_pointer_test = test_cpu.get_stack_pointer();
+    uint8_t result_stack = test_cpu.pull_from_stack();
+    CHECK(result_stack == 0xDE);
+
+    // was the stack pointer decremented 
+    uint8_t result_stack_pointer = test_cpu.get_stack_pointer();
+    CHECK(result_stack_pointer == stack_pointer_test + 1);    
+}
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test program counter push to and pull from stack", "[cpu]") {
+    test_cpu.set_program_counter(0xDDDD);
+    uint16_t pc_at_start = test_cpu.get_program_counter();
+    test_cpu.program_counter_to_stack();
+    test_cpu.set_program_counter(0xFFFE); // for good measure
+    test_cpu.program_counter_from_stack();
+    REQUIRE(pc_at_start == test_cpu.get_program_counter());
+}
+

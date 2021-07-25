@@ -20,7 +20,6 @@ uint8_t cpu::instr_BCC(void) {
             return 1; 
         }
     }
-    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
@@ -32,7 +31,6 @@ uint8_t cpu::instr_BCS(void) {
             return 1; 
         }
     }
-    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
@@ -44,7 +42,6 @@ uint8_t cpu::instr_BEQ(void) {
             return 1; 
         }
     }
-    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
@@ -62,6 +59,13 @@ uint8_t cpu::instr_BIT(void) {
 }
 
 uint8_t cpu::instr_BMI(void) {
+    if (_status_flags_reg.n == 1) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
     return 0;
 }                                          
 
@@ -73,11 +77,17 @@ uint8_t cpu::instr_BNE(void) {
             return 1; 
         }
     }
-    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
 uint8_t cpu::instr_BPL(void) {
+    if (_status_flags_reg.n == 0) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
     return 0;
 }
 
@@ -89,10 +99,24 @@ uint8_t cpu::instr_BRK(void) {
 }
 
 uint8_t cpu::instr_BVC(void) {
+    if (_status_flags_reg.v == 0) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
     return 0;
 }
 
 uint8_t cpu::instr_BVS(void) {
+    if (_status_flags_reg.v == 1) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
     return 0;
 }
 

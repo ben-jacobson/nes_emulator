@@ -73,7 +73,7 @@ void cpu::reset(void) {
     _program_counter |= _bus_ptr->read_data();
 
     // set the stack pointer back to the end. As the stack pointer moves, it decrements back to STACK_START
-    set_stack_pointer(STACK_END);
+    set_stack_pointer(STACK_END + 1); // overflow to zero, so that the first write occurs at 0xFF
 
     _status_flags_reg.c = 0;
     _status_flags_reg.z = 1;    // zero flag is initialized as zero
@@ -90,6 +90,10 @@ void cpu::reset(void) {
    _y_index_reg = 0;
 
    _cycle_count = 0;
+
+    // we also want the program counter and the status register on the stack
+    program_counter_to_stack(); // put the program counter on the stack, high 8 bits first, then low 8 bits.
+    instr_PHP();    // Then put the status register on the stack         
 } 
 
 bool cpu::IRQ(void) {
@@ -97,7 +101,7 @@ bool cpu::IRQ(void) {
         // Set the  IRQ flag to 1 to temporarily disable it
         _status_flags_reg.i = 1; 
 
-        program_counter_to_stack(); // put the program counter on the stack, high 8 bits first, then low 8 bits. 
+        program_counter_to_stack(); // put the program counter on the stack, high 8 bits first, then low 8 bits.
         instr_PHP();    // Then put the status register on the stack      
 
         // CPU expects that the interrupt vector will be loaded into addresses FFFE and FFFF (within the ROM space)
@@ -193,11 +197,23 @@ void cpu::program_counter_to_stack(uint8_t offset) {
     push_to_stack((_program_counter + offset) & 0x00FF);   // then put the low 8 bits on the stack at the current pointer    
 }
 
+void cpu::program_counter_from_stack(void) {
+    uint8_t high = pull_from_stack();
+    uint8_t low = pull_from_stack();
+    _program_counter = high << 8 | low;
+}
+
+
 void cpu::push_to_stack(uint8_t data) {
-    // the address will be the stack start page + the offset pointer
+    _stack_pointer--; //     decrement the stack pointer before placing anything on it
     _bus_ptr->set_address(STACK_START + _stack_pointer);
     _bus_ptr->write_data(data);
-    _stack_pointer--; //     decrement the stack pointer
+}
+
+uint8_t cpu::pull_from_stack(void) {
+    _bus_ptr->set_address(STACK_START + _stack_pointer);
+    _stack_pointer++;   // increment the stack pointer after retrieving from it, essentially popping the item off
+    return _bus_ptr->read_data();
 }
 
 uint16_t cpu::get_last_fetched(void) {

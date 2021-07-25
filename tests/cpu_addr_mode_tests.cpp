@@ -98,8 +98,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
     hack_in_test_rom_data(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
-    uint16_t result = test_cpu.get_last_fetched();
-    CHECK(result == pc_at_start - 2);
+    uint16_t result = test_cpu.get_last_fetched();  
+    CHECK(result == pc_at_start - 2 + 1); // program counter is incremented and takes into the account the PC during operand fetch
 
     // tests for decrementing PC
     offset = 0b00000011; // twos complement for +3
@@ -107,7 +107,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     result = test_cpu.get_last_fetched();
-    REQUIRE(result == pc_at_start + 3);    
+    CHECK(result == pc_at_start + 3 + 1);   // program counter is incremented and takes into the account the PC during operand fetch  
 
     // tests for incrementing to the extreme case
     offset = 0b01111111; // twos complement for +127
@@ -115,7 +115,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     result = test_cpu.get_last_fetched();
-    REQUIRE(result == pc_at_start + 127);       
+    CHECK(result == pc_at_start + 127 + 1);       
 
     // test for decrementing to the extreme case
     offset = 0b10000000; // twos complement for -128
@@ -123,7 +123,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     result = test_cpu.get_last_fetched();
-    REQUIRE(result == pc_at_start - 128);       
+    REQUIRE(result == pc_at_start - 128 + 1);       
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruction]") {
