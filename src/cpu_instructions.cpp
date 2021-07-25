@@ -55,7 +55,7 @@ uint8_t cpu::instr_BIT(void) {
 
     // the zero-flag is set to the result of operand AND accumulator.
     check_if_zero(_fetched & _accumulator_reg);
-    return 0;
+    return 0;   
 }
 
 uint8_t cpu::instr_BMI(void) {
