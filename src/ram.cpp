@@ -43,9 +43,9 @@ void ram::write(uint16_t address, uint8_t data) {
 }
 
 void ram::clear_ram(void) {
-    // initialize the ram content to all FFs
+    // initialize the ram content to all 0x00's
     for (uint16_t i = 0; i < _ram_size; i++) {
-        _ram_data[i] = 0xFF;
+        _ram_data[i] = 0;
     }
 }
     

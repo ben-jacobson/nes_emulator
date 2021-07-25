@@ -13,6 +13,14 @@ uint8_t cpu::instr_ASL(void) {
 }
 
 uint8_t cpu::instr_BCC(void) {
+    if (_status_flags_reg.c == 0) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
+    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
@@ -24,11 +32,19 @@ uint8_t cpu::instr_BCS(void) {
             return 1; 
         }
     }
-    _program_counter++; // move to next instruction when we don't branch
+    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
 uint8_t cpu::instr_BEQ(void) {
+    if (_status_flags_reg.z == 1) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
+    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
@@ -41,6 +57,14 @@ uint8_t cpu::instr_BMI(void) {
 }                                          
 
 uint8_t cpu::instr_BNE(void) {
+    if (_status_flags_reg.z == 0) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
+    //_program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
