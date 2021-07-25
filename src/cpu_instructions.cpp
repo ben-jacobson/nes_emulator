@@ -50,11 +50,14 @@ uint8_t cpu::instr_BEQ(void) {
 
 uint8_t cpu::instr_BIT(void) {
     // bits 7 and 6 of operand are transfered to N and V of the status register;
-    _status_flags_reg.n = (_fetched & (1 << 7)) >> 7;
-    _status_flags_reg.v = (_fetched & (1 << 6)) >> 6;
+    _bus_ptr->set_address(_fetched);
+    uint8_t data = _bus_ptr->read_data();
+
+    _status_flags_reg.n = (data & (1 << 7)) >> 7;
+    _status_flags_reg.v = (data & (1 << 6)) >> 6;
 
     // the zero-flag is set to the result of operand AND accumulator.
-    check_if_zero(_fetched & _accumulator_reg);
+    check_if_zero(data & _accumulator_reg);
     return 0;   
 }
 
