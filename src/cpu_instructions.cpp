@@ -125,6 +125,7 @@ uint8_t cpu::instr_CLC(void) {
     return 0;
 }                                              
 uint8_t cpu::instr_CLD(void) {
+    _status_flags_reg.d = _status_flags_reg.d;    // our processor does not use decimal mode, so this has been disabled for nes accuract
     return 0;
 }
 
@@ -134,6 +135,7 @@ uint8_t cpu::instr_CLI(void) {
 }
 
 uint8_t cpu::instr_CLV(void) {
+    _status_flags_reg.v = 0;
     return 0;
 }
 
@@ -207,21 +209,24 @@ uint8_t cpu::instr_JSR(void) {
 }
 
 uint8_t cpu::instr_LDA(void) {
-    _accumulator_reg = (_fetched & 0xFF);       // we can only accept the lower 8 bits
+    _bus_ptr->set_address(_fetched);
+    _accumulator_reg = _bus_ptr->read_data();       
     check_if_negative(_accumulator_reg);
     check_if_zero(_accumulator_reg);      
     return 0;
 }
 
 uint8_t cpu::instr_LDX(void) {
-    _x_index_reg = (_fetched & 0xFF);       // we can only accept the lower 8 bits
+    _bus_ptr->set_address(_fetched); 
+    _x_index_reg = _bus_ptr->read_data();      
     check_if_negative(_x_index_reg);
     check_if_zero(_x_index_reg);  
     return 0;
 }
 
 uint8_t cpu::instr_LDY(void) {
-    _y_index_reg = (_fetched & 0xFF);       // we can only accept the lower 8 bits
+    _bus_ptr->set_address(_fetched); 
+    _y_index_reg = _bus_ptr->read_data();      
     check_if_negative(_y_index_reg);
     check_if_zero(_y_index_reg);      
     return 0;
@@ -270,6 +275,7 @@ uint8_t cpu::instr_RTI(void) {
 }
 
 uint8_t cpu::instr_RTS(void) {
+    program_counter_from_stack();
     return 0;
 }
 

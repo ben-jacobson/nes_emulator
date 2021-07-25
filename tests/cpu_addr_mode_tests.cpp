@@ -54,8 +54,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
     hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_IMM();
-    uint8_t fetched_operand = test_cpu.get_last_fetched();
-    REQUIRE(fetched_operand == 0xAA);
+    uint16_t fetched_operand = test_cpu.get_last_fetched();
+    REQUIRE(fetched_operand == 0x8000);
 }
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instruction]") {

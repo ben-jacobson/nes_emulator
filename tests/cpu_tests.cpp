@@ -248,7 +248,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test pull from stack", "[cpu]") 
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test program counter push to and pull from stack", "[cpu]") {
-    test_cpu.set_program_counter(0xDDDD);
+    test_cpu.set_program_counter(0xABCD);
     uint16_t pc_at_start = test_cpu.get_program_counter();
     test_cpu.program_counter_to_stack();
     test_cpu.set_program_counter(0xFFFE); // for good measure

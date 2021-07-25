@@ -38,11 +38,9 @@ uint8_t cpu::addr_mode_ACC(void) {
 }
 
 uint8_t cpu::addr_mode_IMM(void) {
-    // the second byte of the instruction contains the operand, with no further memory addressing required. Return zero after incrementing the program counter    
-    _bus_ptr->set_address(_program_counter);
-    _fetched = _bus_ptr->read_data(); // grab a copy of the operand from the program counter directly, then increment.
+    _fetched = _program_counter;
     _program_counter++;
-    return 0; // todo
+    return 0; 
 }
 
 uint8_t cpu::addr_mode_INDI(void) {

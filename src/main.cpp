@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xC7DA;
+	uint16_t halt_at_pc = 0xC75D;
 
 	while (!quit) { // main application running loop
 		// clear the screen

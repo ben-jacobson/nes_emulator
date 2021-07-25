@@ -198,11 +198,10 @@ void cpu::program_counter_to_stack(uint8_t offset) {
 }
 
 void cpu::program_counter_from_stack(void) {
+    uint8_t low = pull_from_stack();    // pull in the opposite order from pushing
     uint8_t high = pull_from_stack();
-    uint8_t low = pull_from_stack();
     _program_counter = high << 8 | low;
 }
-
 
 void cpu::push_to_stack(uint8_t data) {
     _stack_pointer--; //     decrement the stack pointer before placing anything on it
