@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 		else {
 			std::cout << "Loaded " << rom_fullpath << std::endl;
 
-			// temporarily set the reset vector, so that CPU starts at 0xC000 to run the tests;
+			// temporarily set the reset vector, so that CPU starts at 0xC000 to run the tests; at the moment the test rom takes it to another area presumably to render some graphics which we couldn't handle at the moment
 			nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // DELETE THIS LINE!
 		}
 	}
@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
+	uint16_t halt_at_pc = 0xC756;
+
 	while (!quit) { // main application running loop
 		// clear the screen
 		SDL_RenderClear(renderer); 
@@ -126,6 +128,12 @@ int main(int argc, char *argv[])
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
 				std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
 				single_cycle = false;
+			}
+
+			if (run_mode && nes_cpu.get_program_counter() == halt_at_pc) {
+				std::cout << "Halting at 0x" << std::hex << std::uppercase << halt_at_pc << std::dec << std::endl;
+				run_mode = false;
+				single_cycle = true; // get this up to the next cycle
 			}
 		}
 
