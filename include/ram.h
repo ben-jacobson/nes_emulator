@@ -15,6 +15,9 @@ public:
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	
 
+	void clear_ram(void);
+
 private:
+	uint16_t _ram_size;
 	uint8_t* _ram_data;	// will use heap memory to store the 2Kb of memory used by the system.
 };

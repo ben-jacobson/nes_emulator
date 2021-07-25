@@ -87,6 +87,7 @@ uint8_t cpu::addr_mode_IMP(void) {
 uint8_t cpu::addr_mode_REL(void) {
     _bus_ptr->set_address(_program_counter);
     uint8_t offset = _bus_ptr->read_data();
+    _program_counter--; // for branching instructions, we actually want to add the offset from the instruction being executed.
 
     // we could just cast the offset to an int8_t but wheres the fun in that?? 
     if (offset >> 7 == 1) { // check if MSB is a 1
@@ -98,7 +99,7 @@ uint8_t cpu::addr_mode_REL(void) {
         _fetched = _program_counter + offset; 
     }
 
-    _program_counter++;    
+    _program_counter++; 
     return 0; // todo
 }
 

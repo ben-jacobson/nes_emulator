@@ -177,7 +177,8 @@ int main(int argc, char *argv[])
 						single_cycle = true;
 						break;
 
-					case SDLK_DELETE:		// RESET CPU
+					case SDLK_DELETE:		// RESET CPU and RAM
+						nes_ram.clear_ram();
 						nes_cpu.reset();
 						single_cycle = true; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 						std::cout << "CPU reset" << std::endl;

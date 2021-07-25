@@ -7,17 +7,11 @@ ram::ram(bus* bus_ptr, uint16_t ram_size, uint16_t address_space_lower, uint16_t
     _address_space_lower = address_space_lower;
     _address_space_upper = address_space_upper;    
 
-    _ram_data = new uint8_t[ram_size]; // allocate the RAM within heap memory to a specified size
+    _ram_size = ram_size;
+    _ram_data = new uint8_t[_ram_size]; // allocate the RAM within heap memory to a specified size
     // I'm happy to just use a C style array, the needs of this are really simple. 
 
-    // initialize the ram content to all FFs
-    for (uint16_t i = 0; i < ram_size; i++) {
-        _ram_data[i] = 0xFF;
-    }
-
-    // set up function pointers
-	//_read_function_ptr = std::bind(&ram::read, this, std::placeholders::_1);
-    //_write_function_ptr = std::bind(&ram::write, this, std::placeholders::_1, std::placeholders::_2);     
+    clear_ram();   
 }
 
 ram::~ram() {
@@ -47,3 +41,11 @@ void ram::write(uint16_t address, uint8_t data) {
         _ram_data[address - _address_space_lower] = data;  // place it into the array at the new offset address
     }
 }
+
+void ram::clear_ram(void) {
+    // initialize the ram content to all FFs
+    for (uint16_t i = 0; i < _ram_size; i++) {
+        _ram_data[i] = 0xFF;
+    }
+}
+    

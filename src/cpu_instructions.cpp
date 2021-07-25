@@ -17,6 +17,14 @@ uint8_t cpu::instr_BCC(void) {
 }
 
 uint8_t cpu::instr_BCS(void) {
+    if (_status_flags_reg.c == 1) {
+        set_program_counter(_fetched);
+
+        if ((_fetched & 0xFF00) == (get_program_counter() & 0xFF00)) {  // if the branch occurs within the same page, add one more clock cycle
+            return 1; 
+        }
+    }
+    _program_counter++; // move to next instruction when we don't branch
     return 0;
 }
 
@@ -56,6 +64,7 @@ uint8_t cpu::instr_BVS(void) {
 }
 
 uint8_t cpu::instr_CLC(void) {
+    _status_flags_reg.c = 0;
     return 0;
 }                                              
 uint8_t cpu::instr_CLD(void) {
@@ -135,6 +144,8 @@ uint8_t cpu::instr_JMP(void) {
 }
 
 uint8_t cpu::instr_JSR(void) {
+    program_counter_to_stack();
+    set_program_counter(_fetched);
     return 0;
 }
 
@@ -210,6 +221,7 @@ uint8_t cpu::instr_SBC(void) {
 }
 
 uint8_t cpu::instr_SEC(void) {
+    _status_flags_reg.c = 1;
     return 0;
 }
 
