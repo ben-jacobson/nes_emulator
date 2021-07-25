@@ -36,10 +36,6 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
     REQUIRE(fetched_operand == 0xAA);
 }
 
-/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instruction]") {
-    REQUIRE(0 != 0); // yet to be implemented
-}*/
-
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instruction]") {
     REQUIRE(0 != 0); // yet to be implemented
 }*/
@@ -47,6 +43,10 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instruction]") {
     REQUIRE(0 != 0); // yet to be implemented
 }*/
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instruction]") {
+    REQUIRE(0 != 0); // yet to be implemented
+}
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMP", "[cpu instruction]") {
     // implied mode does not mutate the instruction, so therefore will simply return 0 and do nothing else

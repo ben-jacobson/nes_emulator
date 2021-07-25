@@ -12,14 +12,14 @@ instr_trace_graphics::instr_trace_graphics(cpu* cpu_ptr, bus* bus_ptr, SDL_Rende
 
 void instr_trace_graphics::display_contents() {
     set_colour({0, 255, 0, 255}); // green
-    draw_to_buffer(">", _preset_display_x, _preset_display_y + (_font_height * INSTRUCTIONS_TO_DISPLAY / 2)); // should be 6 down
+    draw_to_buffer(">", _preset_display_x, _preset_display_y + (_font_height));
 
     set_colour({255, 255, 255, 255}); // green
     draw_to_buffer("Instruction Trace", _preset_display_x + 20, _preset_display_y);
 
     std::string decoded_instruction;
-    //_current_address = _start_address - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
-    _current_address = _cpu_ptr->get_program_counter() - (INSTRUCTIONS_TO_DISPLAY / 2) + 1; // reset back to the start of where to view the trace.
+    // To keep the current address in sync, we need to know how many bytes of instructions were used in the two instructions that just passed. So we calculate a trace lookahead
+    _current_address = _cpu_ptr->get_program_counter();// - _instr_length_minus_one + _instr_length_minus_two - 1; // show two instructions before
 
     for (uint8_t i = 0; i < INSTRUCTIONS_TO_DISPLAY; i++) {
         _bus_ptr->set_address(_current_address);
@@ -52,4 +52,3 @@ void instr_trace_graphics::fetch_and_decode_next_instruction(void) {
     _decoded_instruction = decoded_line.str();
     _current_address++;
 }
-

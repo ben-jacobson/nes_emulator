@@ -18,8 +18,10 @@ public:
 private:
     static constexpr uint8_t INSTRUCTIONS_TO_DISPLAY = 12;
     uint16_t _current_address;
-    uint8_t last_instruction_width;
+
     std::string _decoded_instruction;
+    std::string _last_decoded_instruction;
+    std::string _last_decoded_instruction_minus_one;
 
     uint16_t _preset_display_x, _preset_display_y; 
 
