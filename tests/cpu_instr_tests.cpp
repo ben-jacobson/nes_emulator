@@ -67,7 +67,14 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
         Some instruction tests were written, however it was deemed impractical to continue. 
         There exists a number of great test roms for 6502, which have been used to develop the instructions and made these tests a bit redundant
         Writing a unit test for every instruction in all combinations of address modes and processor states just isn't feasible.
+
+        // from here on, we will only test specific use cases, e.g if we think it may cause an issue, or if we're troubleshooting a bug
 */
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpi instruction - ADC", "[cpu instruction]") {
+    REQUIRE (1 != 1);
+}
+
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - BRK", "[cpu instruction]") {
     uint16_t program_counter_at_start = test_cpu.get_program_counter();

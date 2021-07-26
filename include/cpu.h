@@ -112,16 +112,27 @@ public:
 
     // Instruction set helper functions
     inline void check_if_negative(uint8_t data) {
+        // check to see if the last result was negative
         _status_flags_reg.n = ((data & 0x80) >> 7) == 1 ? 1 : 0;
     }
 
     inline void check_if_zero(uint8_t data) {
+        // check to see if the last result was zero
         _status_flags_reg.z = data == 0 ? 1 : 0;
     } 
 
-    inline void check_if_overflow(uint8_t memory, uint8_t addition, uint8_t result) {        
-        _status_flags_reg.v = ((addition ^ result) & !(addition ^ memory));
+    inline void check_if_overflow(uint8_t memory, uint8_t addition, uint8_t result) {     
+        // checks to see if the calculation that you are about to perform will cause an overflow   
+        uint8_t memory_sign = check_bit(memory, 7); // if MSB == 1, sign is negative, is 0, sign is positive.
+        uint8_t addition_sign = check_bit(addition, 7); // if MSB == 1, sign is negative, is 0, sign is positive.
+        uint8_t result_sign = check_bit(result, 7); // if MSB == 1, sign is negative, is 0, sign is positive.
+        _status_flags_reg.v = ((addition_sign ^ result_sign) & !(addition_sign ^ memory_sign));
     } 
+
+    inline void check_if_carry(uint16_t data) {
+        // check to see if the calculation you are about to perform will set the carry flag. put the 8 bit memory into a 16 bit word and see if it's larger than 255
+        _status_flags_reg.c = data > 255 ? 1 : 0;
+    }
 
     inline uint8_t check_bit(uint8_t data, uint8_t bit) {
         return ((data & (1 << bit)) >> bit) == 1 ? 1 : 0;
@@ -205,7 +216,7 @@ private:
     void set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
 
     // variables used for processing information, passing data between fetch, clock and whatever instruction being performed.
-    uint16_t _fetched; // used for whatever fetched address, data or operand from the instruction. We need to be vague because the different address modes use this to prepare data for instructions
+    uint16_t _fetched_address; // used for whatever fetched address, data or operand from the instruction. We need to be vague because the different address modes use this to prepare data for instructions
     uint8_t _instr_opcode, _instr_cycles;
 
     uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 

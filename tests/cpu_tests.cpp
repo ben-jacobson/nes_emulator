@@ -39,6 +39,27 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test check bit function") {
     CHECK(result == 0);        
 }
 
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test overflow flag set") {
+    /*    inline void check_if_overflow(uint8_t memory, uint8_t addition, uint8_t result) {        
+        _status_flags_reg.v = ((addition ^ result) & !(addition ^ memory));
+    } */
+
+    test_cpu.reset();
+    CHECK(test_cpu.get_status_flags_struct().v == 0); // confirm the cpu starts with overflow unset
+
+    uint8_t memory = 127;
+    uint8_t addition = 1; 
+    uint8_t result = memory + addition; // 128 in unsigned but in signed will overflow to -128
+    test_cpu.check_if_overflow(memory, addition, result);
+    REQUIRE(test_cpu.get_status_flags_struct().v == 1);
+
+    memory = 126;
+    addition = 1; 
+    result = memory + addition; // 127 in signed, which should not overflow
+    test_cpu.check_if_overflow(memory, addition, result);
+    REQUIRE(test_cpu.get_status_flags_struct().v == 0);    
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags") {
     test_cpu.reset(); // after resetting the cpu, the IRQ bit should be 1 (disabled)
     // test that the interrupt disable bit was set (disabled)
