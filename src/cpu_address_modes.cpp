@@ -13,20 +13,20 @@ uint8_t cpu::addr_mode_ABS(void) {
     _bus_ptr->set_address(_program_counter);
     uint8_t high = _bus_ptr->read_data();
 
-    _fetched = (high << 8) | low;
+    _fetched = (high << 8) | low;               // a memory address is fetched
     _program_counter++;
     return 0; 
 }
 
 uint8_t cpu::addr_mode_ABSX(void) {
     addr_mode_ABS();
-    _fetched += _x_index_reg;
+    _fetched += _x_index_reg;                   // a memory address is fetched
     return 0;
 }
 
 uint8_t cpu::addr_mode_ABSY(void) {
     addr_mode_ABS();
-    _fetched += _y_index_reg;
+    _fetched += _y_index_reg;                   // a memory address is fetched
     return 0;
 }
 
@@ -34,11 +34,13 @@ uint8_t cpu::addr_mode_ACC(void) {
     // this address mode enacts it's instructions on the accumulator,
     // e.g ASL, LSR, ROL and ROR
     // All ACCUM address mode op codes require 2 clock cycles and every opcode will know to operate on the ACC, hence we return 0 so as to add no clock cycles
-    return 0; 
+    _accumulator_addressing_mode = true;    // sets this flag to morph the instruction behavior
+    return 0;       // nothing to fetch.
 }
 
 uint8_t cpu::addr_mode_IMM(void) {
-    _fetched = _program_counter;
+    _bus_ptr->set_address(_program_counter);
+    _fetched = _bus_ptr->read_data();       // the second byte is the operand being acted upon. A value is fetched
     _program_counter++;
     return 0; 
 }
@@ -64,7 +66,7 @@ uint8_t cpu::addr_mode_INDI(void) {
     _bus_ptr->set_address(_program_counter);    
     high = _bus_ptr->read_data();
 
-    _fetched = (high << 8) | low;               // the address points to a new address, which we now have. 
+    _fetched = (high << 8) | low;               // the address points to a new address. This address is fetched
     _program_counter++;   
     return 0; 
 }
@@ -91,10 +93,10 @@ uint8_t cpu::addr_mode_REL(void) {
     if (offset >> 7 == 1) { // check if MSB is a 1
         offset = ~offset; // invert it
         offset += 1;    // and add one to get the unsigned value
-        _fetched = _program_counter - offset; 
+        _fetched = _program_counter - offset;           // a new PC value is fetched
     }
     else {
-        _fetched = _program_counter + offset; 
+        _fetched = _program_counter + offset;           // a new PC value is fetched
     }
 
     return 0; // todo
@@ -103,7 +105,7 @@ uint8_t cpu::addr_mode_REL(void) {
 uint8_t cpu::addr_mode_ZP(void) {
     // this address mode takes only the second byte as it's address, and assumes that the third byte is all zero. in hardware this is faster, but probably doens't make much difference to an emulator
     _bus_ptr->set_address(_program_counter);
-    _fetched = (_bus_ptr->read_data()) & 0x00FF;
+    _fetched = (_bus_ptr->read_data()) & 0x00FF;        // a memory address is fetched
     _program_counter++;
     return 0;
 }
@@ -111,7 +113,7 @@ uint8_t cpu::addr_mode_ZP(void) {
 uint8_t cpu::addr_mode_ZPX(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the x_index register. 
     _bus_ptr->set_address(_program_counter);
-    _fetched = (_bus_ptr->read_data() + _x_index_reg) & 0x00FF;
+    _fetched = (_bus_ptr->read_data() + _x_index_reg) & 0x00FF;     // a memory address is fetched
     _program_counter++; 
     return 0; 
 }
@@ -119,7 +121,7 @@ uint8_t cpu::addr_mode_ZPX(void) {
 uint8_t cpu::addr_mode_ZPY(void) {
     // Index zero page addressing calculates it's address by adding the second byte to the y_index register. 
     _bus_ptr->set_address(_program_counter);
-    _fetched = (_bus_ptr->read_data() + _y_index_reg) & 0x00FF;
+    _fetched = (_bus_ptr->read_data() + _y_index_reg) & 0x00FF;     // a memory address is fetched
     _program_counter++;
     return 0;
 }

@@ -12,6 +12,33 @@ TEST_CASE("cpu - test 16bit splitting logic") {
     REQUIRE(test_address_high == 0xAB);
     REQUIRE(test_address_low == 0xCD);
 }
+
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test check bit function") {
+    /*    inline uint8_t check_bit(uint8_t data, uint8_t bit) {
+        return data & (1 << bit) == 1 ? 0 : 1;
+    }*/ 
+
+    uint8_t test = 0b10000000;
+    uint8_t result = test_cpu.check_bit(test, 7); // check MSB, should be 1
+    CHECK(result == 1);
+
+    test = 0b01000000;
+    result = test_cpu.check_bit(test, 7); // check MSB, should be 0
+    CHECK(result == 0);
+
+    test = 0b01000010;
+    result = test_cpu.check_bit(test, 1); // check 2nd bit, should be 1
+    CHECK(result == 1);
+
+    test = 0b01000001;
+    result = test_cpu.check_bit(test, 0); // check 1st bit, should be 1
+    CHECK(result == 1);    
+
+    test = 0b01000000;
+    result = test_cpu.check_bit(test, 0); // check 1st bit, should be 0
+    CHECK(result == 0);        
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags") {
     test_cpu.reset(); // after resetting the cpu, the IRQ bit should be 1 (disabled)
     // test that the interrupt disable bit was set (disabled)

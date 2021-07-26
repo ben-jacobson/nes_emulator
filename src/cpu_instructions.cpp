@@ -1,14 +1,35 @@
 #include "cpu.h"
 
 uint8_t cpu::instr_ADC(void) {
+    /*
+        check_if_negative(_accumulator_reg);
+        check_if_zero(_accumulator_reg); 
+        check_if_overflow(memory, addition, result);
+    */
     return 0;
 }
 
 uint8_t cpu::instr_AND(void) {
+    _accumulator_reg &= _fetched;
+    check_if_negative(_accumulator_reg);
+    check_if_zero(_accumulator_reg); 
     return 0;
 }
 
 uint8_t cpu::instr_ASL(void) {
+    if (_accumulator_addressing_mode) {
+        _accumulator_reg = _accumulator_reg << 1;
+    }
+    else {
+        _bus_ptr->set_address(_fetched);
+        uint8_t data = _bus_ptr->read_data();
+        _status_flags_reg.c = check_bit(data, 7); // if we are shifting left, the MSB being a 1 would indicate the overflow. Must be checked before processing the data
+        data = data << 1; 
+        _bus_ptr->write_data(data);
+        check_if_negative(data);
+        check_if_zero(data);  
+    }
+
     return 0;
 }
 
@@ -50,8 +71,8 @@ uint8_t cpu::instr_BIT(void) {
     _bus_ptr->set_address(_fetched);
     uint8_t data = _bus_ptr->read_data();
 
-    _status_flags_reg.n = (data & (1 << 7)) >> 7;
-    _status_flags_reg.v = (data & (1 << 6)) >> 6;
+    _status_flags_reg.n = check_bit(data, 7);
+    _status_flags_reg.v = check_bit(data, 6);
 
     // the zero-flag is set to the result of operand AND accumulator.
     check_if_zero(data & _accumulator_reg);
@@ -203,8 +224,8 @@ uint8_t cpu::instr_JMP(void) {
 }
 
 uint8_t cpu::instr_JSR(void) {
-    program_counter_to_stack();
-    set_program_counter(_fetched);
+    program_counter_to_stack();     
+    set_program_counter(_fetched);  // Jump to new location
     return 0;
 }
 

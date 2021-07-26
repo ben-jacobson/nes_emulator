@@ -10,6 +10,7 @@ cpu::cpu(bus *bus_ptr)
     _read_function_ptr = nullptr; 
     _write_function_ptr = nullptr;
 
+    _accumulator_addressing_mode = false; 
     //  reset(); // don't reset the cpu in the contructor, the user may not have had the chance to register the devices on the bus, so this may not work properly and may even thrown an exception.
 } 
 
@@ -30,6 +31,7 @@ void cpu::cycle(void) {
         _program_counter++; // the address mode function will need to read from the PC location after the opcode
         _instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
         _instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
+        _accumulator_addressing_mode = false; // this flag is used to morph instruction behaviour of accumulator addressing mode. 
     }
     _instr_cycles--;
     _cycle_count++;
@@ -75,14 +77,14 @@ void cpu::reset(void) {
     // set the stack pointer back to the end. As the stack pointer moves, it decrements back to STACK_START
     set_stack_pointer(STACK_END + 1); // overflow to zero, so that the first write occurs at 0xFF
 
-    _status_flags_reg.c = 0;
+    _status_flags_reg.c = 0;    
     _status_flags_reg.z = 1;    // zero flag is initialized as zero
     _status_flags_reg.i = 1;    // interrupt mask is set (IRQ disabled on reset)
     _status_flags_reg.d = 0;    // decimal mode is cleared
-    _status_flags_reg.b = 1;
+    _status_flags_reg.b = 1;    // the b flag is set
     _status_flags_reg.u = 1;    // unused is left at one for all time 
-    _status_flags_reg.v = 0;
-    _status_flags_reg.n = 0;
+    _status_flags_reg.v = 0;  
+    _status_flags_reg.n = 0;  
 
    // clear the accumulator, x_index and y_index registers
    _accumulator_reg = 0;

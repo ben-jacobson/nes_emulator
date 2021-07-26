@@ -116,8 +116,16 @@ public:
     }
 
     inline void check_if_zero(uint8_t data) {
-        _status_flags_reg.z = data == 0 ? 1: 0;
+        _status_flags_reg.z = data == 0 ? 1 : 0;
     } 
+
+    inline void check_if_overflow(uint8_t memory, uint8_t addition, uint8_t result) {        
+        _status_flags_reg.v = ((addition ^ result) & !(addition ^ memory));
+    } 
+
+    inline uint8_t check_bit(uint8_t data, uint8_t bit) {
+        return ((data & (1 << bit)) >> bit) == 1 ? 1 : 0;
+    }
     
     // Instruction set in alphabetical order
     uint8_t instr_ADC(void);
@@ -202,6 +210,7 @@ private:
 
     uint16_t _program_counter; // program counter increments each time an instruction or data is fetched from memory. 
     uint8_t _accumulator_reg; 
+    bool _accumulator_addressing_mode; // an unnoficial flag stipulating that the accumulator addressing mode is being used. This morphs a number of functions as needed. 
     uint8_t _x_index_reg, _y_index_reg;     
     uint8_t _stack_pointer;      
     status_flags _status_flags_reg;     
