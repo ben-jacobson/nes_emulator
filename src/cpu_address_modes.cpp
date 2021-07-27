@@ -74,7 +74,7 @@ uint8_t cpu::addr_mode_INDI(void) {
 uint8_t cpu::addr_mode_INDX(void) {
     _bus_ptr->set_address(_program_counter);
     // grab the address offset from the operand, add this to the x index but discard the carry. 
-    uint8_t indirect_address = _bus_ptr->read_data() + _x_index_reg;  
+    uint8_t indirect_address = (_bus_ptr->read_data() + _x_index_reg);     // forcing this into an 8 bit number will cause it to wrap around
     
     // both addresses are expected to be zero page, so also discard the top 8 bits
     _bus_ptr->set_address((indirect_address) & 0x00FF); 
@@ -86,7 +86,19 @@ uint8_t cpu::addr_mode_INDX(void) {
 }
 
 uint8_t cpu::addr_mode_INDY(void) {
-    return 0; // todo
+    _bus_ptr->set_address(_program_counter);
+    // grab the address offset from the operand, add this to the y index. 
+    uint8_t operand = _bus_ptr->read_data();
+    int carry = (operand + _y_index_reg) > 255 ? 1 : 0;
+    uint8_t indirect_address = operand + _y_index_reg;   // forcing this into an 8 bit number will cause it to wrap around
+
+    // both addresses are expected to be zero page, so also discard the top 8 bits
+    _bus_ptr->set_address((indirect_address) & 0x00FF); 
+    uint8_t low = _bus_ptr->read_data();    
+    _bus_ptr->set_address((indirect_address + 1) & 0x00FF); 
+    uint8_t high = _bus_ptr->read_data() + carry;       // add the carry to the high order bit
+    _fetched_address = (high << 8) | low;       
+    return 0; 
 }
 
 uint8_t cpu::addr_mode_IMP(void) {

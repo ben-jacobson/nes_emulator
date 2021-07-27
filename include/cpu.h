@@ -67,6 +67,7 @@ public:
     void debug_set_x_register(uint8_t data);
     void debug_set_y_register(uint8_t data);
     void debug_set_acc_register(uint8_t data);
+    uint8_t debug_env_overflower_test(uint8_t data, int adder);
 
     // being a bus device, we need to define these, as a result, they do nothing. 
 	uint8_t read(uint16_t address) override;

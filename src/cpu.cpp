@@ -37,15 +37,15 @@ void cpu::cycle(void) {
     _cycle_count++;
 }
 
-uint16_t cpu::debug_get_cycle_count(void) {
-    return _cycle_count;
-}
-
 bool cpu::finished_instruction(void) {
     if (_instr_cycles < 1) {
         return true;
     }
     return false;
+}
+
+uint16_t cpu::debug_get_cycle_count(void) {
+    return _cycle_count;
 }
 
 void cpu::debug_set_x_register(uint8_t data) {
@@ -59,6 +59,14 @@ void cpu::debug_set_y_register(uint8_t data) {
 void cpu::debug_set_acc_register(uint8_t data) {
     _accumulator_reg = data;
 }
+
+uint8_t cpu::debug_env_overflower_test(uint8_t data, int adder) {
+    // our code base relies heavily on the uint8_t's and uint16_t's overflowing and underflowing as you'd expect. 
+    // used in unit testing to make sure that the development environment is set up correctly and overflows/underflows as expected so that the rest of the code can be trusted to work
+    uint8_t result = data + adder;
+    return result; 
+}
+
 
 void cpu::reset(void) {
     // WARNING - Do not call this function before registering devices on the bus, it will not function properly and may throw an exception

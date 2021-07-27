@@ -1,6 +1,18 @@
 #include "catch.hpp"
 #include "test_fixtures.h"
 
+TEST_CASE_METHOD(emulator_test_fixtures, "Dev environment, overflow and underflow function correctly", "[dev env]") {
+    // our code base relies heavily on the uint8_t's and uint16_t's overflowing and underflowing as you'd expect. 
+    // This test helps use sense check that this behaviour is working correctly with your development environment
+    uint8_t overflower = 255;
+    uint8_t result = test_cpu.debug_env_overflower_test(overflower, 5);
+    CHECK(result == 4);
+
+    overflower = 0;
+    result = test_cpu.debug_env_overflower_test(overflower, -5);
+    CHECK(result == 251);    
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruction]") {
     hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
     hack_in_test_rom_data(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
@@ -78,9 +90,21 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instru
     REQUIRE(test_fetched_address == 0xAA50);   
 }
 
-/*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instruction]") {
-    REQUIRE(0 != 0); // yet to be implemented
-}*/
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instruction]") {
+    // not to be confused with indirect addressing, this is indirect indexed and has a different order to indirect index X addressing
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xDD); // a memory location in page zero
+    test_cpu.debug_set_y_register(0x24); // 0xDD + 0x24 = 0x0100, or 0x01 wrapped around with the carry bit set 
+    test_ram.write(0x0001, 0x10);   // expected low order byte at address 0x0001
+    test_ram.write(0x0002, 0xF0);  // expected high order byte, F0 will be added to the carry bit = 0xF1
+
+    // the operand is taken as a zero page address. The contents of this address is added to the contents of the Y register.
+    test_cpu.addr_mode_INDY();
+
+    // the resulting address contains the low order bits of the effective address
+    // carry from this addition is added to contents of the next byte address
+    uint16_t test_fetched_address = test_cpu.get_last_fetched();
+    REQUIRE(test_fetched_address == 0xF110); 
+}
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instruction]") {
     // Absolute Indirect works just like Absolute, except that it pulls data from that address to become the new program counter. Pretty much this is like a pointer
