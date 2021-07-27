@@ -72,7 +72,17 @@ uint8_t cpu::addr_mode_INDI(void) {
 }
 
 uint8_t cpu::addr_mode_INDX(void) {
-    return 0; // todo
+    _bus_ptr->set_address(_program_counter);
+    // grab the address offset from the operand, add this to the x index but discard the carry. 
+    uint8_t indirect_address = _bus_ptr->read_data() + _x_index_reg;  
+    
+    // both addresses are expected to be zero page, so also discard the top 8 bits
+    _bus_ptr->set_address((indirect_address) & 0x00FF); 
+    uint8_t low = _bus_ptr->read_data();    
+    _bus_ptr->set_address((indirect_address + 1) & 0x00FF); 
+    uint8_t high = _bus_ptr->read_data();   
+    _fetched_address = (high << 8) | low;       
+    return 0; 
 }
 
 uint8_t cpu::addr_mode_INDY(void) {

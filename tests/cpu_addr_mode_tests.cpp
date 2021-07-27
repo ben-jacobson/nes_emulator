@@ -61,20 +61,21 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instruction]") {
     // Indexed Indirect Addressing - INDX
     hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x99);
-    test_ram.write(0x009E, 0x50);
-    test_ram.write(0x009F, 0xAA); 
     test_cpu.debug_set_x_register(0x05); 
+    test_ram.write(0x009E, 0x50);   // 0x99 + 0x05 = 9E, the first address this address mode will look at
+    test_ram.write(0x009F, 0xAA); 
 
-    // the second byte of the instruction is added to the contents of Index X, discarding the carry
-    // 99 will be added to the x register (0x05) = 9E.
-    // The new value of index x is now a zero page address
+    // sense check the RAM, we had issues with this
+    test_bus.set_address(0x009E);
+    CHECK(test_bus.read_data() == 0x50);
+    test_bus.set_address(0x009F);
+    CHECK(test_bus.read_data() == 0xAA);    
+
+    // the second byte of the instruction is added to the contents of Index X, discarding the carry. 99 will be added to the x register (0x05) = 9E.
     test_cpu.addr_mode_INDX();
-    uint8_t x_index_result = test_cpu.get_x_index_reg_content();
-    CHECK(x_index_result == 0x9E);
-
     // that zero page address contains the low order byte of the effective address and the next address location contains the high order byte
     uint16_t test_fetched_address = test_cpu.get_last_fetched();
-    REQUIRE(test_fetched_address == 0x50AA);
+    REQUIRE(test_fetched_address == 0xAA50);   
 }
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instruction]") {
