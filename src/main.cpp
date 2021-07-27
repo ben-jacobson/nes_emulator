@@ -105,21 +105,27 @@ int main(int argc, char *argv[])
 	uint16_t halt_at_pc = 0xC75D;
 
 	while (!quit) { // main application running loop
-		// clear the screen
-		SDL_RenderClear(renderer); 
-		
-		//draw the game area placeholder
-		placeholder_game_area_rect.draw();	
 
-		// draw the debug emulator status displays
-		debug_instr_trace.display_contents();	
-		debug_processor_status.display_contents();
-		debug_ram_display.display_contents();
-		debug_rom_display.display_contents(); 	
-		debug_memory_peek.display_contents();
+		if (nes_cpu.finished_instruction()) { 		// only update the screen if the instruction has finished, saving us many re-displays
+			// clear the screen
+			SDL_RenderClear(renderer); 
+			
+			//draw the game area placeholder
+			placeholder_game_area_rect.draw();	
 
-		// update the display with new info from renderer
-		SDL_RenderPresent(renderer);	
+			// draw the debug emulator status displays
+			debug_instr_trace.display_contents();	
+			debug_processor_status.display_contents();
+			debug_ram_display.display_contents();
+			debug_rom_display.display_contents(); 	
+			debug_memory_peek.display_contents();
+
+			// update the display with new info from renderer
+			SDL_RenderPresent(renderer);	
+
+			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
+			//SDL_Delay(16); 
+		}
 
 		// process the CPU as needed by the user
 		if (run_mode || single_cycle) {
@@ -136,9 +142,6 @@ int main(int argc, char *argv[])
 				single_cycle = true; // get this up to the next cycle
 			}
 		}
-
-		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
-		//SDL_Delay(16); 
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
