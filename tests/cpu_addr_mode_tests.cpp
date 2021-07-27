@@ -55,7 +55,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_IMM();
     uint16_t fetched = test_cpu.get_last_fetched();
-    REQUIRE(fetched == 0xAA);
+    REQUIRE(fetched == 0x8000);
 }
 
 /*TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instruction]") {

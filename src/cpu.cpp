@@ -218,7 +218,7 @@ uint8_t cpu::pull_from_stack(void) {
 }
 
 uint16_t cpu::get_last_fetched(void) {
-    return _fetched;
+    return _fetched_address;
 }
 
 uint8_t cpu::get_last_fetched_opcode(void) {

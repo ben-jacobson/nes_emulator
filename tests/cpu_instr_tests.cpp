@@ -71,8 +71,48 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
         // from here on, we will only test specific use cases, e.g if we think it may cause an issue, or if we're troubleshooting a bug
 */
 
-TEST_CASE_METHOD(emulator_test_fixtures, "cpi instruction - ADC", "[cpu instruction]") {
-    REQUIRE (1 != 1);
+TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - ADC", "[cpu instruction]") {
+     // test this instruction using immediate mode
+
+    test_ram.write(0x00FF, 1);        // put 5 into the zero page FF address
+    test_cart.load_content_from_stream("69 7F 6D FF 00 69 80", 0x8000); // first instruction is ADC in immediate mode, adding EA. Second instruction is ADC in absolute mode to the value of address FF, the final isntruction is another ADC in immediate which is designed to trigger the overflow flag
+    test_cpu.reset(); // reset to a known state
+    test_cpu.set_program_counter(0x8000); // reset program counter to 0x8000, bypassing the reset vector
+    
+    while (!test_cpu.finished_instruction()) { // cycle until the reset 7 cycles has complete
+        test_cpu.cycle();
+    }
+
+    // check that A register is clear first
+    uint8_t result = test_cpu.get_accumulator_reg_content();
+    CHECK(result == 0x00);
+
+    // cycle into first ADC instruction, in immediate mode
+    test_cpu.cycle(); // first cycle into the ADC instruction, the instruction was to add 7F to the already 0 accumulator value
+    result = test_cpu.get_accumulator_reg_content();
+    CHECK(result == 0x7F);  // 127 in A
+    uint8_t overflow_flag_test = test_cpu.get_status_flags_struct().v;
+    CHECK(overflow_flag_test == 0);    
+    test_cpu.cycle(); // instruction takes two cycles to complete
+
+    // test this instruction using absolute mode
+    test_cpu.cycle(); // cycle into second instruction
+    result = test_cpu.get_accumulator_reg_content();
+    CHECK(result == 0x80); // 0x7F + 1 = 128, overflowing back to -128 if using unsigned mode
+    overflow_flag_test = test_cpu.get_status_flags_struct().v;
+    CHECK(overflow_flag_test == 1); 
+    test_cpu.cycle();
+    test_cpu.cycle();
+    test_cpu.cycle(); // absolute mode takes four cycles in total
+
+    uint8_t carry_flag_test = test_cpu.get_status_flags_struct().c;
+    CHECK(carry_flag_test == 0);     
+    test_cpu.cycle(); // cycle into second instruction
+    carry_flag_test = test_cpu.get_status_flags_struct().c;
+    CHECK(carry_flag_test == 1);  
+    test_cpu.cycle(); // instruction takes two cycles to complete
+   
+    REQUIRE(test_cpu.finished_instruction() == true); // did we accurately predict the number of cycles
 }
 
 
