@@ -94,6 +94,8 @@ void cpu::reset(void) {
     _status_flags_reg.v = 0;  
     _status_flags_reg.n = 0;  
 
+    _hit_break = false;
+
    // clear the accumulator, x_index and y_index registers
    _accumulator_reg = 0;
    _x_index_reg = 0;

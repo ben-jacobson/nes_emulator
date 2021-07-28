@@ -102,7 +102,8 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xC75D;
+	bool nes_tests_error_code_found = false;
+	//uint16_t halt_at_pc = 0xC75D;
 
 	while (!quit) { // main application running loop
 
@@ -131,15 +132,20 @@ int main(int argc, char *argv[])
 		if (run_mode || single_cycle) {
 			nes_cpu.cycle();
 
+			if (nes_ram.read(0x0002) != 0x00 || nes_ram.read(0x0003) != 0x00) { // indicating that the test rom has found something. This will be deleted
+				nes_tests_error_code_found = true;
+			}
+
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
-				std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
+				//std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
 				single_cycle = false;
 			}
 
-			if (run_mode && nes_cpu.get_program_counter() == halt_at_pc) {
-				std::cout << "Halting at 0x" << std::hex << std::uppercase << halt_at_pc << std::dec << std::endl;
+			if (run_mode && (nes_tests_error_code_found == true || nes_cpu._hit_break == true)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
+				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
 				single_cycle = true; // get this up to the next cycle
+				nes_tests_error_code_found = false; // allows you to continue execution if you choose. 
 			}
 		}
 
@@ -192,7 +198,7 @@ int main(int argc, char *argv[])
 						nes_ram.clear_ram();
 						nes_cpu.reset();
 						single_cycle = true; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
-						std::cout << "CPU reset" << std::endl;
+						std::cout << "CPU Reset" << std::endl;
 						break;
 
 					case SDLK_ESCAPE:

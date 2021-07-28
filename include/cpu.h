@@ -96,6 +96,8 @@ public:
     void push_to_stack(uint8_t data);
     uint8_t pull_from_stack(void);    
 
+    bool _hit_break;
+
     // Functions are for setting the addressing modes, in alphabetical order
     uint8_t addr_mode_ABS(void);
     uint8_t addr_mode_ABSX(void);
