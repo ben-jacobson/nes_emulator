@@ -215,6 +215,16 @@ void cpu::program_counter_from_stack(void) {
     _program_counter = high << 8 | low;
 }
 
+void cpu::status_register_from_stack(void) {
+    uint8_t new_processor_status = pull_from_stack();
+    _status_flags_reg.c = check_bit(new_processor_status, CARRY_FLAG);
+    _status_flags_reg.z = check_bit(new_processor_status, ZERO_FLAG);
+    _status_flags_reg.i = check_bit(new_processor_status, IRQ_FLAG);
+    _status_flags_reg.d = check_bit(new_processor_status, DECIMAL_FLAG);
+    _status_flags_reg.v = check_bit(new_processor_status, OVERFLOW_FLAG); // break flag and unused are ignored
+    _status_flags_reg.n = check_bit(new_processor_status, NEGATIVE_FLAG);    
+}
+
 void cpu::push_to_stack(uint8_t data) {
     _stack_pointer--; //     decrement the stack pointer before placing anything on it
     _bus_ptr->set_address(STACK_START + _stack_pointer);

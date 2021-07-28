@@ -16,6 +16,7 @@ reference_docs/**
 # Output binaries
 output/*.exe
 output/nes_emulator
+output/tests.*
 output/tests
 output/tests.exe
 output/*.rom

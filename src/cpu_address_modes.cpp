@@ -20,14 +20,41 @@ uint8_t cpu::addr_mode_ABS(void) {
 }
 
 uint8_t cpu::addr_mode_ABSX(void) {
-    addr_mode_ABS();
-    _fetched_address += _x_index_reg;                   // a memory address is fetched
+    _bus_ptr->set_address(_program_counter);
+    uint8_t low = _bus_ptr->read_data();
+    _program_counter++;
+
+    _bus_ptr->set_address(_program_counter);
+    uint8_t high = _bus_ptr->read_data();
+
+    _fetched_address = (high << 8) | low;            
+    _program_counter++;
+
+    _fetched_address += _x_index_reg;                   // add x index to the fetched address. A memory address is fetched
+
+    if ((_fetched_address & 0xFF00) != (high << 8)) {       // now that we have added our address offset, check to see if we have crossed page boundary, in which case add an additional clock cycle
+        return 1; 
+    }
+
     return 0;
 }
 
 uint8_t cpu::addr_mode_ABSY(void) {
-    addr_mode_ABS();
+    _bus_ptr->set_address(_program_counter);
+    uint8_t low = _bus_ptr->read_data();
+    _program_counter++;
+
+    _bus_ptr->set_address(_program_counter);
+    uint8_t high = _bus_ptr->read_data();
+
+    _fetched_address = (high << 8) | low;               // a memory address is fetched
+    _program_counter++;
+
     _fetched_address += _y_index_reg;                   // a memory address is fetched
+
+    if ((_fetched_address & 0xFF00) != (high << 8)) {       // now that we have added our address offset, check to see if we have crossed page boundary, in which case add an additional clock cycle
+        return 1; 
+    }    
     return 0;
 }
 
