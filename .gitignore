@@ -21,6 +21,7 @@ output/tests
 output/tests.exe
 output/*.rom
 output/*.nes
+output/*.log
 
 # Precompiled Headers
 *.gch

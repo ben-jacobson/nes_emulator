@@ -11,6 +11,7 @@
 #include "memory_status_graphics.h"
 #include "memory_peek_graphics.h"
 #include "instr_trace_graphics.h"
+#include "instruction_log.h"
 
 #include "bus.h"
 #include "cpu.h"
@@ -85,6 +86,11 @@ int main(int argc, char *argv[])
 	uint8_t font_size = 14; 
 	std::string font_fullpath = (std::string)base_path;
 	font_fullpath.append("C64_Pro_Mono-STYLE.ttf"); 
+
+	// set up our instruction trace logger
+	std::string log_fullpath = (std::string)base_path;
+	log_fullpath.append("emulator_trace.log"); 
+	instruction_log instruction_trace_log(log_fullpath, &nes_cpu, &nes_bus);
 
 	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);

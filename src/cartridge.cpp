@@ -52,6 +52,7 @@ bool cartridge::load_content_from_file(std::string filename, uint16_t start_addr
 
     rewind(file_handle);
     fread(file_contents, sizeof(char), file_size, file_handle);
+    fclose(file_handle);
 
     for (uint16_t i = 0; i < file_size; i++) {
         _pgm_rom_data[i] = file_contents[start_address + i];
@@ -78,6 +79,8 @@ bool cartridge::load_rom(std::string filename) {
 
     rewind(file_handle);
     fread(file_contents, sizeof(char), file_size, file_handle);
+
+    fclose(file_handle);
 
     // check the file format from the header, this was taken directly from the nesdev site. Our emulator has a strong preference for NES 2.0 file format
     bool iNESFormat = false;
