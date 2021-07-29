@@ -15,7 +15,7 @@ public:
 private:
 	bool start_new_log_file(std::string filename);
 	void close_log_file(void);
-	std::string fetch_and_decode_next_instruction(uint8_t offset);
+	void fetch_and_decode_next_instruction(void);
 	void update_trace(void);
 
 	FILE* _file_handle;
