@@ -114,6 +114,9 @@ int main(int argc, char *argv[])
 	while (!quit) { // main application running loop
 
 		if (nes_cpu.finished_instruction()) { 		// only update the screen if the instruction has finished, saving us many re-displays
+			// update the log
+			instruction_trace_log.update();
+
 			// clear the screen
 			SDL_RenderClear(renderer); 
 			
