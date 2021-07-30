@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	bool quit = false; 
 
 	bool nes_tests_error_code_found = false;
-	//uint16_t halt_at_pc = 0xC75D;
+	uint16_t halt_at_pc = 0xC7F3;
 
 	while (!quit) { // main application running loop
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 				single_cycle = false;
 			}
 
-			if (run_mode && (nes_tests_error_code_found == true || nes_cpu._hit_break == true)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
+			if (run_mode && (nes_tests_error_code_found == true || nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
 				single_cycle = true; // get this up to the next cycle
