@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	bool quit = false; 
 
 	bool nes_tests_error_code_found = false;
-	uint16_t halt_at_pc = 0xC7F3;
+	uint16_t halt_at_pc = 0xC97B;
 
 	while (!quit) { // main application running loop
 

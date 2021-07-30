@@ -86,11 +86,11 @@ void cpu::reset(void) {
     set_stack_pointer(STACK_END + 1); // overflow to zero, so that the first write occurs at 0xFF
 
     _status_flags_reg.c = 0;    
-    _status_flags_reg.z = 1;    // zero flag is initialized as zero
+    _status_flags_reg.z = 0;    
     _status_flags_reg.i = 1;    // interrupt mask is set (IRQ disabled on reset)
-    _status_flags_reg.d = 0;    // decimal mode is cleared
-    _status_flags_reg.b = 1;    // the b flag is set
-    _status_flags_reg.u = 1;    // unused is left at one for all time 
+    _status_flags_reg.d = 0;   
+    _status_flags_reg.b = 0;    
+    _status_flags_reg.u = 0;    
     _status_flags_reg.v = 0;  
     _status_flags_reg.n = 0;  
 

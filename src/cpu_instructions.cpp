@@ -3,9 +3,9 @@
 uint8_t cpu::instr_ADC(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    check_if_overflow(_accumulator_reg, memory + _status_flags_reg.c);
-    check_if_carry(_accumulator_reg + memory + _status_flags_reg.c);
+    check_if_overflow(_accumulator_reg, memory);    // + _status_flags_reg.c
     _accumulator_reg += memory + _status_flags_reg.c;
+    check_if_carry(_accumulator_reg);
     check_if_negative(_accumulator_reg);
     check_if_zero(_accumulator_reg);    
     return 0;
@@ -150,7 +150,7 @@ uint8_t cpu::instr_CLC(void) {
     return 0;
 }                                              
 uint8_t cpu::instr_CLD(void) {
-    _status_flags_reg.d = _status_flags_reg.d;    // our processor does not use decimal mode, so this has been disabled for nes accuract
+    _status_flags_reg.d = 0;    
     return 0;
 }
 
@@ -168,9 +168,9 @@ uint8_t cpu::instr_CMP(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
     check_if_carry(_accumulator_reg - memory);
-    _accumulator_reg -= memory;    
-    check_if_zero(_accumulator_reg);
-    check_if_negative(_accumulator_reg);
+    //  _accumulator_reg -= memory;    // this caused an interesting few bugs!! I thought the accumulator subtracted it. Nope, the result isn't stored anywhere, this is just for checking flags!
+    check_if_zero(_accumulator_reg - memory);
+    check_if_negative(_accumulator_reg - memory);
     return 0;
 }
 
@@ -308,12 +308,15 @@ uint8_t cpu::instr_PHA(void) {
 }
 
 uint8_t cpu::instr_PHP(void) {
-    push_to_stack(get_status_flags());
+    uint8_t status_flags = get_status_flags() | (1 << BREAK_FLAG) | (1 << UNUSED_FLAG);
+    push_to_stack(status_flags);
     return 0;   // no more cycles needed
 }
 
 uint8_t cpu::instr_PLA(void) {
     _accumulator_reg = pull_from_stack();
+    check_if_negative(_accumulator_reg);
+    check_if_zero(_accumulator_reg);
     return 0;
 }
 
