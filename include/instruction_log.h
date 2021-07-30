@@ -12,6 +12,9 @@ public:
 	~instruction_log();
 	void update(void);
 
+	static constexpr uint8_t INSTRUCTION_COUNT = 10;
+	std::vector<std::string> _instruction_trace;
+
 private:
 	bool start_new_log_file(std::string filename);
 	void close_log_file(void);
@@ -22,8 +25,6 @@ private:
 	cpu* _cpu_ptr;
 	bus* _bus_ptr;
 
-	static constexpr uint8_t INSTRUCTION_COUNT = 10;
-	std::vector<std::string> _instruction_trace;
 	std::string _last_decoded_instruction;
 	uint16_t _update_pc_check, _current_pc;
 };
