@@ -25,5 +25,5 @@ private:
 	static constexpr uint8_t INSTRUCTION_COUNT = 10;
 	std::vector<std::string> _instruction_trace;
 	std::string _last_decoded_instruction;
-	uint16_t _current_pc;
+	uint16_t _update_pc_check, _current_pc;
 };

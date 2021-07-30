@@ -5,18 +5,15 @@ instruction_log::instruction_log(std::string log_filename, cpu* cpu_ptr, bus* bu
     _cpu_ptr = cpu_ptr;
     _bus_ptr = bus_ptr;
 
-    _current_pc = 0; // we want the first update to write straight away. 
+    _current_pc = 0; 
+    _update_pc_check = 0; // we want the first update to write straight away. 
 
     _instruction_trace.reserve(INSTRUCTION_COUNT + 1);
 
     // fill the instruction trace with dummy data for now
     for (uint8_t i = 0; i < INSTRUCTION_COUNT; i++) {
-        std::cout << (uint16_t)i << std::endl;
-        _instruction_trace[i] = "NULL";
+        _instruction_trace.insert(_instruction_trace.end(), "NULL\n");
     }    
-
-    std::cout << "here2" << std::endl;
-
 }
 	
 instruction_log::~instruction_log() {
@@ -40,9 +37,10 @@ void instruction_log::close_log_file(void) {
 
 void instruction_log::update(void) {
     // only update if we've moved to the next address
-    if (_current_pc != _cpu_ptr->get_program_counter()) {
+    if (_update_pc_check != _cpu_ptr->get_program_counter()) {
         // update the address, decode it and finally write it into the file
         _current_pc = _cpu_ptr->get_program_counter();
+        _update_pc_check = _current_pc;
         fetch_and_decode_next_instruction();
         fwrite(_last_decoded_instruction.c_str(), 1, _last_decoded_instruction.length(), _file_handle);
 
@@ -54,20 +52,22 @@ void instruction_log::update(void) {
 void instruction_log::update_trace(void) {
     // we can't just update the next element in the trace, we need to actually rebuild it every time, just in case we've used a jump instruction
     // this could be optimized, but it doesn't matter a great deal seeing as this is just for debugging display which is optional for the final user experence
+    _instruction_trace[0] = _instruction_trace[1];
+    _instruction_trace[1] = _instruction_trace[2];
+    _instruction_trace[2] = _instruction_trace[3];
+
     uint8_t current_instruction_pos = 3; 
+    _instruction_trace[current_instruction_pos] = _last_decoded_instruction;  // the first three lines are previous instructions, the fourth line is the current instruction. 
 
-    //_instruction_trace.erase(_instruction_trace.begin()); // remove the first element in vector and restack the trace
-    //_instruction_trace[current_instruction_pos] = _last_decoded_instruction;  // the first three lines are previous instructions, the fourth line is the current instruction. 
-
-/*    for (uint8_t i = current_instruction_pos + 1; i < _instruction_trace.size(); i++) {
+    for (uint8_t i = current_instruction_pos + 1; i < INSTRUCTION_COUNT; i++) {
         fetch_and_decode_next_instruction();
         _instruction_trace[i] = _last_decoded_instruction;
     }
 
     std::cout << std::endl << std::endl << "Instruction Trace: " << std::endl;
-    for (uint8_t i = 0; i < _instruction_trace.size(); i++) {
-        std::cout << _instruction_trace[i] << std::endl;
-    }*/
+    for (uint8_t i = 0; i < INSTRUCTION_COUNT; i++) {
+        std::cout << _instruction_trace[i];
+    }
 }
 
 void instruction_log::fetch_and_decode_next_instruction(void) {
