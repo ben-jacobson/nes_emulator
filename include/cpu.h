@@ -90,9 +90,8 @@ public:
     void set_stack_pointer(uint16_t offset_address);
     uint8_t get_stack_pointer(void); 
 
-    void program_counter_to_stack(void);
-    void program_counter_to_stack(uint8_t offset);
-    void program_counter_from_stack(void);
+    void program_counter_to_stack(int offset = 0);
+    void program_counter_from_stack(int offset = 0);
     void status_register_from_stack(void);
     void push_to_stack(uint8_t data);
     uint8_t pull_from_stack(void);    

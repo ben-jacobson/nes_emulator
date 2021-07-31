@@ -83,7 +83,7 @@ void cpu::reset(void) {
     _program_counter |= _bus_ptr->read_data();
 
     // set the stack pointer back to the end. As the stack pointer moves, it decrements back to STACK_START
-    set_stack_pointer(STACK_END + 1); // overflow to zero, so that the first write occurs at 0xFF
+    set_stack_pointer(STACK_END);
 
     _status_flags_reg.c = 0;    
     _status_flags_reg.z = 0;    
@@ -199,20 +199,15 @@ void cpu::set_stack_pointer(uint16_t address) {
     }
 }
 
-void cpu::program_counter_to_stack(void) {
-    push_to_stack((_program_counter & 0xFF00) >> 8);   // put the high 8 bits on the stack at the current pointer
-    push_to_stack(_program_counter & 0x00FF);   // then put the low 8 bits on the stack at the current pointer    
-}
-
-void cpu::program_counter_to_stack(uint8_t offset) {
+void cpu::program_counter_to_stack(int offset) {
     push_to_stack(((_program_counter + offset) & 0xFF00) >> 8);   // put the high 8 bits on the stack at the current pointer
     push_to_stack((_program_counter + offset) & 0x00FF);   // then put the low 8 bits on the stack at the current pointer    
 }
 
-void cpu::program_counter_from_stack(void) {
+void cpu::program_counter_from_stack(int offset) {
     uint8_t low = pull_from_stack();    // pull in the opposite order from pushing
     uint8_t high = pull_from_stack();
-    _program_counter = high << 8 | low;
+    _program_counter = (high << 8 | low) + offset;
 }
 
 void cpu::status_register_from_stack(void) {
@@ -226,14 +221,14 @@ void cpu::status_register_from_stack(void) {
 }
 
 void cpu::push_to_stack(uint8_t data) {
-    _stack_pointer--; //     decrement the stack pointer before placing anything on it
     _bus_ptr->set_address(STACK_START + _stack_pointer);
     _bus_ptr->write_data(data);
+    _stack_pointer--; 
 }
 
 uint8_t cpu::pull_from_stack(void) {
+    _stack_pointer++;  
     _bus_ptr->set_address(STACK_START + _stack_pointer);
-    _stack_pointer++;   // increment the stack pointer after retrieving from it, essentially popping the item off
     return _bus_ptr->read_data();
 }
 

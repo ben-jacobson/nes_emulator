@@ -28,7 +28,10 @@ uint8_t cpu::instr_AND(void) {
 
 uint8_t cpu::instr_ASL(void) {
     if (_accumulator_addressing_mode) {
+        _status_flags_reg.c = check_bit(_accumulator_addressing_mode, 7); // if we are shifting left, the MSB being a 1 would indicate the overflow. Must be checked before processing the data
         _accumulator_reg = _accumulator_reg << 1;
+        check_if_negative(_accumulator_reg);
+        check_if_zero(_accumulator_reg);  
     }
     else {
         _bus_ptr->set_address(_fetched_address);
@@ -255,7 +258,8 @@ uint8_t cpu::instr_JMP(void) {
 }
 
 uint8_t cpu::instr_JSR(void) {
-    program_counter_to_stack();     
+    //std::cout << "JSR instruction. Pushing: 0x" << std::hex << (get_program_counter() - 1) << " to stack" << std::endl;
+    program_counter_to_stack(-1); // push PC+2 to stack. -1 offset is because PC will have already progress 3 places by now (JSR is a 3 byte instruction)
     set_program_counter(_fetched_address);  // Jump to new location
     return 0;
 }
@@ -285,11 +289,18 @@ uint8_t cpu::instr_LDY(void) {
 }
 
 uint8_t cpu::instr_LSR(void) {
-    _bus_ptr->set_address(_fetched_address);
-    uint8_t memory = _bus_ptr->read_data() >> 1;
-    check_if_carry(memory);
-    check_if_zero(memory);
-    _bus_ptr->write_data(memory);
+    if (_accumulator_addressing_mode) {
+        _accumulator_reg = _accumulator_reg >> 1;
+        check_if_carry(_accumulator_reg);
+        check_if_zero(_accumulator_reg);
+    }
+    else {
+        _bus_ptr->set_address(_fetched_address);
+        uint8_t memory = _bus_ptr->read_data() >> 1;
+        check_if_carry(memory);
+        check_if_zero(memory);
+        _bus_ptr->write_data(memory);
+    }
     _status_flags_reg.n = 0;
     return 0;
 }
@@ -332,24 +343,40 @@ uint8_t cpu::instr_PLP(void) {
 }
 
 uint8_t cpu::instr_ROL(void) {
-    _bus_ptr->set_address(_fetched_address);
-    uint8_t memory = _bus_ptr->read_data();
-    check_if_carry(memory << 1);
-    memory = (memory << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
-    check_if_negative(memory);
-    check_if_zero(memory);
-    _bus_ptr->write_data(memory);
+    if (_accumulator_addressing_mode) {
+        check_if_carry(_accumulator_reg << 1);
+        _accumulator_reg = (_accumulator_reg << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
+        check_if_negative(_accumulator_reg);
+        check_if_zero(_accumulator_reg);        
+    }
+    else {
+        _bus_ptr->set_address(_fetched_address);
+        uint8_t memory = _bus_ptr->read_data();
+        check_if_carry(memory << 1);
+        memory = (memory << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
+        check_if_negative(memory);
+        check_if_zero(memory);
+        _bus_ptr->write_data(memory);
+    }
     return 0;
 }
 
 uint8_t cpu::instr_ROR(void) {
-    _bus_ptr->set_address(_fetched_address);
-    uint8_t memory = _bus_ptr->read_data();
-    check_if_carry((memory >> 1) | (check_bit(memory, 0) << 7));
-    memory = (memory >> 1) | (_status_flags_reg.c << 7);  // place the carry bit at the MSB position if it's set. 
-    check_if_negative(memory);
-    check_if_zero(memory);
-    _bus_ptr->write_data(memory);
+    if (_accumulator_addressing_mode) {
+        check_if_carry((_accumulator_reg >> 1) | (check_bit(_accumulator_reg, 0) << 7));
+        _accumulator_reg = (_accumulator_reg >> 1) | (_status_flags_reg.c << 7);  // place the carry bit at the MSB position if it's set. 
+        check_if_negative(_accumulator_reg);
+        check_if_zero(_accumulator_reg);
+    }
+    else {
+        _bus_ptr->set_address(_fetched_address);
+        uint8_t memory = _bus_ptr->read_data();
+        check_if_carry((memory >> 1) | (check_bit(memory, 0) << 7));
+        memory = (memory >> 1) | (_status_flags_reg.c << 7);  // place the carry bit at the MSB position if it's set. 
+        check_if_negative(memory);
+        check_if_zero(memory);
+        _bus_ptr->write_data(memory);
+    }
     return 0;
 }
 
@@ -360,18 +387,19 @@ uint8_t cpu::instr_RTI(void) {
 }
 
 uint8_t cpu::instr_RTS(void) {
-    program_counter_from_stack();
+    program_counter_from_stack(1);
     return 0;
 }
 
 uint8_t cpu::instr_SBC(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    uint8_t inverse_carry = (!_status_flags_reg.c); // important that we set the inverse carry before checking it, as it would reset the carry before we needed to use it.
-    check_if_overflow(_accumulator_reg, -memory, _accumulator_reg - memory - inverse_carry);  
-    check_if_carry(_accumulator_reg - memory - inverse_carry);    
+    uint8_t borrow = (1 - _status_flags_reg.c); // important that we set the inverse of carry as the borrow before checking the carry, as it would reset the carry before we needed to use it.
+    check_if_overflow(_accumulator_reg, -memory, _accumulator_reg - memory - borrow);  
+    //check_if_carry(_accumulator_reg - memory - borrow);    // our check if carry will not properly set the carry flag on subtraction, so am not using it here
+    _status_flags_reg.c = _accumulator_reg >= memory + borrow ? 1 : 0;
 
-    _accumulator_reg = _accumulator_reg - memory - inverse_carry;
+    _accumulator_reg = _accumulator_reg - memory - borrow;
     check_if_negative(_accumulator_reg);
     check_if_zero(_accumulator_reg);
 
@@ -443,7 +471,7 @@ uint8_t cpu::instr_TXA(void) {
 }
 
 uint8_t cpu::instr_TXS(void) {
-    push_to_stack(_x_index_reg);
+    _stack_pointer = _x_index_reg;
     return 0;
 }
 
