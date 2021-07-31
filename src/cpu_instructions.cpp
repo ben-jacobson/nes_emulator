@@ -28,7 +28,7 @@ uint8_t cpu::instr_AND(void) {
 
 uint8_t cpu::instr_ASL(void) {
     if (_accumulator_addressing_mode) {
-        _status_flags_reg.c = check_bit(_accumulator_addressing_mode, 7); // if we are shifting left, the MSB being a 1 would indicate the overflow. Must be checked before processing the data
+        _status_flags_reg.c = check_bit(_accumulator_reg, 7); // if we are shifting left, the MSB being a 1 would indicate the overflow. Must be checked before processing the data
         _accumulator_reg = _accumulator_reg << 1;
         check_if_negative(_accumulator_reg);
         check_if_zero(_accumulator_reg);  
@@ -156,7 +156,7 @@ uint8_t cpu::instr_BVS(void) {
 }
 
 uint8_t cpu::instr_CLC(void) {
-    _status_flags_reg.c = 0;
+    _status_flags_reg.c = 0; 
     return 0;
 }                                              
 uint8_t cpu::instr_CLD(void) {
@@ -290,14 +290,15 @@ uint8_t cpu::instr_LDY(void) {
 
 uint8_t cpu::instr_LSR(void) {
     if (_accumulator_addressing_mode) {
+        _status_flags_reg.c = _accumulator_reg & 1;
         _accumulator_reg = _accumulator_reg >> 1;
-        check_if_carry(_accumulator_reg);
         check_if_zero(_accumulator_reg);
     }
     else {
         _bus_ptr->set_address(_fetched_address);
-        uint8_t memory = _bus_ptr->read_data() >> 1;
-        check_if_carry(memory);
+        uint8_t memory = _bus_ptr->read_data();
+        _status_flags_reg.c = memory & 1;
+        memory = memory >> 1; 
         check_if_zero(memory);
         _bus_ptr->write_data(memory);
     }
@@ -344,7 +345,7 @@ uint8_t cpu::instr_PLP(void) {
 
 uint8_t cpu::instr_ROL(void) {
     if (_accumulator_addressing_mode) {
-        check_if_carry(_accumulator_reg << 1);
+        _status_flags_reg.c = check_bit(_accumulator_reg, 7); // if we are shifting left, the MSB being a 1 would indicate the carry. Must be checked before processing the data
         _accumulator_reg = (_accumulator_reg << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
         check_if_negative(_accumulator_reg);
         check_if_zero(_accumulator_reg);        
@@ -352,7 +353,7 @@ uint8_t cpu::instr_ROL(void) {
     else {
         _bus_ptr->set_address(_fetched_address);
         uint8_t memory = _bus_ptr->read_data();
-        check_if_carry(memory << 1);
+        _status_flags_reg.c = check_bit(memory, 7); // if we are shifting left, the MSB being a 1 would indicate the carry. Must be checked before processing the data
         memory = (memory << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
         check_if_negative(memory);
         check_if_zero(memory);
@@ -362,17 +363,19 @@ uint8_t cpu::instr_ROL(void) {
 }
 
 uint8_t cpu::instr_ROR(void) {
+    uint8_t carry_insert = _status_flags_reg.c; 
+
     if (_accumulator_addressing_mode) {
-        check_if_carry((_accumulator_reg >> 1) | (check_bit(_accumulator_reg, 0) << 7));
-        _accumulator_reg = (_accumulator_reg >> 1) | (_status_flags_reg.c << 7);  // place the carry bit at the MSB position if it's set. 
+        _status_flags_reg.c = _accumulator_reg & 1;
+        _accumulator_reg = (_accumulator_reg >> 1) | (carry_insert << 7);  // place the carry bit at the MSB position if it's set. 
         check_if_negative(_accumulator_reg);
         check_if_zero(_accumulator_reg);
     }
     else {
         _bus_ptr->set_address(_fetched_address);
         uint8_t memory = _bus_ptr->read_data();
-        check_if_carry((memory >> 1) | (check_bit(memory, 0) << 7));
-        memory = (memory >> 1) | (_status_flags_reg.c << 7);  // place the carry bit at the MSB position if it's set. 
+        _status_flags_reg.c = memory & 1;
+        memory = (memory >> 1) | (carry_insert << 7);  // place the carry bit at the MSB position if it's set. 
         check_if_negative(memory);
         check_if_zero(memory);
         _bus_ptr->write_data(memory);

@@ -109,6 +109,7 @@ uint8_t cpu::addr_mode_INDX(void) {
     _bus_ptr->set_address((indirect_address + 1) & 0x00FF); 
     uint8_t high = _bus_ptr->read_data();   
     _fetched_address = (high << 8) | low;       
+    _program_counter++;   
     return 0; 
 }
 
@@ -125,6 +126,7 @@ uint8_t cpu::addr_mode_INDY(void) {
     _bus_ptr->set_address((indirect_address + 1) & 0x00FF); 
     uint8_t high = _bus_ptr->read_data() + carry;       // add the carry to the high order bit
     _fetched_address = (high << 8) | low;       
+    _program_counter++;   
     return 0; 
 }
 

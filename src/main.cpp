@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 
 	bool nes_tests_error_code_found = false;
 	uint16_t nop_tracker = 0x0000; // nes tests uses nops to indicate the start of the test. we'll continually update the 
-	uint16_t halt_at_pc = 0x0000;
+	uint16_t halt_at_pc = 0xD47F;
 
 	while (!quit) { // main application running loop
 
