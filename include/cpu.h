@@ -125,11 +125,11 @@ public:
         _status_flags_reg.z = data == 0 ? 1 : 0;
     } 
 
-    inline void check_if_overflow(uint8_t memory, uint8_t addition) {     
+    inline void check_if_overflow(uint8_t memory, uint8_t addition, uint16_t result) {     
         // checks to see if the calculation that you are about to perform will cause an overflow   
         uint8_t memory_sign = check_bit(memory, 7); // if MSB == 1, sign is negative, is 0, sign is positive.
-        uint8_t addition_sign = check_bit(addition, 7); // if MSB == 1, sign is negative, is 0, sign is positive.
-        uint8_t result_sign = check_bit((memory + addition), 7); // if MSB == 1, sign is negative, is 0, sign is positive.
+        uint8_t addition_sign = check_bit(addition, 7); 
+        uint8_t result_sign = check_bit(result, 7); 
         _status_flags_reg.v = ((addition_sign ^ result_sign) & !(addition_sign ^ memory_sign));
     } 
 

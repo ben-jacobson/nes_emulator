@@ -3,11 +3,18 @@
 uint8_t cpu::instr_ADC(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    check_if_overflow(_accumulator_reg, memory);    // + _status_flags_reg.c
-    _accumulator_reg += memory + _status_flags_reg.c;
-    check_if_carry(_accumulator_reg);
+    check_if_overflow(_accumulator_reg, memory, _accumulator_reg + memory + _status_flags_reg.c);  
+
+    uint8_t carry = _status_flags_reg.c;    
+    check_if_carry(_accumulator_reg + memory + _status_flags_reg.c);
+    
+    _accumulator_reg += memory + carry; // need to be careful, the previous instruction resets our carry bit, and we need this as part of the instruction
     check_if_negative(_accumulator_reg);
     check_if_zero(_accumulator_reg);    
+
+    /*if (_status_flags_reg.d == 1) { // we add an additional clock cycle if in decimal mode, disabled as our test rom doesn't seem to care. 
+        return 1; 
+    }*/    
     return 0;
 }
 
@@ -167,30 +174,29 @@ uint8_t cpu::instr_CLV(void) {
 uint8_t cpu::instr_CMP(void) {    
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    check_if_carry(_accumulator_reg - memory);
-    //  _accumulator_reg -= memory;    // this caused an interesting few bugs!! I thought the accumulator subtracted it. Nope, the result isn't stored anywhere, this is just for checking flags!
+    //check_if_carry(_accumulator_reg - memory); // our check if carry will not properly set the carry flag on subtraction, so am not using it here
+    _status_flags_reg.c = _accumulator_reg >= memory ? 1 : 0;
     check_if_zero(_accumulator_reg - memory);
     check_if_negative(_accumulator_reg - memory);
+    //  _accumulator_reg -= memory;    // this caused an interesting few bugs!! I thought the accumulator subtracted it. Nope, the result isn't stored anywhere, this is just for checking flags!
     return 0;
 }
 
 uint8_t cpu::instr_CPX(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    check_if_carry(_x_index_reg - memory);
-    _x_index_reg -= memory;    
-    check_if_zero(_x_index_reg);
-    check_if_negative(_x_index_reg);
+    _status_flags_reg.c = _x_index_reg >= memory ? 1 : 0;
+    check_if_zero(_x_index_reg - memory);
+    check_if_negative(_x_index_reg - memory);
     return 0;
 }
 
 uint8_t cpu::instr_CPY(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    check_if_carry(_y_index_reg - memory);
-    _y_index_reg -= memory;    
-    check_if_zero(_y_index_reg);
-    check_if_negative(_y_index_reg);    
+    _status_flags_reg.c = _y_index_reg >= memory ? 1 : 0;
+    check_if_zero(_y_index_reg - memory);
+    check_if_negative(_y_index_reg - memory);    
     return 0;
 }
 
@@ -361,12 +367,17 @@ uint8_t cpu::instr_RTS(void) {
 uint8_t cpu::instr_SBC(void) {
     _bus_ptr->set_address(_fetched_address);
     uint8_t memory = _bus_ptr->read_data();
-    uint8_t inverse_carry = !(_status_flags_reg.c);
-    check_if_carry(_accumulator_reg - memory - inverse_carry);
-    check_if_overflow(memory, -(memory + inverse_carry));
+    uint8_t inverse_carry = (!_status_flags_reg.c); // important that we set the inverse carry before checking it, as it would reset the carry before we needed to use it.
+    check_if_overflow(_accumulator_reg, -memory, _accumulator_reg - memory - inverse_carry);  
+    check_if_carry(_accumulator_reg - memory - inverse_carry);    
+
     _accumulator_reg = _accumulator_reg - memory - inverse_carry;
     check_if_negative(_accumulator_reg);
     check_if_zero(_accumulator_reg);
+
+    /*if (_status_flags_reg.d == 1) { // we add an additional clock cycle if in decimal mode, disabled as our test rom doesn't seem to care. 
+        return 1; 
+    }*/
     return 0;
 }
 

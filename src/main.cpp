@@ -109,7 +109,9 @@ int main(int argc, char *argv[])
 	bool quit = false; 
 
 	bool nes_tests_error_code_found = false;
-	uint16_t halt_at_pc = 0xC97B;
+	uint16_t nop_tracker = 0x0000; // nes tests uses nops to indicate the start of the test. we'll continually update the 
+
+	uint16_t halt_at_pc = 0xCBB4;
 
 	while (!quit) { // main application running loop
 
@@ -141,8 +143,15 @@ int main(int argc, char *argv[])
 		if (run_mode || single_cycle) {
 			nes_cpu.cycle();
 
-			if (nes_ram.read(0x0002) != 0x00 || nes_ram.read(0x0003) != 0x00) { // indicating that the test rom has found something. This will be deleted
+			if (nes_cpu.get_last_fetched_opcode() == 0xEA && nes_cpu.get_program_counter() > 0xC72D) {
+				nop_tracker = nes_cpu.get_program_counter() - 1;
+			}
+
+			if (nes_tests_error_code_found == false && (nes_ram.read(0x0000) != 0x00 || nes_ram.read(0x0003) != 0x00)) { // indicating that the test rom has found something. This will be deleted later
+				std::cout << "Halting at nestest error detection. Start of test: " << "0x" << std::uppercase << std::hex << nop_tracker << std::dec << std::endl;
 				nes_tests_error_code_found = true;
+				run_mode = false;
+				single_cycle = true; // get this up to the next cycle				
 			}
 
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
