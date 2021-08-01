@@ -101,12 +101,11 @@ uint8_t cpu::addr_mode_INDI(void) {
 uint8_t cpu::addr_mode_INDX(void) {
     _bus_ptr->set_address(_program_counter);
     // grab the address offset from the operand, add this to the x index but discard the carry. 
-    uint8_t indirect_address = (_bus_ptr->read_data() + _x_index_reg);     // forcing this into an 8 bit number will cause it to wrap around
+    uint8_t indirect_address = _bus_ptr->read_data();     // forcing this into an 8 bit number should cause it to wrap around
     
-    // both addresses are expected to be zero page, so also discard the top 8 bits
-    _bus_ptr->set_address((indirect_address) & 0x00FF); 
+    _bus_ptr->set_address((indirect_address + _x_index_reg) & 0x00FF); 
     uint8_t low = _bus_ptr->read_data();    
-    _bus_ptr->set_address((indirect_address + 1) & 0x00FF); 
+    _bus_ptr->set_address((indirect_address + _x_index_reg + 1) & 0x00FF); 
     uint8_t high = _bus_ptr->read_data();   
     _fetched_address = (high << 8) | low;       
     _program_counter++;   
@@ -115,19 +114,19 @@ uint8_t cpu::addr_mode_INDX(void) {
 
 uint8_t cpu::addr_mode_INDY(void) {
     _bus_ptr->set_address(_program_counter);
-    // grab the address offset from the operand, add this to the y index. 
     uint8_t operand = _bus_ptr->read_data();
-    int carry = (operand + _y_index_reg) > 255 ? 1 : 0;
-    uint8_t indirect_address = operand + _y_index_reg;   // forcing this into an 8 bit number will cause it to wrap around
 
-    // both addresses are expected to be zero page, so also discard the top 8 bits
-    _bus_ptr->set_address((indirect_address) & 0x00FF); 
+    _bus_ptr->set_address((operand) & 0x00FF); 
     uint8_t low = _bus_ptr->read_data();    
-    _bus_ptr->set_address((indirect_address + 1) & 0x00FF); 
-    uint8_t high = _bus_ptr->read_data() + carry;       // add the carry to the high order bit
-    _fetched_address = (high << 8) | low;       
+    _bus_ptr->set_address((operand + 1) & 0x00FF); 
+    uint8_t high = _bus_ptr->read_data();
+    _fetched_address = ((high << 8) | low) + _y_index_reg; 
     _program_counter++;   
-    return 0; 
+
+    if ((_fetched_address && 0xFF00) != (high << 8)) { // if page boundary is crossed, add one more clock cycle
+        return 1;
+    }
+    return 0;  
 }
 
 uint8_t cpu::addr_mode_IMP(void) {
