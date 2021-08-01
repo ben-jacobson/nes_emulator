@@ -91,7 +91,7 @@ void cpu::init_opcode_decoder_lookup(void) {
     set_opcode(0x6A, instr(instr_ROR), "ROR", addr(addr_mode_ACC), "ACC", 1, 2);
     set_opcode(0x6C, instr(instr_JMP), "JMP", addr(addr_mode_INDI), "INDI", 3, 5);
     set_opcode(0x6D, instr(instr_ADC), "ADC", addr(addr_mode_ABS), "ABS", 3, 4);
-    set_opcode(0x6E, instr(instr_ROR), "ROR", addr(addr_mode_ABSX), "ABSX", 3, 7);
+    set_opcode(0x6E, instr(instr_ROR), "ROR", addr(addr_mode_ABS), "ABS", 3, 6);
         
     // 7 Row    
     set_opcode(0x70, instr(instr_BVS), "BVS", addr(addr_mode_REL), "REL", 2, 2);
@@ -101,7 +101,7 @@ void cpu::init_opcode_decoder_lookup(void) {
     set_opcode(0x78, instr(instr_SEI), "SEI", addr(addr_mode_IMP), "IMP", 1, 2);
     set_opcode(0x79, instr(instr_ADC), "ADC", addr(addr_mode_ABSY), "ABSY", 3, 4);
     set_opcode(0x7D, instr(instr_ADC), "ADC", addr(addr_mode_ABSX), "ABSX", 3, 4);
-    set_opcode(0x7E, instr(instr_ROR), "ROR", addr(addr_mode_ABS), "ABS", 3, 6);
+    set_opcode(0x7E, instr(instr_ROR), "ROR", addr(addr_mode_ABS), "ABSX", 3, 7);
         
     // 8 Row    
     set_opcode(0x81, instr(instr_STA), "STA", addr(addr_mode_INDX), "INDX", 2, 6);

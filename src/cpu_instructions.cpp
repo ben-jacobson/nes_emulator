@@ -205,8 +205,10 @@ uint8_t cpu::instr_CPY(void) {
 
 uint8_t cpu::instr_DEC(void) {
     _bus_ptr->set_address(_fetched_address);
-    uint8_t value = _bus_ptr->read_data();
-    _bus_ptr->write_data(value - 1);    
+    uint8_t memory = _bus_ptr->read_data() - 1;
+    check_if_negative(memory);
+    check_if_zero(memory);
+    _bus_ptr->write_data(memory);    
     return 0;
 }
 
@@ -234,7 +236,10 @@ uint8_t cpu::instr_EOR(void) {
 
 uint8_t cpu::instr_INC(void) {
     _bus_ptr->set_address(_fetched_address);
-    _bus_ptr->write_data(_bus_ptr->read_data() + 1);
+    uint8_t memory = _bus_ptr->read_data() + 1;
+    check_if_zero(memory);
+    check_if_negative(memory);
+    _bus_ptr->write_data(memory);
     return 0;
 }
 
@@ -363,19 +368,20 @@ uint8_t cpu::instr_ROL(void) {
 }
 
 uint8_t cpu::instr_ROR(void) {
-    uint8_t carry_insert = _status_flags_reg.c; 
-
     if (_accumulator_addressing_mode) {
-        _status_flags_reg.c = _accumulator_reg & 1;
-        _accumulator_reg = (_accumulator_reg >> 1) | (carry_insert << 7);  // place the carry bit at the MSB position if it's set. 
+        // uint8_t msb = check_bit(_accumulator_reg, 7);
+        uint8_t carry = _accumulator_reg & 1;
+        _accumulator_reg = (_accumulator_reg >> 1) | (_status_flags_reg.c << 7);  
+        _status_flags_reg.c = carry;     
         check_if_negative(_accumulator_reg);
         check_if_zero(_accumulator_reg);
     }
     else {
         _bus_ptr->set_address(_fetched_address);
         uint8_t memory = _bus_ptr->read_data();
-        _status_flags_reg.c = memory & 1;
-        memory = (memory >> 1) | (carry_insert << 7);  // place the carry bit at the MSB position if it's set. 
+        uint8_t carry = memory & 1;
+        memory = (memory >> 1) | (_status_flags_reg.c << 7);  // place the carry bit at the MSB position if it's set. 
+        _status_flags_reg.c = carry;
         check_if_negative(memory);
         check_if_zero(memory);
         _bus_ptr->write_data(memory);

@@ -14,6 +14,7 @@ For Linux, install SDL2 and SDL2_TTF as per the vendor instructions for your Lin
 For Windows 10, our makefile relies on using a symbolic links to link the project to the SDL library. Once you have downloaded SDL library for Mingw, create these with the following commands: 
 
 >  ln -s /Path/To/SDL2/Lib/Folder lib/SDL2
+
 >  ln -s /Path/To/SDL2/Include/Folder include/SDL2
 
 My installation in Linux defaulted to putting the libs and includes from SDL2_TTF into the same folder as SDL2 libs and includes, so let's do the same in Windows. To install additional SDL libraries, simply download the SDK files and copy these files into your SDL2 lib and include folders. 

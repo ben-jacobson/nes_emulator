@@ -108,9 +108,9 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	bool nes_tests_error_code_found = false;
-	uint16_t nop_tracker = 0x0000; // nes tests uses nops to indicate the start of the test. we'll continually update the 
-	uint16_t halt_at_pc = 0xD47F;
+	//bool nes_tests_error_code_found = false;
+	//uint16_t nop_tracker = 0x0000; // nes tests uses nops to indicate the start of the test. we'll continually update the 
+	uint16_t halt_at_pc = 0xD843;
 
 	while (!quit) { // main application running loop
 
@@ -147,21 +147,21 @@ int main(int argc, char *argv[])
 				single_cycle = false;
 			}
 
-			if (nes_cpu.get_last_fetched_opcode() == 0xEA) {
+			/*if (nes_cpu.get_last_fetched_opcode() == 0xEA) {
 				nop_tracker = nes_cpu.get_program_counter() - 1;	// keep track of the last unit being tested
-			}
+			}*/
 
-			if (run_mode && nes_tests_error_code_found == false && (nes_ram.read(0x0000) != 0x00 || nes_ram.read(0x0003) != 0x00)) { // indicating that the test rom has found an error
+			/*if (run_mode && nes_tests_error_code_found == false) && (nes_ram.read(0x0000) != 0x00 || nes_ram.read(0x0003) != 0x00)) { // indicating that the test rom has found an error
 				std::cout << "Halting at nestest error detection. Start of test: " << "0x" << std::uppercase << std::hex << nop_tracker << std::dec << std::endl;
 				halt_at_pc = nop_tracker; 	// set this up to halt at the start of the last test
 				nes_tests_error_code_found = true;		
-			}		
+			}*/		
 
-			if (run_mode && (nes_tests_error_code_found == true || nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
+			if (run_mode && (/*nes_tests_error_code_found == true ||*/ nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
 				single_cycle = true; // get this up to the next cycle
-				nes_tests_error_code_found = false; // allows you to continue execution if you choose. 
+				//nes_tests_error_code_found = false; // allows you to continue execution if you choose. 
 			}	
 		}
 
