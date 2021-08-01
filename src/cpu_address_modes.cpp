@@ -75,26 +75,33 @@ uint8_t cpu::addr_mode_IMM(void) {
 uint8_t cpu::addr_mode_INDI(void) {
     // In indirect address mode, this works a bit like a pointer
     // it grabs the address first just like you would in ABS
-    // then the data from that location becomes the new address
-    //uint16_t indirect_address = 0;
-    
+    // then the data from that location becomes the new address    
     _bus_ptr->set_address(_program_counter);
     uint8_t low = _bus_ptr->read_data();
     _program_counter++;
 
     _bus_ptr->set_address(_program_counter);
     uint8_t high = _bus_ptr->read_data();
-
-    _program_counter = (high << 8) | low;       // we've just read the address from the instructions 2nd and 3rd byte
-    _bus_ptr->set_address(_program_counter); 
-    low = _bus_ptr->read_data();
-
-    _program_counter++;
-    _bus_ptr->set_address(_program_counter);    
-    high = _bus_ptr->read_data();
-
-    _fetched_address = (high << 8) | low;               // the address points to a new address. This address is fetched
     _program_counter++;   
+
+    uint16_t ptr_address = (high << 8) | low;   
+    uint8_t ptr_high, ptr_low; 
+
+    // Thanks to Javid/OLC for info on this. here we simulate a page boundary hardware bug found in the 6502
+	if (low == 0x00FF)  {       // if at the page boundary
+        _bus_ptr->set_address(ptr_address);
+        ptr_low = _bus_ptr->read_data();    
+        _bus_ptr->set_address(ptr_address & 0xFF00);
+        ptr_high = _bus_ptr->read_data();
+	}
+	else { // otherwise behave normally
+        _bus_ptr->set_address(ptr_address);
+        ptr_low = _bus_ptr->read_data();           
+        _bus_ptr->set_address(ptr_address + 1);
+        ptr_high = _bus_ptr->read_data();
+	}
+
+    _fetched_address = ((ptr_high) << 8) | ptr_low;               // the address points to a new address. This address is fetched
     return 0; 
 }
 
