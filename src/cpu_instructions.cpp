@@ -369,7 +369,6 @@ uint8_t cpu::instr_ROL(void) {
 
 uint8_t cpu::instr_ROR(void) {
     if (_accumulator_addressing_mode) {
-        // uint8_t msb = check_bit(_accumulator_reg, 7);
         uint8_t carry = _accumulator_reg & 1;
         _accumulator_reg = (_accumulator_reg >> 1) | (_status_flags_reg.c << 7);  
         _status_flags_reg.c = carry;     
