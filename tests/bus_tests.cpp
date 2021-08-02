@@ -12,6 +12,15 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for correct registration or
     REQUIRE(test_bus.device_index == 4);
 }
 
+TEST_CASE_METHOD(emulator_test_fixtures, "bus - test that reading any given address doesn't cause crash") {
+    // we encountered an issue where reading from address a few various address (such as  0x0763, would pop up a lot) would cause a crash. 
+    for (uint16_t i = 0x00; i < 0xFFFF; i++) {
+        test_bus.set_address(i);
+        test_bus.read_data();
+	}
+    REQUIRE(1 == 1); // if you got this far without a crash, you're golden!
+}
+
 TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for invalid memory location") {
     test_bus.set_address(0x1234); // on my linux machine this causes a segmentation fault.
     uint8_t result = test_bus.read_data();

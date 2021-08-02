@@ -92,18 +92,16 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instru
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instruction]") {
     // not to be confused with indirect addressing, this is indirect indexed and has a different order to indirect index X addressing
-    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xDD); // a memory location in page zero
-    test_cpu.debug_set_y_register(0x24); // 0xDD + 0x24 = 0x0100, or 0x01 wrapped around with the carry bit set 
-    test_ram.write(0x0001, 0x10);   // expected low order byte at address 0x0001
-    test_ram.write(0x0002, 0xF0);  // expected high order byte, F0 will be added to the carry bit = 0xF1
+    hack_in_test_rom_data(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x05); // a memory location in page zero
+    test_ram.write(0x0005, 0x02); // a memory location in page zero
+    test_cpu.debug_set_y_register(0x24); 
 
     // the operand is taken as a zero page address. The contents of this address is added to the contents of the Y register.
+    test_cpu.set_program_counter(0x8000); // pretend that we just cycled into the operand
     test_cpu.addr_mode_INDY();
 
-    // the resulting address contains the low order bits of the effective address
-    // carry from this addition is added to contents of the next byte address
     uint16_t test_fetched_address = test_cpu.get_last_fetched();
-    REQUIRE(test_fetched_address == 0xF110); 
+    REQUIRE(test_fetched_address == 0x26);  // 0x24 + 2
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instruction]") {

@@ -418,7 +418,7 @@ uint8_t cpu::instr_SBC(void) {
 }
 
 uint8_t cpu::instr_SEC(void) {
-    _status_flags_reg.c = 1;
+    _status_flags_reg.c = 1;     
     return 0;
 }
 
