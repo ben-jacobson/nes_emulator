@@ -1,7 +1,7 @@
 #include "ram.h"
 
-ram::ram(bus* bus_ptr, uint16_t ram_size, uint16_t address_space_lower, uint16_t address_space_upper) 
-:   bus_device(bus_ptr)
+ram::ram(uint16_t ram_size, uint16_t address_space_lower, uint16_t address_space_upper) 
+:   bus_device()
 {
     // temporarily set the address space boundaries to zero in this implementation
     _address_space_lower = address_space_lower;

@@ -22,7 +22,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test hack in rom data helper fun
 TEST_CASE_METHOD(emulator_test_fixtures, "rom - Create object and set address space", "[cartridge]") {
     uint16_t address_lower = (rand() % PGM_ROM_SIZE_BYTES) - 1;    // theorectially this could underflow, but the test will still pass. 
     uint16_t address_upper = rand() % PGM_ROM_SIZE_BYTES;
-    cartridge another_test_cart(&test_bus, address_lower, address_upper); 
+    cartridge another_test_cart(address_lower, address_upper); 
 
     CHECK(another_test_cart._address_space_lower == address_lower);
     REQUIRE(another_test_cart._address_space_upper == address_upper);

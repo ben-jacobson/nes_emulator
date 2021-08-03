@@ -1,7 +1,7 @@
 #include "cartridge.h"
 
-cartridge::cartridge(bus* bus_ptr, uint16_t address_space_lower, uint16_t address_space_upper) 
-:   bus_device(bus_ptr)
+cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper) 
+:   bus_device()
 {
     // disable the write function pointer
     _write_function_ptr = nullptr;

@@ -1,8 +1,10 @@
 #include "cpu.h"
 
 cpu::cpu(bus *bus_ptr) 
-:   bus_device(bus_ptr)
+:   bus_device()
 {
+    _bus_ptr = bus_ptr;
+    
     _opcode_decoder_lookup = new opcode[OPCODE_COUNT];      // we need 256 of these, each instruction is used as its index
     init_opcode_decoder_lookup();
 

@@ -4,7 +4,7 @@
 class ram : public bus_device
 {
 public:
-	ram(bus* bus_ptr, uint16_t ram_size, uint16_t address_space_lower, uint16_t address_space_upper);
+	ram(uint16_t ram_size, uint16_t address_space_lower, uint16_t address_space_upper);
 	~ram();
 
 	// for outputting to test functions, and our debug view

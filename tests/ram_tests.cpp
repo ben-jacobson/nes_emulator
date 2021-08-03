@@ -8,7 +8,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ram - Check address mapping is valid",
 TEST_CASE_METHOD(emulator_test_fixtures, "ram - Create object and set address space", "[ram]") {
     uint16_t address_lower = (rand() % RAM_SIZE_BYTES) - 1;    // theorectially this could underflow, but the test will still pass. 
     uint16_t address_upper = rand() % RAM_SIZE_BYTES;
-    ram custom_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper); 
+    ram custom_test_ram(RAM_SIZE_BYTES, address_lower, address_upper); 
 
     REQUIRE(custom_test_ram._address_space_lower == address_lower);
     REQUIRE(custom_test_ram._address_space_upper == address_upper);
@@ -23,7 +23,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ram - Test custom address mapping", "[
     CHECK(test_abs_address >= address_lower);
     CHECK(test_abs_address <= address_upper);
 
-    ram custom_test_ram(&test_bus, RAM_SIZE_BYTES, address_lower, address_upper);     // establish another ram device with custom address space
+    ram custom_test_ram(RAM_SIZE_BYTES, address_lower, address_upper);     // establish another ram device with custom address space
     custom_test_ram.write(test_abs_address, test_data);   // ensure no conflict as we've written to another RAM unit
     uint8_t result = custom_test_ram.read(test_abs_address);
     REQUIRE(result == test_data); // test that offsetting works

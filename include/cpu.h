@@ -6,6 +6,7 @@
 #include "ram.h"
 
 #include <functional>
+#include <memory>
 
 // good reading for this: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 // Also good: http://users.telenet.be/kim1-6502/6502/proman.html
@@ -217,6 +218,8 @@ public:
 private:
     void init_opcode_decoder_lookup(void);
     void set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
+
+    bus* _bus_ptr = nullptr;  
 
     // variables used for processing information, passing data between fetch, clock and whatever instruction being performed.
     uint16_t _fetched_address; // used for whatever fetched address, data or operand from the instruction. We need to be vague because the different address modes use this to prepare data for instructions

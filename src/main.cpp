@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
 
 	// initialize our bus, ram and cpu
 	bus nes_bus;
-	ram nes_ram(&nes_bus, RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
-	cartridge nes_cart(&nes_bus, CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
+	ram nes_ram(RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
+	cartridge nes_cart(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
 	cpu nes_cpu(&nes_bus);  
 
 	// register the devices that live on the bus

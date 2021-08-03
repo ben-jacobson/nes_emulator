@@ -8,7 +8,7 @@
 class cartridge : public bus_device
 {
 public:
-	cartridge(bus* bus_ptr, uint16_t address_space_lower, uint16_t address_space_upper);
+	cartridge(uint16_t address_space_lower, uint16_t address_space_upper);
 	~cartridge();
 
 	// functions for reading and writing  data to and from the bus
