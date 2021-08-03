@@ -30,7 +30,7 @@ uint8_t* ram::get_ram_pointer(void) {
 uint8_t ram::read(uint16_t address) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        return _ram_data[address - _address_space_lower]; // new mapped address is offset by _address_space_lower;
+        return _ram_data[(address - _address_space_lower) % RAM_SIZE_BYTES]; // new mapped address is offset by _address_space_lower;
     }
     return 0;
 }
@@ -38,7 +38,7 @@ uint8_t ram::read(uint16_t address) {
 void ram::write(uint16_t address, uint8_t data) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        _ram_data[address - _address_space_lower] = data;  // place it into the array at the new offset address
+        _ram_data[(address - _address_space_lower) % RAM_SIZE_BYTES] = data;  // place it into the array at the new offset address
     }
 }
 

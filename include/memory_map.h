@@ -3,20 +3,9 @@
 
 // main 2Kb of RAM
 constexpr uint16_t RAM_ADDRESS_SPACE_START      = 0x0000;
-constexpr uint16_t RAM_ADDRESS_SPACE_END        = 0x07FF;
+constexpr uint16_t RAM_ADDRESS_SPACE_END        = 0x1FFF;       // there are four mirrors of the RAM from 0x0000 through to 0x07FF. 
 constexpr uint16_t RAM_SIZE_BYTES               = 0x0800;       // 2048 or 2Kb for RAM buffer
-
-// A mirror of RAM
-constexpr uint16_t RAM_MIRRORA_SPACE_START      = 0x0800;
-constexpr uint16_t RAM_MIRRORA_SPACE_END        = 0x0FFF;
-
-// Another mirror of RAM
-constexpr uint16_t RAM_MIRRORB_SPACE_START      = 0x1000;
-constexpr uint16_t RAM_MIRRORB_SPACE_END        = 0x17FF;
-
-// One last mirror of RAM
-constexpr uint16_t RAM_MIRRORC_SPACE_START      = 0x1800;
-constexpr uint16_t RAM_MIRRORC_SPACE_END        = 0x1FFF;
+// Ram runs between 0x0000 and 0x07FF, with three mirrors, first 0x0800-0x0FFF, second 0x1000-0x17FF, and third 0x1800-0x1FFF
 
 // Picture processing unit
 constexpr uint16_t PPU_ADDRESS_SPACE_START      = 0x2000;

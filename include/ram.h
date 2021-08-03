@@ -1,5 +1,6 @@
 #pragma once
 #include "bus_device.h"
+#include "memory_map.h"
 
 class ram : public bus_device
 {

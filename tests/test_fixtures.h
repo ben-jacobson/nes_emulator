@@ -20,7 +20,7 @@ public:
         test_bus.clear_bus_devices(); // start by clearing the bus because the unit tests don't wipe the memory each time. 
         // register some test devices on the bus
         test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, test_ram._read_function_ptr, test_ram._write_function_ptr);    
-        test_bus.register_new_bus_device(RAM_MIRRORA_SPACE_START, RAM_MIRRORA_SPACE_END, another_test_ram._read_function_ptr, another_test_ram._write_function_ptr);    
+        test_bus.register_new_bus_device(0x4000, 0x4000 + RAM_SIZE_BYTES, another_test_ram._read_function_ptr, another_test_ram._write_function_ptr);    
         test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
 
         // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU
