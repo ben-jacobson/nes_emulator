@@ -2,7 +2,7 @@
 #include "test_fixtures.h"
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ram - Check address mapping is valid", "[ram]") {
-    REQUIRE(RAM_ADDRESS_SPACE_START + RAM_SIZE_BYTES - 1 == RAM_ADDRESS_SPACE_END);
+    REQUIRE(RAM_ADDRESS_SPACE_START + RAM_SIZE_BYTES == RAM_SIZE_BYTES);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ram - Test ram mirroring", "[ram]") {
@@ -16,8 +16,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ram - Test ram mirroring", "[ram]") {
     REQUIRE(test_ram.read(0x1800) == 0xAB);
 
     test_ram.write(0x0100, 0xCC);
-    REQUIRE(test_ram.read(0x0000) == 0xCC);
-    REQUIRE(test_ram.read(0x0800) == 0xCC);
+    REQUIRE(test_ram.read(0x0100) == 0xCC);
+    REQUIRE(test_ram.read(0x0900) == 0xCC);
     REQUIRE(test_ram.read(0x1100) == 0xCC);
     REQUIRE(test_ram.read(0x1900) == 0xCC);
 
