@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
 	// Check to see if we can load a ROM
 	if (argc < 2) {
 		std::cout << "No ROM file specified in argument, loading default test code" << std::endl;
-		nes_cart.load_content_from_stream("E8 E8 EA CA 58 78"); // INX, INX, NOP, DEX, CLI, SEI
 	}
 	else {
 		std::string rom_fullpath = (std::string)base_path;
@@ -59,10 +58,8 @@ int main(int argc, char *argv[])
 		}
 		else {
 			std::cout << "Loaded " << rom_fullpath << std::endl;
-
-			// temporarily set the reset vector, so that CPU starts at 0xC000 to run the tests; at the moment the test rom takes it to another area presumably to render some graphics which we couldn't handle at the moment
-			nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // DELETE THIS LINE!
 		}
+		nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
 	}
 	
 	// Init SDL
