@@ -18,8 +18,6 @@ void cartridge::load_content_from_stream(std::string bytecode, uint16_t destinat
     std::string token;
     uint16_t address = destination_address - (PGM_ROM_ADDRESS_SPACE_END - _pgm_rom_data.size() + 1);
 
-    std::cout << "sizeof: " << _pgm_rom_data.size() << std::endl;
-
     while (std::getline(tokenizer, token, ' ') && address < PGM_ROM_ADDRESS_SPACE_END) {
         _pgm_rom_data[address] = (uint8_t)strtol(token.c_str(), NULL, 16);
         address++;
@@ -35,7 +33,7 @@ bool cartridge::load_rom(std::string filename) {
 
     fseek(file_handle, 0, SEEK_END);    // Determine file size
     size_t file_size = ftell(file_handle);
-    char* file_contents = new char[file_size];
+    char* file_contents = new char[file_size];  
 
     rewind(file_handle);
     fread(file_contents, sizeof(char), file_size, file_handle);
@@ -250,9 +248,6 @@ bool cartridge::load_rom(std::string filename) {
     // load the PGM ROM data into the buffer that we recently resized. 
     for (uint16_t i = 0; i < (pgm_rom_size * 16 * 1024); i++) {
         _pgm_rom_data[i] = file_contents[i + file_contents_start_address];   // two copies mirrored back to back
-
-        if (i > 0x3FFB) 
-            std::cout << "i: " << (uint16_t)i << ", " << std::hex << (uint16_t)_pgm_rom_data[i] << std::endl;
     }
 
     // update the offset
@@ -270,7 +265,7 @@ uint8_t cartridge::read(uint16_t address) {
     if (address >= _address_space_lower && address <= _address_space_upper) {
         int mapped_index = _mapper->cpu_read_address(address); 
 
-        if (mapped_index != 1) {
+        if (mapped_index != -1) {
             return _pgm_rom_data[mapped_index];
         }
     }
@@ -287,7 +282,7 @@ uint8_t cartridge::ppu__read(uint16_t address) {
     if (address >= _address_space_lower && address <= _address_space_upper) {
         int mapped_index = _mapper->ppu_read_address(address); 
 
-        if (mapped_index != 1) {
+        if (mapped_index != -1) {
             return _chr_rom_data[mapped_index];
         }
     }

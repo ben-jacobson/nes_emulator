@@ -9,6 +9,7 @@ int mapper_00::cpu_read_address(uint16_t address) {
         if (_pgm_rom_mirroring) {
             index = index % (PGM_ROM_SIZE_BYTES / 2);     // repeat every 16Kb for the 32Kb roms
         }
+
         return index;  
     }
     return -1;
