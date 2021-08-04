@@ -12,8 +12,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for correct registration or
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "bus - test that reading any given address doesn't cause crash") {
-    // we encountered an issue where reading from address a few various address (such as  0x0763, would pop up a lot) would cause a crash. 
+    // we encountered an issue where reading from address a few various address would cause a crash. 
     for (uint16_t i = 0x00; i < 0xFFFF; i++) {
+        if (i > 41000) {
+            std::cout << (uint16_t)i << ", ";
+        }
         test_bus.set_address(i);
         test_bus.read_data();
 	}

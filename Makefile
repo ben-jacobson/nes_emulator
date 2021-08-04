@@ -20,13 +20,13 @@ LFLAGS = -Llib/SDL2 -lSDL2 -lSDL2_ttf
 OUTPUT	:= output
 
 # define source directory
-SRC		:= src
+SRC		:= src src/mappers
 
 # define the tests directory
 TESTS	:= tests
 
 # define include directory
-INCLUDE	:= include include/SDL2
+INCLUDE	:= include include/mappers include/SDL2
 
 # define lib directory
 LIB		:= lib

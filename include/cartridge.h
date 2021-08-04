@@ -31,9 +31,11 @@ public:
 
 	// for outputting to test functions, and our debug view
 	uint8_t debug_read(uint16_t relative_address);	// for rom output view, not for actual use in emulation
+	void debug_write(uint16_t relative_address, uint8_t data);
 
 private:
 	mapper_base* _mapper;	// we won't know what mapper to use until we've read some of the ROM
+
 	std::vector<uint8_t> _pgm_rom_data;	// we won't know the size of these elements until we've read some of the ROM
 	std::vector<uint8_t> _chr_rom_data;
 };

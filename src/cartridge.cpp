@@ -3,7 +3,7 @@
 cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper) 
 :   bus_device()
 {
-    // disable the write function pointer
+    // disable the write function pointer, making this read only
     _write_function_ptr = nullptr;
 
     // temporarily set the address space boundaries to zero in this implementation
@@ -13,9 +13,9 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
     // prg rom and chr roms will be inited during cartridge load
 
     // For our unit tests to pass, we need the cartridge to start in a default state. The cartridge load function will overwrite all of this. But essentially start in a mapper zero state
-    _mapper = new mapper_00();
-    _mapper->set_pgm_rom_mirroring(false);
-    _mapper->set_pgm_rom_size(16 * 1024);    
+    mapper_00* placeholder_mapper_00 = new mapper_00(16 * 1024, 8 * 1024);
+    _mapper = placeholder_mapper_00;
+
     _pgm_rom_data.resize(16 * 1024);     
     _chr_rom_data.resize(8 * 1024);    
 }
@@ -268,7 +268,7 @@ uint8_t cartridge::read(uint16_t address) {
         int mapped_index = _mapper->cpu_read_address(address); 
 
         if (mapped_index != -1) {
-            return _pgm_rom_data[mapped_index];
+            return _pgm_rom_data[(uint16_t)mapped_index];       // for type safety
         }
     }
     return 0;
@@ -308,4 +308,8 @@ uint8_t cartridge::read_rom(uint16_t address) {
 uint8_t cartridge::debug_read(uint16_t relative_address) {
     // notice there is no address space checking, we simply output whatever is at the relative address, e.g 0 is the start and MAX_SIZE is the end
     return _pgm_rom_data[relative_address];    
+}
+
+void cartridge::debug_write(uint16_t relative_address, uint8_t data) {
+    _pgm_rom_data[relative_address] = data;
 }
