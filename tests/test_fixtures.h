@@ -33,8 +33,9 @@ public:
     void hack_in_test_rom_data(uint16_t relative_address, uint8_t data) {
         // hacks some data into the rom via it's rom pointer. Uses relative addresses, i.e not in the global address space. Address 0x0000 is is address 0x0000 
         
-        uint8_t* cart_ptr = test_cart.get_rom_pointer();   
-        *(cart_ptr + relative_address) = data;
+        // Need to rethink this
+        relative_address++;
+        data++; // surpress warnings while we figure this out
     }    
 };
 

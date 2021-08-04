@@ -11,6 +11,13 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
     _address_space_upper = address_space_upper;   
 
     // prg rom and chr roms will be inited during cartridge load
+
+    // For our unit tests to pass, we need the cartridge to start in a default state. The cartridge load function will overwrite all of this. But essentially start in a mapper zero state
+    _mapper = new mapper_00();
+    _mapper->set_pgm_rom_mirroring(false);
+    _mapper->set_pgm_rom_size(16 * 1024);    
+    _pgm_rom_data.resize(16 * 1024);     
+    _chr_rom_data.resize(8 * 1024);    
 }
 
 void cartridge::load_content_from_stream(std::string bytecode, uint16_t destination_address) {      // allows for quick overwriting of character rom
@@ -240,11 +247,6 @@ bool cartridge::load_rom(std::string filename) {
         file_contents_start_address += 512;   // skip the 512 bytes
     }
 
-    // TEMP code while we only have one mapper
-    _mapper = new mapper_00();
-    _mapper->set_pgm_rom_mirroring(false);
-    _mapper->set_pgm_rom_size(pgm_rom_size * 16 * 1024);
-
     // load the PGM ROM data into the buffer that we recently resized. 
     for (uint16_t i = 0; i < (pgm_rom_size * 16 * 1024); i++) {
         _pgm_rom_data[i] = file_contents[i + file_contents_start_address];   // two copies mirrored back to back
@@ -302,7 +304,6 @@ uint8_t cartridge::read_rom(uint16_t address) {
     }
     return 0;
 }
-
 
 uint8_t cartridge::debug_read(uint16_t relative_address) {
     // notice there is no address space checking, we simply output whatever is at the relative address, e.g 0 is the start and MAX_SIZE is the end
