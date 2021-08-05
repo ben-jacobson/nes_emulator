@@ -65,3 +65,20 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test bus decoding read and write
     uint8_t test_read_data = test_bus.read_data(); 
     REQUIRE(test_read_data == 99); // reading from this address should trigger our test_read_fn, returning 128
 }
+
+TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test if we can implement a second bus", "[bus]") {
+    test_bus.set_address(0x0000);
+    test_bus.write_data(0xFF);
+    uint8_t result = test_bus.read_data();
+    CHECK(result == 0xFF);
+
+    bus second_test_bus;
+    ram second_test_ram(0xFF, 0x0000, 0x00FF);
+    second_test_bus.register_new_bus_device(0x0000, 0x00FF, second_test_ram._read_function_ptr, second_test_ram._write_function_ptr);
+
+    second_test_bus.set_address(0x0000);
+    second_test_bus.write_data(0xFE);
+    result = second_test_bus.read_data();
+    CHECK(result != 0xFF);
+    CHECK(result == 0xFE);
+}   

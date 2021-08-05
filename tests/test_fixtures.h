@@ -24,7 +24,6 @@ public:
         // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU
         test_cart.debug_write_relative(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0x00); 
         test_cart.debug_write_relative(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0x80);   
-
         test_cpu.reset();
     }
 
