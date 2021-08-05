@@ -17,6 +17,8 @@ public:
 	virtual void ppu_write_adress(uint16_t address, uint8_t data) = 0;
 	
 	void set_pgm_rom_mirroring(bool value);
+	bool get_pgm_rom_mirroring(void);
+
 	void set_pgm_rom_size(uint16_t size);
 	void set_chr_rom_size(uint16_t size);
 

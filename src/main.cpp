@@ -33,14 +33,20 @@ int main(int argc, char *argv[])
     }   
 
 	// initialize our bus, ram and cpu
-	bus nes_bus;
+	bus nes_cpu_bus;
 	ram nes_ram(RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 	cartridge nes_cart(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
-	cpu nes_cpu(&nes_bus);  
+	cpu nes_cpu(&nes_cpu_bus);  
 
 	// register the devices that live on the bus
-	nes_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
-	nes_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
+	nes_cpu_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
+	nes_cpu_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
+
+	// initialize our PPU bus
+	bus nes_ppu_bus;
+	ram nes_ppu_ram(0x800, 0x0000, 0x0800);
+	nes_ppu_bus.register_new_bus_device(0x0000, 0x0800, nes_ppu_ram._read_function_ptr, nes_ppu_ram._write_function_ptr);
+
 
 	// Check to see if we can load a ROM
 	if (argc < 2) {
@@ -88,15 +94,15 @@ int main(int argc, char *argv[])
 	// set up our instruction trace logger
 	std::string log_fullpath = (std::string)base_path;
 	log_fullpath.append("emulator_trace.log"); 
-	instruction_log instruction_trace_log(log_fullpath, &nes_cpu, &nes_bus);
+	instruction_log instruction_trace_log(log_fullpath, &nes_cpu, &nes_cpu_bus);
 
 	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	instr_trace_graphics debug_instr_trace(&instruction_trace_log, renderer, font_fullpath.c_str(), font_size, 0, 520);
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520);
-	memory_peek_graphics debug_memory_peek(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520 + (font_size * 8)); // 7 lines below processor status
-	memory_status_graphics debug_ram_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
-	memory_status_graphics debug_rom_display(&nes_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
+	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520 + (font_size * 8)); // 7 lines below processor status
+	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
+	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 

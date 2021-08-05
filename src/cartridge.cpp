@@ -17,7 +17,7 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
     _chr_rom_data.resize(CHR_ROM_SIZE_BYTES);    
 
     // For our unit tests to pass, we need the cartridge to start in a default state. The cartridge load function will overwrite all of this. But essentially start in a mapper zero state
-    mapper_00* placeholder_mapper_00 = new mapper_00(_pgm_rom_data.size(), _chr_rom_data.size());
+    mapper_00* placeholder_mapper_00 = new mapper_00(false, _pgm_rom_data.size(), _chr_rom_data.size());
     _mapper = placeholder_mapper_00;
 
 }
@@ -186,6 +186,7 @@ bool cartridge::load_rom(std::string filename) {
     // todo - assign the mapper as per what's in the file
     _mapper->set_pgm_rom_size(_pgm_rom_data.size());
     _mapper->set_chr_rom_size(_chr_rom_data.size());
+    _mapper->set_pgm_rom_mirroring(true);
 
     /* // the rest of these features are yet to be implemeted, for the time being we just want to get Mapper 0 getting up and running, and will look at the rest later
     10     PRG-RAM/EEPROM size
@@ -327,6 +328,9 @@ void cartridge::debug_write_absolute(uint16_t absolute_address, uint8_t data) {
         uint16_t index = absolute_address - (PGM_ROM_ADDRESS_SPACE_END - _pgm_rom_data.size() + 1);  // PGM rom always sits at the end of the memory map
         
         if (index <= _pgm_rom_data.size()) {
+            if (_mapper->get_pgm_rom_mirroring()) {
+                index = index % (PGM_ROM_SIZE_BYTES / 2);     // repeat every 16Kb for the 32Kb roms
+            }
             _pgm_rom_data[index] = data;
         }
     }    

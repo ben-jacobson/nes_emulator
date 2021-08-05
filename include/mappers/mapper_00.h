@@ -5,7 +5,7 @@
 class mapper_00 : public mapper_base
 {
 public:
-	mapper_00(uint16_t pgm_rom_size, uint16_t chr_rom_size);
+	mapper_00(bool mirroring, uint16_t pgm_rom_size, uint16_t chr_rom_size);
 	~mapper_00() = default;
 
 	int cpu_read_address(uint16_t address) override;
