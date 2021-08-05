@@ -14,8 +14,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "Dev environment, overflow and underflo
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruction]") {
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
-    test_cart.debug_write(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
+    test_cart.debug_write_relative(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
 
     test_cpu.set_program_counter(0x8000); 
     uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
@@ -28,8 +28,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABS", "[cpu instruc
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSX", "[cpu instruction]") {
     // this address mode takes the effective address from PC and PC+1, then adds the X index to it. 
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x00);
-    test_cart.debug_write(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x02);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x00);
+    test_cart.debug_write_relative(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x02);
     test_cpu.debug_set_x_register(0x01);
 
     test_cpu.set_program_counter(0x8000); 
@@ -43,8 +43,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSX", "[cpu instru
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ABSY", "[cpu instruction]") {
     // this address mode takes the effective address from PC and PC+1, then adds the X index to it. 
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x00);
-    test_cart.debug_write(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x03);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x00);
+    test_cart.debug_write_relative(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x03);
     test_cpu.debug_set_y_register(0x02);
 
     test_cpu.set_program_counter(0x8000); 
@@ -63,7 +63,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ACCUM", "[cpu instr
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruction]") {
     // in IMM address mode, the second byte of the instruction is the operand. 
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_IMM();
     uint16_t fetched = test_cpu.get_last_fetched();
@@ -72,7 +72,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - IMM", "[cpu instruc
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instruction]") {
     // Indexed Indirect Addressing - INDX
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x99);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x99);
     test_cpu.debug_set_x_register(0x05); 
     test_ram.write(0x009E, 0x50);   // 0x99 + 0x05 = 9E, the first address this address mode will look at
     test_ram.write(0x009F, 0xAA); 
@@ -92,7 +92,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDX", "[cpu instru
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDY", "[cpu instruction]") {
     // not to be confused with indirect addressing, this is indirect indexed and has a different order to indirect index X addressing
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x05); // a memory location in page zero
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x05); // a memory location in page zero
     test_ram.write(0x0005, 0x02); // a memory location in page zero
     test_cpu.debug_set_y_register(0x24); 
 
@@ -108,10 +108,10 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - INDI", "[cpu instru
     // Absolute Indirect works just like Absolute, except that it pulls data from that address to become the new program counter. Pretty much this is like a pointer
 
     // start by entering an address for the mode to read
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x10);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
-    test_cart.debug_write(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x80);
-    test_cart.debug_write(0x8010 - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
-    test_cart.debug_write(0x8011 - PGM_ROM_ADDRESS_SPACE_START, 0xFF);    
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0x10);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cart.debug_write_relative(0x8001 - PGM_ROM_ADDRESS_SPACE_START, 0x80);
+    test_cart.debug_write_relative(0x8010 - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
+    test_cart.debug_write_relative(0x8011 - PGM_ROM_ADDRESS_SPACE_START, 0xFF);    
 
     test_cpu.set_program_counter(0x8000); 
     uint16_t program_counter_at_start = test_cpu.get_program_counter(); 
@@ -133,7 +133,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
 
     // test for incrementing PC
     uint8_t offset = 0b11111110; // twos complement for -2
-    test_cart.debug_write(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cart.debug_write_relative(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     uint16_t result = test_cpu.get_last_fetched();  
@@ -141,7 +141,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
 
     // tests for decrementing PC
     offset = 0b00000011; // twos complement for +3
-    test_cart.debug_write(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cart.debug_write_relative(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     result = test_cpu.get_last_fetched();
@@ -149,7 +149,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
 
     // tests for incrementing to the extreme case
     offset = 0b01111111; // twos complement for +127
-    test_cart.debug_write(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cart.debug_write_relative(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     result = test_cpu.get_last_fetched();
@@ -157,7 +157,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
 
     // test for decrementing to the extreme case
     offset = 0b10000000; // twos complement for -128
-    test_cart.debug_write(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
+    test_cart.debug_write_relative(pc_at_start - PGM_ROM_ADDRESS_SPACE_START, offset);  // the mode will first read this address and pull down 0x2211 as its address, then read EEFF as it's next address
     test_cpu.set_program_counter(pc_at_start);  
     test_cpu.addr_mode_REL();
     result = test_cpu.get_last_fetched();
@@ -166,7 +166,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - REL", "[cpu instruc
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruction]") {
     // this address mode fetches only the second byte, and uses it as an address on page zero. 
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xBB);
     test_cpu.set_program_counter(0x8000);
     test_cpu.addr_mode_ZP();
     uint16_t address_fetched = test_cpu.get_last_fetched();
@@ -176,7 +176,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZP", "[cpu instruct
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPX", "[cpu instruction]") {
     // this address mode works exactly the same as ZP, except it adds the value of the X register to the address.
     test_cpu.reset();
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xFC);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xFC);
 
     // set the X register for a known state
     test_cpu.instr_INX(); // 1
@@ -203,7 +203,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPX", "[cpu instruc
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu address mode - ZPY", "[cpu instruction]") {
     // this address mode works exactly the same as ZP, except it adds the value of the Y register to the address.
     test_cpu.reset();
-    test_cart.debug_write(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xFC);
+    test_cart.debug_write_relative(0x8000 - PGM_ROM_ADDRESS_SPACE_START, 0xFC);
 
     // set the Y register for a known state
     test_cpu.instr_INY(); // 1

@@ -15,6 +15,8 @@ constexpr uint16_t PPU_ADDRESS_SPACE_END        = 0x2007;
 constexpr uint16_t PPU_MIRROR_SPACE_START       = 0x2008;
 constexpr uint16_t PPU_MIRROR_SPACE_END         = 0x3FFF;
 
+constexpr uint16_t CHR_ROM_SIZE_BYTES           = 0x2000;       // 8Kb default chr rom size
+
 // APU and I/O registers
 constexpr uint16_t APUIO_ADDRESS_SPACE_START    = 0x4000;
 constexpr uint16_t APUIO_ADDRESS_SPACE_END      = 0x4017;

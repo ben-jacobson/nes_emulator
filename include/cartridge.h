@@ -31,7 +31,8 @@ public:
 
 	// for outputting to test functions, and our debug view
 	uint8_t debug_read(uint16_t relative_address);	// for rom output view, not for actual use in emulation
-	void debug_write(uint16_t relative_address, uint8_t data);
+	void debug_write_relative(uint16_t relative_address, uint8_t data);
+	void debug_write_absolute(uint16_t absolute_address, uint8_t data);
 
 private:
 	mapper_base* _mapper;	// we won't know what mapper to use until we've read some of the ROM

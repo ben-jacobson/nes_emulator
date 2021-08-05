@@ -12,12 +12,14 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
 
     // prg rom and chr roms will be inited during cartridge load
 
+    // start with an initial size, these will be resized later
+    _pgm_rom_data.resize(PGM_ROM_SIZE_BYTES);          
+    _chr_rom_data.resize(CHR_ROM_SIZE_BYTES);    
+
     // For our unit tests to pass, we need the cartridge to start in a default state. The cartridge load function will overwrite all of this. But essentially start in a mapper zero state
-    mapper_00* placeholder_mapper_00 = new mapper_00(16 * 1024, 8 * 1024);
+    mapper_00* placeholder_mapper_00 = new mapper_00(_pgm_rom_data.size(), _chr_rom_data.size());
     _mapper = placeholder_mapper_00;
 
-    _pgm_rom_data.resize(16 * 1024);          
-    _chr_rom_data.resize(8 * 1024);    
 }
 
 void cartridge::load_content_from_stream(std::string bytecode, uint16_t destination_address) {      // allows for quick overwriting of character rom
@@ -310,11 +312,18 @@ uint8_t cartridge::debug_read(uint16_t relative_address) {
     return _pgm_rom_data[relative_address];    
 }
 
-void cartridge::debug_write(uint16_t relative_address, uint8_t data) {
+void cartridge::debug_write_relative(uint16_t relative_address, uint8_t data) {
     if (relative_address <= _pgm_rom_data.size()) {
         _pgm_rom_data[relative_address] = data;
     }
-    else {
-        std::cout << "Error, attempting to debug load data into address out of range. PGM ROM array is : " << _pgm_rom_data.size() << " bytes" << std::endl;
-    }
+}
+
+void cartridge::debug_write_absolute(uint16_t absolute_address, uint8_t data) {
+    if (absolute_address >= PGM_ROM_ADDRESS_SPACE_START) { // && address <= PGM_ROM_ADDRESS_SPACE_END) { // removing for warnings
+        uint16_t index = absolute_address - (PGM_ROM_ADDRESS_SPACE_END - _pgm_rom_data.size() + 1);  // PGM rom always sits at the end of the memory map
+        
+        if (index <= _pgm_rom_data.size()) {
+            _pgm_rom_data[index] = data;
+        }
+    }    
 }

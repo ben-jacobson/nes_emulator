@@ -74,11 +74,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get_status_flags_struct") {
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
-    test_cart.debug_write(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);        // set reset vector so that CPU knows where to go to look for start of program
-    test_cart.debug_write(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
-    test_cart.debug_write(0xEEDD - PGM_ROM_ADDRESS_SPACE_START, 0xEA); // a nop instruction, do nothing
-    test_cart.debug_write(0xEEDE - PGM_ROM_ADDRESS_SPACE_START, 0xE8); // an inx instruction, increment X index
-    test_cart.debug_write(0xEEDF - PGM_ROM_ADDRESS_SPACE_START, 0x08); // a PHP instruction, push program status to stack
+    test_cart.debug_write_relative(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);        // set reset vector so that CPU knows where to go to look for start of program
+    test_cart.debug_write_relative(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
+    test_cart.debug_write_relative(0xEEDD - PGM_ROM_ADDRESS_SPACE_START, 0xEA); // a nop instruction, do nothing
+    test_cart.debug_write_relative(0xEEDE - PGM_ROM_ADDRESS_SPACE_START, 0xE8); // an inx instruction, increment X index
+    test_cart.debug_write_relative(0xEEDF - PGM_ROM_ADDRESS_SPACE_START, 0x08); // a PHP instruction, push program status to stack
     test_cpu.reset(); // program will start at address EEDD
 
     test_bus.set_address(0xEEDD);
@@ -130,8 +130,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test cycle", "[cpu]") {
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
     // put some data into the reset vector, which is a section of ROM memory
-    test_cart.debug_write(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);
-    test_cart.debug_write(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
+    test_cart.debug_write_relative(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);
+    test_cart.debug_write_relative(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
 
     uint8_t reset_vector_low = test_cart.read(RESET_VECTOR_LOW);
     CHECK(reset_vector_low == 0xDD); // check that it landed properly in ROM
@@ -161,8 +161,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") {
     uint8_t program_counter_at_start_low = (program_counter_at_start & 0x00FF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8);     
 
-    test_cart.debug_write(0xFFFF - PGM_ROM_ADDRESS_SPACE_START, 0xBB); // put something in the IRQ vector
-    test_cart.debug_write(0xFFFE - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
+    test_cart.debug_write_relative(0xFFFF - PGM_ROM_ADDRESS_SPACE_START, 0xBB); // put something in the IRQ vector
+    test_cart.debug_write_relative(0xFFFE - PGM_ROM_ADDRESS_SPACE_START, 0xAA);
 
     CHECK(test_cpu.get_status_flags_struct().i == 0); // is the interrupt enabled (0)?
 
@@ -189,8 +189,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test NMI", "[cpu]") {
     uint8_t program_counter_at_start_low = (program_counter_at_start & 0xFF);
     uint8_t program_counter_at_start_high = ((program_counter_at_start & 0xFF00) >> 8); 
 
-    test_cart.debug_write(0xFFFB - PGM_ROM_ADDRESS_SPACE_START, 0xEE);  // put something in the NMI vector
-    test_cart.debug_write(0xFFFA - PGM_ROM_ADDRESS_SPACE_START, 0xFF); 
+    test_cart.debug_write_relative(0xFFFB - PGM_ROM_ADDRESS_SPACE_START, 0xEE);  // put something in the NMI vector
+    test_cart.debug_write_relative(0xFFFA - PGM_ROM_ADDRESS_SPACE_START, 0xFF); 
 
     bool result = test_cpu.NMI();   
     CHECK(result == true);
@@ -226,8 +226,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test set and get stack pointer")
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test program counter getter", "[cpu]") {
-    test_cart.debug_write(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0x00);
-    test_cart.debug_write(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0x80);
+    test_cart.debug_write_relative(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0x00);
+    test_cart.debug_write_relative(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0x80);
     test_cpu.reset(); // reset will go to the reset vector, in this instance will read 0x8000 and skip to that 
 
     uint16_t result = test_cpu.get_program_counter(); 

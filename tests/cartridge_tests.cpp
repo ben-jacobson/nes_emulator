@@ -14,7 +14,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test hack in rom data helper fun
         test_relative_address = rand() % PGM_ROM_SIZE_BYTES;
         test_data = rand() % 255;
         
-        test_cart.debug_write(test_relative_address, test_data);
+        test_cart.debug_write_relative(test_relative_address, test_data);
         REQUIRE(test_cart.debug_read(test_relative_address) == test_data); // a little redundant, we have a separate test below for this. can't hurt. 
     }
 }
@@ -32,30 +32,52 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Debug read", "[cartridge]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = rand() % PGM_ROM_SIZE_BYTES;
 
-    test_cart.debug_write(test_address, test_data);    
+    test_cart.debug_write_relative(test_address, test_data);    
     REQUIRE(test_cart.debug_read(test_address) == test_data);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[ram]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[cartridge]") {
     uint8_t test_data = rand() % 255;
-    uint16_t test_address = (rand() % RAM_SIZE_BYTES) + PGM_ROM_ADDRESS_SPACE_START;
+    uint16_t test_address = (rand() % PGM_ROM_SIZE_BYTES) + PGM_ROM_ADDRESS_SPACE_START;
 
     // set the address and write the data    
-    test_cart.debug_write(test_address - PGM_ROM_ADDRESS_SPACE_START, test_data);    
+    test_cart.debug_write_absolute(test_address, test_data);    
     uint8_t result = test_cart.read(test_address);
     REQUIRE(result == test_data);    
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test read function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test read function pointer", "[cartridge]") {
     uint8_t test_data = rand() % 255;
     uint16_t test_address = PGM_ROM_ADDRESS_SPACE_START + (rand() % PGM_ROM_SIZE_BYTES);
 
     // set the address and write the data    
-    test_cart.debug_write(test_address - PGM_ROM_ADDRESS_SPACE_START, test_data);    
+    test_cart.debug_write_absolute(test_address, test_data);    
     uint8_t result = test_cart._read_function_ptr(test_address);
     REQUIRE(result == test_data);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test write function pointer", "[bus]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "rom - Test write function pointer", "[cartridge]") {
     REQUIRE(test_cart._write_function_ptr == nullptr);
+}
+
+TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test Mapper 00", "[cartridge]") {
+    // using a mappper does address translation for us and is used only for cartridges
+    
+    // start by putting some data on the cartridge
+    test_cart.debug_write_absolute(PGM_ROM_ADDRESS_SPACE_START, 0xAA);
+    test_cart.debug_write_absolute(0xAAAA, 0xBB);
+    test_cart.debug_write_absolute(PGM_ROM_ADDRESS_SPACE_END, 0xCC);
+
+    // read it back
+    test_bus.set_address(PGM_ROM_ADDRESS_SPACE_START);
+    uint8_t test_one = test_bus.read_data();            // these reads will occur through our mappers
+    test_bus.set_address(0xAAAA);
+    uint8_t test_two = test_bus.read_data();
+    test_bus.set_address(PGM_ROM_ADDRESS_SPACE_END);
+    uint8_t test_three = test_bus.read_data();    
+
+    // do they match?
+    CHECK(test_one == 0xAA);
+    CHECK(test_two == 0xBB);
+    CHECK(test_three == 0xCC);
 }

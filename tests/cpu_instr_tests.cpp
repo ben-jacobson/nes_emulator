@@ -33,7 +33,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction helper - test check if
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction decoder") {
     // provide the CPU with a bit of data to work with. 
-    test_cart.debug_write(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEA); // write a NOP instruction to the high value of the reset vector
+    test_cart.debug_write_absolute(RESET_VECTOR_HIGH, 0x80); // write a start addressto the high value of the reset vector
+    test_cart.debug_write_absolute(0x8000, 0xEA); // write a start addressto the high value of the reset vector
     uint8_t result_rom = test_cart.read(RESET_VECTOR_HIGH);
     CHECK(result_rom == 0x80);
 
