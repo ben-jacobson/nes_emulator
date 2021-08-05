@@ -82,3 +82,30 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test if we can implement a secon
     CHECK(result != 0xFF);
     CHECK(result == 0xFE);
 }   
+
+TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test if two buses can use the same device", "[bus]") {
+
+    // we'll use a lambda for this tests, simulating a read function that you'd typically see in a bus_device
+    auto alternative_read = [](uint16_t address) {
+        address++; // surpess warning
+        return 0xDD; 
+    };
+
+    // set eveyrthing up. We are simulating the behaviour of one bus having a device that that has two memory regions, like CHR_ROM and PGM_ROM on the cartridge.
+    bus second_test_bus;
+    ram second_test_ram(0xFF, 0x0000, 0x00FF);
+    ram third_test_ram(0xFF, 0x00FF, 0x01FF);
+    second_test_bus.register_new_bus_device(0x0000, 0x00FF, second_test_ram._read_function_ptr, second_test_ram._write_function_ptr);    
+    second_test_bus.register_new_bus_device(0x00FF, 0x01FF, std::bind(alternative_read, std::placeholders::_1));    
+    second_test_bus.set_address(0x0000);
+    second_test_bus.write_data(0xBB);
+
+    //now that the functions are bound, we should be able to see the different function bindings in operation
+    second_test_bus.set_address(0x01FF);
+    uint8_t result = second_test_bus.read_data();
+    CHECK(result == 0xDD);
+
+    second_test_bus.set_address(0x0000);
+    result = second_test_bus.read_data();
+    REQUIRE(result == 0xBB);
+}
