@@ -42,7 +42,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "rom - Read test", "[ram]") {
 
     // set the address and write the data    
     test_cart.debug_write(test_address - PGM_ROM_ADDRESS_SPACE_START, test_data);    
-    uint8_t result = test_cart.read_rom(test_address);
+    uint8_t result = test_cart.read(test_address);
     REQUIRE(result == test_data);    
 }
 

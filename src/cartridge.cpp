@@ -16,7 +16,7 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
     mapper_00* placeholder_mapper_00 = new mapper_00(16 * 1024, 8 * 1024);
     _mapper = placeholder_mapper_00;
 
-    _pgm_rom_data.resize(16 * 1024);     
+    _pgm_rom_data.resize(16 * 1024);          
     _chr_rom_data.resize(8 * 1024);    
 }
 
@@ -280,7 +280,7 @@ void cartridge::write(uint16_t address, uint8_t data) {
     }
 }	
 
-uint8_t cartridge::ppu__read(uint16_t address) {
+uint8_t cartridge::ppu_read(uint16_t address) {
     if (address >= _address_space_lower && address <= _address_space_upper) {
         int mapped_index = _mapper->ppu_read_address(address); 
 
@@ -297,13 +297,13 @@ void cartridge::ppu_write(uint16_t address, uint8_t data) {
     }
 }
 
-uint8_t cartridge::read_rom(uint16_t address) {
+/*uint8_t cartridge::read_rom(uint16_t address) {
     // First check if the read is within the specified address range
     if (address >= PGM_ROM_ADDRESS_SPACE_START) { //   && address <= ROM_ADDRESS_SPACE_END) {  // we won't check that is at end address because it it's the largest value a uint16_t can have
         return _pgm_rom_data[address - PGM_ROM_ADDRESS_SPACE_START]; // new mapped address is offset by _address_space_lower;
     }
     return 0;
-}
+}*/
 
 uint8_t cartridge::debug_read(uint16_t relative_address) {
     // notice there is no address space checking, we simply output whatever is at the relative address, e.g 0 is the start and MAX_SIZE is the end
@@ -311,5 +311,10 @@ uint8_t cartridge::debug_read(uint16_t relative_address) {
 }
 
 void cartridge::debug_write(uint16_t relative_address, uint8_t data) {
-    _pgm_rom_data[relative_address] = data;
+    if (relative_address <= _pgm_rom_data.size()) {
+        _pgm_rom_data[relative_address] = data;
+    }
+    else {
+        std::cout << "Error, attempting to debug load data into address out of range. PGM ROM array is : " << _pgm_rom_data.size() << " bytes" << std::endl;
+    }
 }

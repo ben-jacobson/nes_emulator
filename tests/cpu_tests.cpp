@@ -133,7 +133,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
     test_cart.debug_write(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0xDD);
     test_cart.debug_write(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEE);
 
-    uint8_t reset_vector_low = test_cart.read_rom(RESET_VECTOR_LOW);
+    uint8_t reset_vector_low = test_cart.read(RESET_VECTOR_LOW);
     CHECK(reset_vector_low == 0xDD); // check that it landed properly in ROM
 
     uint8_t rom_test_result = test_cart.read(RESET_VECTOR_HIGH);

@@ -33,7 +33,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction helper - test check if
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction decoder") {
     // provide the CPU with a bit of data to work with. 
-    test_cart.debug_write(PGM_ROM_ADDRESS_SPACE_START - 0x8000, 0xEA); // NOP instruction
+    test_cart.debug_write(RESET_VECTOR_HIGH - PGM_ROM_ADDRESS_SPACE_START, 0xEA); // write a NOP instruction to the high value of the reset vector
     uint8_t result_rom = test_cart.read(RESET_VECTOR_HIGH);
     CHECK(result_rom == 0x80);
 
@@ -45,7 +45,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu instruction - test instruction dec
 
     // call fetch and check that it returned an instruction
 
-    // the cpu takes 6 clock cycles to commence
+    // the cpu takes a number of clock cycles to commence
     for (uint8_t i = 0; i < RESET_CYCLES; i++) {
         test_cpu.cycle();
     }  

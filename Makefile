@@ -45,6 +45,8 @@ MD	:= mkdir
 else
 MAIN	:= $(PROJECT_NAME)
 TEST_OUT := tests
+SRC :=	src					# our linux machine finds these automatically, and causes an error since they are added twice. Might be a subtle difference between how linux finds the wildcard files? If compilation fails, remove this line and the next
+INCLUDE	:= include
 SOURCEDIRS	:= $(shell find $(SRC) -type d)
 TEST_SOURCE_DIRS := $(shell find $(TESTS) -type d)
 INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)

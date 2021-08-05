@@ -17,13 +17,13 @@ public:
 	~cartridge() = default;
 
 	// functions for reading and writing  data to and from the bus
-	uint8_t read_rom(uint16_t address); 
+	//uint8_t read_rom(uint16_t address); 
 
 	// the default bus_device functions are used for CPU read/write, not for PPU, we'll have a separate one for that
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	
 
-	uint8_t ppu__read(uint16_t address);
+	uint8_t ppu_read(uint16_t address);
 	void ppu_write(uint16_t address, uint8_t data);	
 
 	bool load_rom(std::string filename);
