@@ -183,6 +183,10 @@ bool cartridge::load_rom(std::string filename) {
     std::cout << "CHR_ROM_SIZE: " << (chr_rom_size * 8) << "kb" << std::endl;
     _chr_rom_data.resize(chr_rom_size * 8 * 1024);
 
+    // todo - assign the mapper as per what's in the file
+    _mapper->set_pgm_rom_size(_pgm_rom_data.size());
+    _mapper->set_chr_rom_size(_chr_rom_data.size());
+
     /* // the rest of these features are yet to be implemeted, for the time being we just want to get Mapper 0 getting up and running, and will look at the rest later
     10     PRG-RAM/EEPROM size
         D~7654 3210
