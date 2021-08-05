@@ -44,8 +44,6 @@ int main(int argc, char *argv[])
 
 	// initialize our PPU bus
 	bus nes_ppu_bus;
-	ram nes_ppu_ram(0x800, 0x0000, 0x0800);
-	nes_ppu_bus.register_new_bus_device(0x0000, 0x0800, nes_ppu_ram._read_function_ptr, nes_ppu_ram._write_function_ptr);
 
 
 	// Check to see if we can load a ROM

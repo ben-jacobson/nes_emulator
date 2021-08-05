@@ -58,10 +58,6 @@ constexpr uint16_t RESET_VECTOR_HIGH            = 0xFFFD;
 constexpr uint16_t IRQBRK_VECTOR_START          = 0xFFFE; 
 constexpr uint16_t IRQBRK_VECTOR_END            = 0xFFFF;
 
-/*
-    PPU memory map - The PPU addresses a 16kB space, $0000-3FFF, completely separate from the CPU
-*/ 
-
 // Picture processing unit
 constexpr uint16_t PPU_ADDRESS_SPACE_START      = 0x2000;
 constexpr uint16_t PPU_ADDRESS_SPACE_END        = 0x2007;
@@ -70,12 +66,18 @@ constexpr uint16_t PPU_ADDRESS_SPACE_END        = 0x2007;
 constexpr uint16_t PPU_MIRROR_SPACE_START       = 0x2008;
 constexpr uint16_t PPU_MIRROR_SPACE_END         = 0x3FFF;
 
+/*
+    PPU memory map - The PPU addresses a 16kB space, $0000-3FFF, completely separate from the CPU
+*/ 
+
 // Pattern tables
 constexpr uint16_t PATTERN_TABLE_0_START        = 0x0000;
 constexpr uint16_t PATTERN_TABLE_0_END          = 0x0FFF;
 
 constexpr uint16_t PATTERN_TABLE_1_START        = 0x1000;
 constexpr uint16_t PATTERN_TABLE_1_END          = 0x1FFF;
+
+constexpr uint16_t PATTERN_TABLE_SIZE           = 0x1000;   // Each pattern table is 4Kb in size
 
 // Name tables
 constexpr uint16_t NAMETABLE_0_START            = 0x2000;
@@ -89,6 +91,8 @@ constexpr uint16_t NAMETABLE_2_END              = 0x2BFF;
 
 constexpr uint16_t NAMETABLE_3_START            = 0x2C00;
 constexpr uint16_t NAMETABLE_3_END              = 0x2FFF;
+
+constexpr uint16_t NAMETABLE_SIZE               = 0x0400;       // Each name table is 1Kb
 
 // Another word for nametable is VRAM
 constexpr uint16_t VRAM_START                   = NAMETABLE_0_START;
@@ -105,12 +109,14 @@ constexpr uint16_t PALETTE_RAM_INDEX_END        = 0x3F1F;
 constexpr uint16_t PALETTE_RAM_MIRROR_START     = 0x3F20; 
 constexpr uint16_t PALETTE_RAM_MIRROR_END       = 0x3FFF;
 
+constexpr uint16_t PALETTE_RAM_SIZE             = 0x0020; // each pallette ram is 32 bytes long 
+
 // Object Attribute Memory - Some memory mapped registers are placed to allow the CPU to change how sprites are rendered
 constexpr uint16_t OAMADDR                      = 0x2003;
 constexpr uint16_t OAMDATA                      = 0x2004; 
 constexpr uint16_t OAMDMA                       = 0x4014;
 
 // hardware mapping used by the cartridge
-constexpr uint16_t CHR_ROM_START                = 0x0000;
-constexpr uint16_t CHR_ROM_END                  = 0x1FFF;
+//constexpr uint16_t CHR_ROM_START                = 0x0000;
+//constexpr uint16_t CHR_ROM_END                  = 0x1FFF;
 constexpr uint16_t CHR_ROM_SIZE_BYTES           = 0x2000;       // 8Kb default chr rom size
