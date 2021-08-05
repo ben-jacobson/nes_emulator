@@ -1,21 +1,15 @@
 #pragma once
 #include <stdint.h>
 
+/*
+    CPU memory map
+*/ 
+
 // main 2Kb of RAM
 constexpr uint16_t RAM_ADDRESS_SPACE_START      = 0x0000;
 constexpr uint16_t RAM_ADDRESS_SPACE_END        = 0x1FFF;       // there are four mirrors of the RAM from 0x0000 through to 0x07FF. 
 constexpr uint16_t RAM_SIZE_BYTES               = 0x0800;       // 2048 or 2Kb for RAM buffer
 // Ram runs between 0x0000 and 0x07FF, with three mirrors, first 0x0800-0x0FFF, second 0x1000-0x17FF, and third 0x1800-0x1FFF
-
-// Picture processing unit
-constexpr uint16_t PPU_ADDRESS_SPACE_START      = 0x2000;
-constexpr uint16_t PPU_ADDRESS_SPACE_END        = 0x2007;
-
-// PPU Mirrors (repeating every 8 bytes)
-constexpr uint16_t PPU_MIRROR_SPACE_START       = 0x2008;
-constexpr uint16_t PPU_MIRROR_SPACE_END         = 0x3FFF;
-
-constexpr uint16_t CHR_ROM_SIZE_BYTES           = 0x2000;       // 8Kb default chr rom size
 
 // APU and I/O registers
 constexpr uint16_t APUIO_ADDRESS_SPACE_START    = 0x4000;
@@ -64,3 +58,59 @@ constexpr uint16_t RESET_VECTOR_HIGH            = 0xFFFD;
 constexpr uint16_t IRQBRK_VECTOR_START          = 0xFFFE; 
 constexpr uint16_t IRQBRK_VECTOR_END            = 0xFFFF;
 
+/*
+    PPU memory map - The PPU addresses a 16kB space, $0000-3FFF, completely separate from the CPU
+*/ 
+
+// Picture processing unit
+constexpr uint16_t PPU_ADDRESS_SPACE_START      = 0x2000;
+constexpr uint16_t PPU_ADDRESS_SPACE_END        = 0x2007;
+
+// PPU Mirrors (repeating every 8 bytes)
+constexpr uint16_t PPU_MIRROR_SPACE_START       = 0x2008;
+constexpr uint16_t PPU_MIRROR_SPACE_END         = 0x3FFF;
+
+// Pattern tables
+constexpr uint16_t PATTERN_TABLE_0_START        = 0x0000;
+constexpr uint16_t PATTERN_TABLE_0_END          = 0x0FFF;
+
+constexpr uint16_t PATTERN_TABLE_1_START        = 0x1000;
+constexpr uint16_t PATTERN_TABLE_1_END          = 0x1FFF;
+
+// Name tables
+constexpr uint16_t NAMETABLE_0_START            = 0x2000;
+constexpr uint16_t NAMETABLE_0_END              = 0x23FF;
+
+constexpr uint16_t NAMETABLE_1_START            = 0x2400;
+constexpr uint16_t NAMETABLE_1_END              = 0x27FF;
+
+constexpr uint16_t NAMETABLE_2_START            = 0x2800;
+constexpr uint16_t NAMETABLE_2_END              = 0x2BFF;
+
+constexpr uint16_t NAMETABLE_3_START            = 0x2C00;
+constexpr uint16_t NAMETABLE_3_END              = 0x2FFF;
+
+// Another word for nametable is VRAM
+constexpr uint16_t VRAM_START                   = NAMETABLE_0_START;
+constexpr uint16_t VRAM_END                     = NAMETABLE_3_END;
+
+// Nametable 0 and 1 mirror
+constexpr uint16_t NT_MIRROR_START              = 0x3000;
+constexpr uint16_t NT_MIRROR_END                = 0x3EFF; // shoudln't this be 33FF? hmm...
+
+// Palette RAM indexes
+constexpr uint16_t PALETTE_RAM_INDEX_START      = 0x3F00; 
+constexpr uint16_t PALETTE_RAM_INDEX_END        = 0x3F1F; 
+
+constexpr uint16_t PALETTE_RAM_MIRROR_START     = 0x3F20; 
+constexpr uint16_t PALETTE_RAM_MIRROR_END       = 0x3FFF;
+
+// Object Attribute Memory - Some memory mapped registers are placed to allow the CPU to change how sprites are rendered
+constexpr uint16_t OAMADDR                      = 0x2003;
+constexpr uint16_t OAMDATA                      = 0x2004; 
+constexpr uint16_t OAMDMA                       = 0x4014;
+
+// hardware mapping used by the cartridge
+constexpr uint16_t CHR_ROM_START                = 0x0000;
+constexpr uint16_t CHR_ROM_END                  = 0x1FFF;
+constexpr uint16_t CHR_ROM_SIZE_BYTES           = 0x2000;       // 8Kb default chr rom size
