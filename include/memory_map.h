@@ -22,7 +22,7 @@ constexpr uint16_t APU_DISABLED_SPACE_END       = 0x401F;
 // ROM Cartridge. Program ROM, Program RAM and mapper registers
 constexpr uint16_t CART_ADDRESS_SPACE_START     = 0x4020;
 constexpr uint16_t CART_ADDRESS_SPACE_END       = 0xFFFF;
-constexpr uint16_t CART_SIZE_BYTES              = 0xBFE0;       // 49120 bytes or 
+constexpr uint16_t CART_SIZE_BYTES              = 0xBFE0;       // 49120 bytes or 47Kb total size
 
 // Part of the RAM address space have special functions
 
@@ -35,9 +35,9 @@ constexpr uint16_t STACK_START                  = 0x0100;
 constexpr uint16_t STACK_END                    = 0x01FF;
 constexpr uint8_t STACK_SIZE_BYTES              = 0xFF;         // 255 bytes
 
-// Additional special use cases for RAM
-constexpr uint16_t BATTERY_SAVE_START           = 0x6000;
-constexpr uint16_t BATTERY_SAVE_END             = 0x7FFF;
+// Additional special use cases for various mappers. E.g this is often used for PRG_RAM, but is sometimes this is used for battery saves
+constexpr uint16_t PRG_RAM_START                = 0x6000;
+constexpr uint16_t PRG_RAM_END                  = 0x7FFF;
 
 // Some areas of the cartridge address space have special purposes
 
