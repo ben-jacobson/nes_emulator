@@ -44,7 +44,7 @@ constexpr uint16_t BATTERY_SAVE_END             = 0x7FFF;
 // Usual ROM space, including mapper registers
 constexpr uint16_t PGM_ROM_ADDRESS_SPACE_START      = 0x8000;
 constexpr uint16_t PGM_ROM_ADDRESS_SPACE_END        = 0xFFFF;
-constexpr uint16_t PGM_ROM_SIZE_BYTES               = 0x8000;       // 32,768 bytes or 32Kb for ROM
+constexpr uint16_t PGM_ROM_SIZE_BYTES               = 0x8000;       // 32,768 bytes or 32Kb for ROM. This is a default value and the cartridge will be resized on load.
 
 // Non maskable interrupt vector
 constexpr uint16_t NMI_VECTOR_START             = 0xFFFA; 
@@ -116,7 +116,7 @@ constexpr uint16_t OAMADDR                      = 0x2003;
 constexpr uint16_t OAMDATA                      = 0x2004; 
 constexpr uint16_t OAMDMA                       = 0x4014;
 
-// hardware mapping used by the cartridge
-//constexpr uint16_t CHR_ROM_START                = 0x0000;
-//constexpr uint16_t CHR_ROM_END                  = 0x1FFF;
+// CHR ROM on the cartridge is typically mapped to the same location as Pattern Tables 0 & 1
+constexpr uint16_t CHR_ROM_START                = 0x0000;
+constexpr uint16_t CHR_ROM_END                  = 0x1FFF;
 constexpr uint16_t CHR_ROM_SIZE_BYTES           = 0x2000;       // 8Kb default chr rom size

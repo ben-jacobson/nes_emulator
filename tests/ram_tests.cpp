@@ -8,24 +8,29 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ram - Check address mapping is valid",
 TEST_CASE_METHOD(emulator_test_fixtures, "ram - Test ram mirroring", "[ram]") {
     // Ram runs between 0x0000 and 0x07FF, with three mirrors, first 0x0800-0x0FFF, second 0x1000-0x17FF, and third 0x1800-0x1FFF
 
-
     test_ram.write(0x0000, 0xAB);
-    REQUIRE(test_ram.read(0x0000) == 0xAB);
-    REQUIRE(test_ram.read(0x0800) == 0xAB);
-    REQUIRE(test_ram.read(0x1000) == 0xAB);
-    REQUIRE(test_ram.read(0x1800) == 0xAB);
+    CHECK(test_ram.read(0x0000) == 0xAB);
+    CHECK(test_ram.read(0x0800) == 0xAB);
+    CHECK(test_ram.read(0x1000) == 0xAB);
+    CHECK(test_ram.read(0x1800) == 0xAB);
 
     test_ram.write(0x0100, 0xCC);
-    REQUIRE(test_ram.read(0x0100) == 0xCC);
-    REQUIRE(test_ram.read(0x0900) == 0xCC);
-    REQUIRE(test_ram.read(0x1100) == 0xCC);
-    REQUIRE(test_ram.read(0x1900) == 0xCC);
+    CHECK(test_ram.read(0x0100) == 0xCC);
+    CHECK(test_ram.read(0x0900) == 0xCC);
+    CHECK(test_ram.read(0x1100) == 0xCC);
+    CHECK(test_ram.read(0x1900) == 0xCC);
 
     test_ram.write(0x07FF, 0xEE);
-    REQUIRE(test_ram.read(0x07FF) == 0xEE);
-    REQUIRE(test_ram.read(0x0FFF) == 0xEE);
-    REQUIRE(test_ram.read(0x17FF) == 0xEE);
-    REQUIRE(test_ram.read(0x1FFF) == 0xEE);    
+    CHECK(test_ram.read(0x07FF) == 0xEE);
+    CHECK(test_ram.read(0x0FFF) == 0xEE);
+    CHECK(test_ram.read(0x17FF) == 0xEE);
+    CHECK(test_ram.read(0x1FFF) == 0xEE);    
+
+    test_ram.write(0x1FFF, 0xAA);   // writing something at the end should also work to write to previously mapped addresses too.
+    CHECK(test_ram.read(0x07FF) == 0xAA);
+    CHECK(test_ram.read(0x0FFF) == 0xAA);
+    CHECK(test_ram.read(0x17FF) == 0xAA);
+    CHECK(test_ram.read(0x1FFF) == 0xAA);        
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ram - Create object and set address space", "[ram]") {
