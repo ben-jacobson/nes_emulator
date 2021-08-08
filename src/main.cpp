@@ -4,15 +4,16 @@
 #include <iostream>
 #include <string>
 
-#include "memory_map.h"
-#include "helpers.h"
-#include "status_graphics.h"
-#include "processor_status_graphics.h"
-#include "memory_status_graphics.h"
-#include "memory_peek_graphics.h"
-#include "instr_trace_graphics.h"
-#include "instruction_log.h"
 
+#include "debug_display/helpers.h"
+#include "debug_display/status_graphics.h"
+#include "debug_display/processor_status_graphics.h"
+#include "debug_display/memory_status_graphics.h"
+#include "debug_display/memory_peek_graphics.h"
+#include "debug_display/instr_trace_graphics.h"
+#include "debug_display/instruction_log.h"
+
+#include "memory_map.h"
 #include "bus.h"
 #include "cpu.h"
 #include "ppu.h"
