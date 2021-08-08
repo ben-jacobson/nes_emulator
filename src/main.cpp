@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 	bus nes_ppu_bus;
 	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus);
 	ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END); 	// pallette ram, plus it's mirror
+	nes_ppu_bus.register_new_bus_device(PATTERN_TABLE_0_START, PATTERN_TABLE_1_END, nes_cart._ppu_read_function_ptr);
 
 	// Check to see if we can load a ROM from argc
 	if (argc < 2) {

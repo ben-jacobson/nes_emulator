@@ -10,7 +10,9 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
     _address_space_lower = address_space_lower;
     _address_space_upper = address_space_upper;   
 
-    // prg rom and chr roms will be inited during cartridge load
+    // set the ppu read and write function pointers as placeholders
+	_ppu_read_function_ptr = std::bind(&cartridge::ppu_read, this, std::placeholders::_1);
+    //_ppu_write_function_ptr = std::bind(&cartridge::ppu_write, this, std::placeholders::_1, std::placeholders::_2);    // not deemed necessary right now. 
 
     // start with an initial size, these will be resized later
     _pgm_rom_data.resize(PGM_ROM_SIZE_BYTES);          
@@ -246,26 +248,27 @@ bool cartridge::load_rom(std::string filename) {
 
     */
 
-    uint16_t file_contents_start_address = 0x10;    // after the 16 byte header from 0-15
+    uint16_t file_contents_read_address = 16;    // after the 16 byte header from 0-15
 
     // skip the trainer area for now (if present)
     if (trainer_present) {
         std::cout << "Trainer found. Skipping first 512 bytes" << std::endl;
-        file_contents_start_address += 512;   // skip the 512 bytes
+        file_contents_read_address += 512;   // skip the 512 bytes
     }
 
     // load the PGM ROM data into the buffer that we recently resized. 
     for (uint16_t i = 0; i < (pgm_rom_size * 16 * 1024); i++) {
-        _pgm_rom_data[i] = file_contents[i + file_contents_start_address];   // two copies mirrored back to back
+        _pgm_rom_data[i] = file_contents[i + file_contents_read_address];   // two copies mirrored back to back
     }
 
     // update the offset
-    file_contents_start_address = pgm_rom_size * 16 * 1024;
+    file_contents_read_address += pgm_rom_size * 16 * 1024;
 
     // load the CHR ROM data into the buffer
     for (uint16_t i = 0; i < (chr_rom_size * 8 * 1024); i++) {
-        _chr_rom_data[i] = file_contents[i + file_contents_start_address];
+        _chr_rom_data[i] = file_contents[i + file_contents_read_address];    
     }
+
     delete[] file_contents;
     return true;
 }

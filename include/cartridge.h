@@ -16,9 +16,6 @@ public:
 	cartridge(uint16_t address_space_lower, uint16_t address_space_upper);
 	~cartridge() = default;
 
-	// functions for reading and writing  data to and from the bus
-	//uint8_t read_rom(uint16_t address); 
-
 	// the default bus_device functions are used for CPU read/write, not for PPU, we'll have a separate one for that
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	
@@ -33,6 +30,10 @@ public:
 	uint8_t debug_read(uint16_t relative_address);	// for rom output view, not for actual use in emulation
 	void debug_write_relative(uint16_t relative_address, uint8_t data);
 	void debug_write_absolute(uint16_t absolute_address, uint8_t data);
+
+	// function pointers for bus registration / address decoding
+	std::function<uint8_t(uint16_t)> _ppu_read_function_ptr = nullptr;
+	//std::function<void(uint16_t, uint8_t)> _ppu_write_function_ptr = nullptr;    	
 
 private:
 	mapper_base* _mapper;	// we won't know what mapper to use until we've read some of the ROM
