@@ -10,8 +10,7 @@ public:
 	~pattern_table_preview();
 
 	void get_pattern(uint16_t address);
-	void convert_last_pattern_to_pixel_data(uint8_t x, uint8_t y);
-
+	void convert_last_pattern_to_pixel_data(uint16_t x, uint16_t y);
 	void display_contents(void);
 
 private:

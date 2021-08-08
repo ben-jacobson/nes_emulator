@@ -17,7 +17,7 @@ pattern_table_preview::pattern_table_preview(cartridge* cartridge_ptr, SDL_Rende
     _rect.h = 8 * 16;	
 
     // create the placeholder rectangle for when we eventually want to render some display
-    _surface = SDL_CreateRGBSurface(0, _rect.w, _rect.h, 32, 0, 0, 0, 0); // 32 bit pixel depth
+    _surface = SDL_CreateRGBSurface(0, _rect.w, _rect.h, 8, 0, 0, 0, 0); // 8 bit pixel depth, which is more than enough for what we need
 
     // check that were able to successfully create our surface. 
     if (_surface == NULL) {
@@ -65,11 +65,11 @@ void pattern_table_preview::clear_pixel_data(void) {
     }
 }
 
-void pattern_table_preview::convert_last_pattern_to_pixel_data(uint8_t x, uint8_t y) {
+void pattern_table_preview::convert_last_pattern_to_pixel_data(uint16_t x, uint16_t y) {
     std::array <uint8_t, 4> R_values = {0, 64, 128, 255};       // placeholder, grayscale for now and will be replaced with actual pallettes
     std::array <uint8_t, 4> G_values = {0, 64, 128, 255};
     std::array <uint8_t, 4> B_values = {0, 64 ,128, 255};
-    uint8_t new_x = x, new_y = y; 
+    uint16_t new_x = x, new_y = y; 
     unsigned int offset;
 
     for (uint8_t i = 0; i < 8 * 8; i++) {
@@ -77,10 +77,13 @@ void pattern_table_preview::convert_last_pattern_to_pixel_data(uint8_t x, uint8_
         offset = ( _rect.w * 4 * new_y ) + (new_x * 4);
 
         // fill in the RGB values
-        _pixel_data[offset + 0] = R_values[_last_pattern_retrieved[i]];
-        _pixel_data[offset + 1] = G_values[_last_pattern_retrieved[i]];
-        _pixel_data[offset + 2] = B_values[_last_pattern_retrieved[i]];
-        _pixel_data[offset + 3] = SDL_ALPHA_OPAQUE;
+        if (offset + 3 < _pixel_data.size()) {
+            _last_pattern_retrieved[i] = _last_pattern_retrieved[i] & 0x03; // lop off the top 6 bits in case we try to read something outside of the valid memory range.
+            _pixel_data[offset + 0] = R_values[_last_pattern_retrieved[i]];
+            _pixel_data[offset + 1] = G_values[_last_pattern_retrieved[i]];
+            _pixel_data[offset + 2] = B_values[_last_pattern_retrieved[i]];
+            _pixel_data[offset + 3] = SDL_ALPHA_OPAQUE;
+        }
         new_x++;
 
         if(new_x >= x + 8) {
@@ -92,32 +95,33 @@ void pattern_table_preview::convert_last_pattern_to_pixel_data(uint8_t x, uint8_
 
 void pattern_table_preview::display_contents(void) {
     clear_pixel_data();
+    uint8_t x = 0, y = 0; 
 
-    get_pattern(0x0000);
-    convert_last_pattern_to_pixel_data(0, 0); 
-    
-    /*// some test code for showing the pattern output
-    for (uint8_t i = 0; i < 64; i++) {
-        if (i % 8 == 0) {
-            std::cout << std::endl;
+    // render pattern table left
+    for (uint16_t i = 0; i < 512; i += 2) {
+        get_pattern(i * 8);
+        convert_last_pattern_to_pixel_data(x * 8, y * 8); 
+        x++;
+
+        if (x >= 16) {
+            x = 0;
+            y++;
         }
-        std::cout << (uint16_t)_last_pattern_retrieved[i] << " ";
     }
-    std::cout << std::endl;*/
-     
+    
+    x = 16, y = 0; // reset the grid
 
-    // debug code for placing some random pixels
-    /*for(unsigned int i = 0; i < 1000; i++) {
-        const unsigned int x = rand() % _rect.w;
-        const unsigned int y = rand() % _rect.h;
+    // render pattern table right
+    for (uint16_t i = 512; i < 1024; i += 2) {
+        get_pattern(i * 8);
+        convert_last_pattern_to_pixel_data(x * 8, y * 8); 
+        x++;
 
-        const unsigned int offset = ( _rect.w * 4 * y ) + x * 4;
-        _pixel_data[ offset + 0 ] = rand() % 256;        // b
-        _pixel_data[ offset + 1 ] = rand() % 256;        // g
-        _pixel_data[ offset + 2 ] = rand() % 256;        // r
-        _pixel_data[ offset + 3 ] = SDL_ALPHA_OPAQUE;    // a
-    }*/ 
-
+        if (x >= 32) {
+            x = 16;
+            y++;
+        }
+    }  
 
     SDL_UpdateTexture(_texture, NULL, _pixel_data.data(), _rect.w * 4);
     SDL_RenderCopy(_renderer, _texture, NULL, &_rect);

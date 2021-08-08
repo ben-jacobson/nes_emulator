@@ -99,12 +99,12 @@ bool cartridge::load_rom(std::string filename) {
     uint8_t chr_rom_size_lsb = file_contents[5];
     
     uint8_t flags = file_contents[6];
-    bool nametable_vertical_mirroring = (flags & 1) ? true : false;
-    bool battery_backed_ram = (flags & (1 << 1) >> 1) ? true : false;
-    bool trainer_present = (flags & (1 << 2) >> 2) ? true : false;
+    bool nametable_vertical_mirroring = (flags & 1) == 1 ? true : false;
+    bool battery_backed_ram = ((flags & (1 << 1)) >> 1) == 1 ? true : false;
+    bool trainer_present = ((flags & (1 << 2)) >> 2) == 1 ? true : false;
     uint8_t mapper_number = flags >> 4;
 
-    std::cout << "Flags: " << std::endl;
+    std::cout << "Flags: " << (uint16_t)flags << std::endl;
     std::cout << "    Nametable Mirroring: " << (nametable_vertical_mirroring ? "Vertical" : "Horizontal") << std::endl;
     std::cout << "    Cartridge contains battery-backed PRG RAM ($6000-7FFF) or other persistent memory: " << (battery_backed_ram ? "True" : "False") << std::endl;
     std::cout << "    512-byte trainer at $7000-$71FF: " << (trainer_present ? "True" : "False") << std::endl;
@@ -256,6 +256,8 @@ bool cartridge::load_rom(std::string filename) {
         file_contents_read_address += 512;   // skip the 512 bytes
     }
 
+    std::cout << "Reading PRG ROM from file offset: " << file_contents_read_address << std::endl;
+
     // load the PGM ROM data into the buffer that we recently resized. 
     for (uint16_t i = 0; i < (pgm_rom_size * 16 * 1024); i++) {
         _pgm_rom_data[i] = file_contents[i + file_contents_read_address];   // two copies mirrored back to back
@@ -263,6 +265,7 @@ bool cartridge::load_rom(std::string filename) {
 
     // update the offset
     file_contents_read_address += pgm_rom_size * 16 * 1024;
+    std::cout << "Reading CHR ROM from file offset: " << file_contents_read_address << std::endl;
 
     // load the CHR ROM data into the buffer
     for (uint16_t i = 0; i < (chr_rom_size * 8 * 1024); i++) {
@@ -277,7 +280,7 @@ uint8_t cartridge::read(uint16_t address) {
     if (address >= _address_space_lower && address <= _address_space_upper) {
         int mapped_index = _mapper->cpu_read_address(address); 
 
-        if (mapped_index != -1) {
+        if (mapped_index != -1 && mapped_index < _pgm_rom_data.size()) {
             return _pgm_rom_data[(uint16_t)mapped_index];       // for type safety
         }
     }
@@ -294,7 +297,7 @@ uint8_t cartridge::ppu_read(uint16_t address) {
     if (address >= CHR_ROM_START && address <= CHR_ROM_END) {
         int mapped_index = _mapper->ppu_read_address(address); 
 
-        if (mapped_index != -1) {
+        if (mapped_index != -1 && mapped_index < _chr_rom_data.size()) {
             return _chr_rom_data[mapped_index % CHR_ROM_SIZE_BYTES];
         }
     }
@@ -317,7 +320,12 @@ void cartridge::ppu_write(uint16_t address, uint8_t data) {
 
 uint8_t cartridge::debug_read(uint16_t relative_address) {
     // notice there is no address space checking, we simply output whatever is at the relative address, e.g 0 is the start and MAX_SIZE is the end
-    return _pgm_rom_data[relative_address];    
+    if (relative_address < _pgm_rom_data.size()) {
+        return _pgm_rom_data[relative_address];   
+    } 
+    else {
+        return 0;
+    }
 }
 
 void cartridge::debug_write_relative(uint16_t relative_address, uint8_t data) {
