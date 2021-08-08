@@ -31,7 +31,7 @@ void mapper_00::cpu_write_address(uint16_t address, uint8_t data) {
 
 int mapper_00::ppu_read_address(uint16_t address) {
     // the mapper read address converts the absolute address into the relative index needed to read from ROM
-    return address;  // TODO
+    return address;  // in this instance, there is no translation, it's 1:1
 }
 
 void mapper_00::ppu_write_adress(uint16_t address, uint8_t data) {

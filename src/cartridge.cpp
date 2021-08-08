@@ -291,18 +291,18 @@ void cartridge::write(uint16_t address, uint8_t data) {
 }	
 
 uint8_t cartridge::ppu_read(uint16_t address) {
-    if (address >= _address_space_lower && address <= _address_space_upper) {
+    if (address >= CHR_ROM_START && address <= CHR_ROM_END) {
         int mapped_index = _mapper->ppu_read_address(address); 
 
         if (mapped_index != -1) {
-            return _chr_rom_data[mapped_index];
+            return _chr_rom_data[mapped_index % CHR_ROM_SIZE_BYTES];
         }
     }
     return 0;
 }
 
 void cartridge::ppu_write(uint16_t address, uint8_t data) {
-    if (address >= _address_space_lower && address <= _address_space_upper) {
+    if (address >= CHR_ROM_START && address <= CHR_ROM_END) {
         _mapper->ppu_write_adress(address, data); 
     }
 }

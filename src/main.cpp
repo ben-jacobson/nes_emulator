@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 
-
 #include "debug_display/helpers.h"
 #include "debug_display/status_graphics.h"
 #include "debug_display/processor_status_graphics.h"
@@ -12,6 +11,7 @@
 #include "debug_display/memory_peek_graphics.h"
 #include "debug_display/instr_trace_graphics.h"
 #include "debug_display/instruction_log.h"
+#include "debug_display/pattern_table_preview.h"
 
 #include "memory_map.h"
 #include "bus.h"
@@ -104,7 +104,8 @@ int main(int argc, char *argv[])
 	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
 	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
-	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (26 * font_size)); // 7 lines below processor status
+	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (25 * font_size)); // 7 lines below processor status
+	pattern_table_preview debug_pattern_table(&nes_cart, renderer, 20 + 512 + 20, 25 + (28 * font_size));
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
@@ -136,6 +137,7 @@ int main(int argc, char *argv[])
 			debug_ram_display.display_contents();
 			debug_rom_display.display_contents(); 	
 			debug_memory_peek.display_contents();
+			debug_pattern_table.display_contents();
 
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);	
