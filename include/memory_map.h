@@ -111,11 +111,6 @@ constexpr uint16_t PALETTE_RAM_MIRROR_END       = 0x3FFF;
 
 constexpr uint16_t PALETTE_RAM_SIZE             = 0x0020; // each pallette ram is 32 bytes long 
 
-// Object Attribute Memory - Some memory mapped registers are placed to allow the CPU to change how sprites are rendered
-constexpr uint16_t OAMADDR                      = 0x2003;
-constexpr uint16_t OAMDATA                      = 0x2004; 
-constexpr uint16_t OAMDMA                       = 0x4014;
-
 // CHR ROM on the cartridge is typically mapped to the same location as Pattern Tables 0 & 1
 constexpr uint16_t CHR_ROM_START                = 0x0000;
 constexpr uint16_t CHR_ROM_END                  = 0x1FFF;

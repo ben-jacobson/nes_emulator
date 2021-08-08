@@ -1,6 +1,6 @@
 #include "cpu.h"
 
-cpu::cpu(bus *bus_ptr) 
+cpu::cpu(bus* bus_ptr) 
 :   bus_device()
 {
     _bus_ptr = bus_ptr;

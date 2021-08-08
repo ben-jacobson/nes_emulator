@@ -49,7 +49,7 @@ class cpu : public bus_device
 {
 public:
     // constrcutor and destructor
-	cpu(bus *bus_ptr);
+	cpu(bus* bus_ptr);
 	~cpu();
 
     uint16_t _cycle_count;

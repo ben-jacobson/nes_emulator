@@ -15,6 +15,7 @@
 
 #include "bus.h"
 #include "cpu.h"
+#include "ppu.h"
 #include "ram.h"
 #include "cartridge.h"
 
@@ -42,11 +43,12 @@ int main(int argc, char *argv[])
 	nes_cpu_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
 
-	// initialize our PPU bus
+	// initialize our PPU bus, pattern tables and name tables
 	bus nes_ppu_bus;
+	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus);
+	ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END); 	// pallette ram, plus it's mirror
 
-
-	// Check to see if we can load a ROM
+	// Check to see if we can load a ROM from argc
 	if (argc < 2) {
 		std::cout << "No ROM file specified in argument, loading default test code" << std::endl;
 	}
