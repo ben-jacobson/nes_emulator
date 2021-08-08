@@ -9,8 +9,8 @@ public:
 	pattern_table_preview(cartridge* cartridge_ptr, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y);
 	~pattern_table_preview();
 
-	std::array<uint8_t, 8> get_row_data(uint16_t address);
 	void get_pattern(uint16_t address);
+	void convert_last_pattern_to_pixel_data(uint8_t x, uint8_t y);
 
 	void display_contents(void);
 
