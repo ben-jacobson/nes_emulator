@@ -101,10 +101,10 @@ int main(int argc, char *argv[])
 	// set up our debug display objects, 
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	instr_trace_graphics debug_instr_trace(&instruction_trace_log, renderer, font_fullpath.c_str(), font_size, 0, 520);
-	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520);
-	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 520 + (font_size * 8)); // 7 lines below processor status
 	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
-	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
+	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
+	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
+	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (26 * font_size)); // 7 lines below processor status
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 

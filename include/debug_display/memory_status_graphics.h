@@ -17,7 +17,7 @@ public:
     uint16_t _start_address = 0; // allows you to display different sections of ram, e.g you could theoretically have two of these display different sections of ram. 
 
 private:
-    constexpr static uint8_t BYTES_TO_DISPLAY = 8 * 16; // we only show the first 128 bytes of RAM, essentially creating an 8x16 matrix. 
+    constexpr static uint8_t BYTES_TO_DISPLAY = 8 * 8; // we only show the first 64 bytes of memory, essentially creating an 8x8 matrix. 
     const uint16_t _START_ADDRESS;  // Which address do we want to start from?  
     std::string _display_heading; 
     uint16_t _preset_display_x, _preset_display_y; 

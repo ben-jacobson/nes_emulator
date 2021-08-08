@@ -23,10 +23,6 @@ void memory_status_graphics::display_contents(uint16_t x, uint16_t y) {
 
     for (uint16_t i = 0; i < BYTES_TO_DISPLAY; i++) {
         if (i > 0) {
-            /*if (i % (8 * 8) == 0) {
-                rows++; // add an extra row to rendering every 8 x 8 matrix
-            }*/
-
             if (i % 8 == 0) {   // at end of every 8 columns create a new line
                 draw_to_buffer(memory_contents_line.str(), x, y + ((rows + 1) * _font_height)); // + 1 to offset header line
                 memory_contents_line = std::stringstream(); // string streams don't have a working clear method, so this will have to do 
