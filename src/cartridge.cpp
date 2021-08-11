@@ -280,7 +280,7 @@ uint8_t cartridge::read(uint16_t address) {
     if (address >= _address_space_lower && address <= _address_space_upper) {
         int mapped_index = _mapper->cpu_read_address(address); 
 
-        if (mapped_index != -1 && mapped_index < _pgm_rom_data.size()) {
+        if (mapped_index != -1 && mapped_index < (int)_pgm_rom_data.size()) {
             return _pgm_rom_data[(uint16_t)mapped_index];       // for type safety
         }
     }
@@ -294,10 +294,10 @@ void cartridge::write(uint16_t address, uint8_t data) {
 }	
 
 uint8_t cartridge::ppu_read(uint16_t address) {
-    if (address >= CHR_ROM_START && address <= CHR_ROM_END) {
+    if (/*address >= CHR_ROM_START && */address <= CHR_ROM_END) {
         int mapped_index = _mapper->ppu_read_address(address); 
 
-        if (mapped_index != -1 && mapped_index < _chr_rom_data.size()) {
+        if (mapped_index != -1 && mapped_index < (int)_chr_rom_data.size()) {
             return _chr_rom_data[mapped_index % CHR_ROM_SIZE_BYTES];
         }
     }
@@ -305,7 +305,7 @@ uint8_t cartridge::ppu_read(uint16_t address) {
 }
 
 void cartridge::ppu_write(uint16_t address, uint8_t data) {
-    if (address >= CHR_ROM_START && address <= CHR_ROM_END) {
+    if (/*address >= CHR_ROM_START && */address <= CHR_ROM_END) {
         _mapper->ppu_write_adress(address, data); 
     }
 }
