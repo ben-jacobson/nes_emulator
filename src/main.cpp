@@ -65,9 +65,10 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 		else {
-			std::cout << "Loaded " << rom_fullpath << std::endl;
+			std::cout << "Successfully loaded " << rom_fullpath << std::endl;
 		}
-		nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
+		//nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
+		//std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
 	}
 	
 	// Init SDL
@@ -86,7 +87,7 @@ int main(int argc, char *argv[])
 
 	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
 	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
-	std::cout << "Emulator started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
+	std::cout << "Emulation started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
 
 	// Some font objects
 	uint8_t font_size = 14; 

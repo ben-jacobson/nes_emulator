@@ -15,7 +15,7 @@ int mapper_00::cpu_read_address(uint16_t address) {
     if (address >= PGM_ROM_ADDRESS_SPACE_START) { // && address <= PGM_ROM_ADDRESS_SPACE_END) { // removing for warnings
         uint16_t index = address - (PGM_ROM_ADDRESS_SPACE_END - _pgm_rom_size + 1);  // PGM rom always sits at the end of the memory map
 
-        if (_pgm_rom_mirroring) {
+        if (_pgm_rom_mirroring) { 
             index = index % (PGM_ROM_SIZE_BYTES / 2);     // repeat every 16Kb for the 32Kb roms
         }
 

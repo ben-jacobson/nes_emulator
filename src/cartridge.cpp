@@ -27,11 +27,11 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
 void cartridge::load_content_from_stream(std::string bytecode, uint16_t destination_address) {      // allows for quick overwriting of character rom
     std::istringstream tokenizer(bytecode);
     std::string token;
-    uint16_t address = destination_address - (PGM_ROM_ADDRESS_SPACE_END - _pgm_rom_data.size() + 1);
+    uint16_t index = destination_address - (PGM_ROM_ADDRESS_SPACE_END - _pgm_rom_data.size() + 1); // allow mirroring if needs be
 
-    while (std::getline(tokenizer, token, ' ') && address < PGM_ROM_ADDRESS_SPACE_END) {
-        _pgm_rom_data[address] = (uint8_t)strtol(token.c_str(), NULL, 16);
-        address++;
+    while (std::getline(tokenizer, token, ' ') && index < PGM_ROM_ADDRESS_SPACE_END) {
+        _pgm_rom_data[index] = (uint8_t)strtol(token.c_str(), NULL, 16);
+        index++;
     } 
 }
 
@@ -188,7 +188,7 @@ bool cartridge::load_rom(std::string filename) {
     // todo - assign the mapper as per what's in the file
     _mapper->set_pgm_rom_size(_pgm_rom_data.size());
     _mapper->set_chr_rom_size(_chr_rom_data.size());
-    _mapper->set_pgm_rom_mirroring(true);
+    _mapper->set_pgm_rom_mirroring(false);
 
     /* // the rest of these features are yet to be implemeted, for the time being we just want to get Mapper 0 getting up and running, and will look at the rest later
     10     PRG-RAM/EEPROM size
