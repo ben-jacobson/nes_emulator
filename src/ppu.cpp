@@ -1,62 +1,82 @@
 #include "ppu.h"
 
-ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr) {
+ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     _cpu_bus_ptr = cpu_bus_ptr;
     _ppu_bus_ptr = ppu_bus_ptr;
+    _cpu_ptr = cpu_ptr;
+
+    reset();
 }
 
-// being a bus device, we need to define these, they refer to read and write activity on the main cpu bus
+void ppu::cycle(void) {
+    /*
+        The CPU works by taking an instruction from the byte read from data. However the PPU works differently
+        The CPU interfaces with the PPU simply by reading or writing to it's address range.
+        The first byte is the port, and the second byte being the instruction
+
+        we use this cycle method to update the internal status, and handle all of the heavy lifting, but using the read/write functions allow 
+        to interface with it's memory
+    */ 
+
+}
+
+void ppu::reset(void) {
+    _instruction_ready = true; 
+    _latched_address = false; 
+
+    //reset statuses back to starting position
+    _ppu_status = 0;
+}
+
+void ppu::trigger_cpu_NMI(void) {
+    _cpu_ptr->NMI();
+}
+
 uint8_t ppu::read(uint16_t address) {
-    switch (address) {
+    switch (address) { 
         case PPUCTRL:
-        break;
+            break;
         case PPUMASK:
-        break;
+            break;
         case PPUSTATUS:
-        break;
+            return 0xEE; // temporary
+            break;
         case OAMADDR:
-        break;
+            break;
         case OAMDATA:
-        break;
+            break;
         case PPUSCROLL:
-        break;
+            break;
         case PPUADDR:
-        break;
+            break;
         case PPUDATA:
-        break;
+            break;
         case OAMDMA:
-        break;	
-    }
+            break;	
+    }  
+    return 0;
 }
 
 void ppu::write(uint16_t address, uint8_t data) {
-    // The PPU can change it's state just by being written to, we interface with it via it's 8 ports
-    switch (address) {
+    switch (address) { 
         case PPUCTRL:
-        break;
+            break;
         case PPUMASK:
-        break;
+            break;
         case PPUSTATUS:
-        break;
+            _ppu_status = data;
+            break;
         case OAMADDR:
-        break;
+            break;
         case OAMDATA:
-        break;
+            break;
         case PPUSCROLL:
-        break;
+            break;
         case PPUADDR:
-        break;
+            break;
         case PPUDATA:
-        break;
+            break;
         case OAMDMA:
-        break;	
-    }
-}   
-
-uint8_t ppu::PPUread(uint16_t address) {
-
+            break;	
+    }  
 }
-
-void ppu::PPUwrite(uint16_t address, uint8_t data) {
- 
-}	   

@@ -46,9 +46,10 @@ int main(int argc, char *argv[])
 
 	// initialize our PPU bus, pattern tables and name tables
 	bus nes_ppu_bus;
-	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus);
+	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus, &nes_cpu);
 	ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END); 	// pallette ram, plus it's mirror
 	nes_ppu_bus.register_new_bus_device(PATTERN_TABLE_0_START, PATTERN_TABLE_1_END, nes_cart._ppu_read_function_ptr);
+	nes_cpu_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr); // register the PPU to the CPU bus
 
 	// Check to see if we can load a ROM from argc
 	if (argc < 2) {
@@ -82,8 +83,9 @@ int main(int argc, char *argv[])
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black, full alpha
 
-	// reset the cpu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
+	// reset the cpu and ppu before kicking off the loop. this must be done before the main loop, but must not be done before registering devices
 	nes_cpu.reset();
+	nes_ppu.reset();
 
 	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
 	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
@@ -147,8 +149,13 @@ int main(int argc, char *argv[])
 			//SDL_Delay(16); 
 		}
 
-		// process the CPU as needed by the user
+		// process the PPU and CPU as needed by the user
 		if (run_mode || single_cycle) {
+			// the PPU cycles roughly four times for every cpu cycle. This is a bit crude for now, and we can come up with a better implementation soon.
+			for (uint8_t i = 0; i < 4; i++) {
+				nes_ppu.cycle();
+			}
+			
 			nes_cpu.cycle();
 
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
