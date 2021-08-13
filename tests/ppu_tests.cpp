@@ -79,3 +79,22 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test palette getter", "[ppu]") {
     REQUIRE(red_value == 56);
 }
 
+TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port and read/write data", "[ppu]") {
+
+    /*
+        Next step, let's write tests for using port 2006 and 2007.
+        The code for loading the palette into ram is as follows
+
+        // set the ppu address bus to 0x3F00, 
+        C03D   A9 3F                LDA #$3F
+        C03F   8D 06 20             STA $2006
+        C042   A9 00                LDA #$00
+        C044   8D 06 20             STA $2006
+
+        C047   A2 00                LDX #$00        // load 0 into x register
+        C049   BD 78 FF   LC049     LDA $FF78,X     // load A with value at FF78
+        C04C   8D 07 20             STA $2007       // write data with port 2007
+    */ 
+   
+    REQUIRE(1 != 1);
+}
