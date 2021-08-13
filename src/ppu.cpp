@@ -26,6 +26,7 @@ void ppu::reset(void) {
     //reset statuses back to starting position
     _PPU_control_register = 0;
     _PPU_status_register = 0;
+    _PPU_oam_data_status_register = 0;
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -34,53 +35,43 @@ void ppu::trigger_cpu_NMI(void) {
 
 uint8_t ppu::read(uint16_t address) {
     // the PPU ports are mirrored every 8 bytes
-    address &= PPU_ADDRESS_SPACE_START;  
+    address &= PPU_ADDRESS_SPACE_END;  
     uint8_t data = 0; 
 
     switch (address) { 
-        case PPUCTRL:
-            data = _PPU_control_register;
-            break;
-        case PPUMASK:
-            break;
         case PPUSTATUS:
             data = _PPU_status_register; 
             break;
-        case OAMADDR:
-            break;
         case OAMDATA:
-            break;
-        case PPUSCROLL:
-            break;
-        case PPUADDR:
+            data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
+            data = _PPU_data_register;
             break;
     }  
     return data;
 }
 
 void ppu::write(uint16_t address, uint8_t data) {
-    address &= PPU_ADDRESS_SPACE_START;  
+    // the PPU ports are mirrored every 8 bytes
+    address &= PPU_ADDRESS_SPACE_END;  
 
     switch (address) { 
+        // not all of these ports have write access  
         case PPUCTRL:
             _PPU_control_register = data;
             break;
         case PPUMASK:
-            break;
-        case PPUSTATUS:
-            _PPU_status_register = data;
-            break;
+            _PPU_mask_register = data;
+            break;            
         case OAMADDR:
-            break;
+            _PPU_oam_addr_status_register = data;
+            break;            
         case OAMDATA:
-            break;
-        case PPUSCROLL:
-            break;
-        case PPUADDR:
-            break;
+            _PPU_oam_data_status_register = data;
+            break;       
         case PPUDATA:
-            break;
+            _PPU_data_register = data;
+            break;            
     }  
 }

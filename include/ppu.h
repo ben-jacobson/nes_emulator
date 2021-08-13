@@ -15,7 +15,7 @@ constexpr uint16_t OAMDATA 		= 0x2004;
 constexpr uint16_t PPUSCROLL 	= 0x2005;
 constexpr uint16_t PPUADDR 		= 0x2006;
 constexpr uint16_t PPUDATA 		= 0x2007;
-constexpr uint16_t OAMDMA 		= 0x4014;
+//constexpr uint16_t OAMDMA 		= 0x4014;
 
 class ppu : public bus_device
 {
@@ -45,6 +45,5 @@ private:
 	bool _latched_address, _instruction_ready; // has this come across as an addressed command? 
 	uint16_t _latched_address_low, _latched_address_high;
 
-	uint8_t _PPU_control_register;
-	uint8_t _PPU_status_register; 
+	uint8_t _PPU_control_register, _PPU_mask_register, _PPU_status_register, _PPU_oam_addr_status_register, _PPU_oam_data_status_register, _PPU_data_register;
 };
