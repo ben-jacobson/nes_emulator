@@ -17,7 +17,6 @@ void ppu::cycle(void) {
         we use this cycle method to update the internal status, and handle all of the heavy lifting, but using the read/write functions allow 
         to interface with it's memory
     */ 
-
 }
 
 void ppu::reset(void) {
@@ -25,7 +24,8 @@ void ppu::reset(void) {
     _latched_address = false; 
 
     //reset statuses back to starting position
-    _ppu_status = 0;
+    _PPU_control_register = 0;
+    _PPU_status_register = 0;
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -33,13 +33,18 @@ void ppu::trigger_cpu_NMI(void) {
 }
 
 uint8_t ppu::read(uint16_t address) {
+    // the PPU ports are mirrored every 8 bytes
+    address &= PPU_ADDRESS_SPACE_START;  
+    uint8_t data = 0; 
+
     switch (address) { 
         case PPUCTRL:
+            data = _PPU_control_register;
             break;
         case PPUMASK:
             break;
         case PPUSTATUS:
-            return 0xEE; // temporary
+            data = _PPU_status_register; 
             break;
         case OAMADDR:
             break;
@@ -51,20 +56,21 @@ uint8_t ppu::read(uint16_t address) {
             break;
         case PPUDATA:
             break;
-        case OAMDMA:
-            break;	
     }  
-    return 0;
+    return data;
 }
 
 void ppu::write(uint16_t address, uint8_t data) {
+    address &= PPU_ADDRESS_SPACE_START;  
+
     switch (address) { 
         case PPUCTRL:
+            _PPU_control_register = data;
             break;
         case PPUMASK:
             break;
         case PPUSTATUS:
-            _ppu_status = data;
+            _PPU_status_register = data;
             break;
         case OAMADDR:
             break;
@@ -76,7 +82,5 @@ void ppu::write(uint16_t address, uint8_t data) {
             break;
         case PPUDATA:
             break;
-        case OAMDMA:
-            break;	
     }  
 }

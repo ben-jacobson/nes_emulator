@@ -36,7 +36,7 @@ public:
 	//void PPUwrite(uint16_t address, uint8_t data);	   
 
 private:
-	std::array <uint16_t, 9> ADDRESS_PORTS = {PPUCTRL, PPUMASK, PPUSTATUS, OAMADDR, OAMDATA, PPUSCROLL, PPUADDR, PPUDATA, OAMDMA};
+	//std::array <uint16_t, 9> ADDRESS_PORTS = {PPUCTRL, PPUMASK, PPUSTATUS, OAMADDR, OAMDATA, PPUSCROLL, PPUADDR, PPUDATA, OAMDMA};
 
 	bus* _cpu_bus_ptr; 
 	bus* _ppu_bus_ptr;
@@ -45,5 +45,6 @@ private:
 	bool _latched_address, _instruction_ready; // has this come across as an addressed command? 
 	uint16_t _latched_address_low, _latched_address_high;
 
-	uint8_t _ppu_status; 
+	uint8_t _PPU_control_register;
+	uint8_t _PPU_status_register; 
 };

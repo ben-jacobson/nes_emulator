@@ -33,7 +33,7 @@ public:
 
 	// function pointers for bus registration / address decoding
 	std::function<uint8_t(uint16_t)> _ppu_read_function_ptr = nullptr;
-	//std::function<void(uint16_t, uint8_t)> _ppu_write_function_ptr = nullptr;    	
+	std::function<void(uint16_t, uint8_t)> _ppu_write_function_ptr = nullptr;    	
 
 private:
 	mapper_base* _mapper;	// we won't know what mapper to use until we've read some of the ROM

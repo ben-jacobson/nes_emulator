@@ -12,7 +12,7 @@ cartridge::cartridge(uint16_t address_space_lower, uint16_t address_space_upper)
 
     // set the ppu read and write function pointers as placeholders
 	_ppu_read_function_ptr = std::bind(&cartridge::ppu_read, this, std::placeholders::_1);
-    //_ppu_write_function_ptr = std::bind(&cartridge::ppu_write, this, std::placeholders::_1, std::placeholders::_2);    // not deemed necessary right now. 
+    _ppu_write_function_ptr = std::bind(&cartridge::ppu_write, this, std::placeholders::_1, std::placeholders::_2);    // not deemed necessary right now. 
 
     // start with an initial size, these will be resized later
     _pgm_rom_data.resize(PGM_ROM_SIZE_BYTES);          

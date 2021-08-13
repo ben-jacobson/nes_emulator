@@ -1,7 +1,7 @@
 #include "bus.h"
 
 bus::bus() {
-    device_index = 0;
+    _device_index = 0;
 }
 
 void bus::set_address(uint16_t address) {
@@ -34,12 +34,12 @@ uint8_t bus::read_data(void) {
 }
 
 void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr) {
-    if (device_index < MAX_BUS_DEVICES) {
-        devices_connected_to_bus[device_index]._address_range_start = address_range_start;
-        devices_connected_to_bus[device_index]._address_range_end = address_range_end;
-        devices_connected_to_bus[device_index]._read_function_ptr = read_function_ptr;
-        devices_connected_to_bus[device_index]._write_function_ptr = write_function_ptr;                
-        device_index++;
+    if (_device_index < MAX_BUS_DEVICES) {
+        devices_connected_to_bus[_device_index]._address_range_start = address_range_start;
+        devices_connected_to_bus[_device_index]._address_range_end = address_range_end;
+        devices_connected_to_bus[_device_index]._read_function_ptr = read_function_ptr;
+        devices_connected_to_bus[_device_index]._write_function_ptr = write_function_ptr;                
+        _device_index++;
     }
     else {
         std::cout << "Error: attempting to register new bus device, but max devices reached" << std::endl;
@@ -51,7 +51,7 @@ void bus::clear_bus_devices(void) {
         // clear the struct (we could probably just get away with device index resetting back to zero but that's fine)
         std::memset(devices_connected_to_bus, 0, sizeof(devices_connected_to_bus));
     }
-    device_index = 0;
+    _device_index = 0;
 }
 
 int bus::get_index_of_connected_device(uint16_t address) {

@@ -28,7 +28,7 @@ public:
 	void clear_bus_devices(void);
 
 	connected_device devices_connected_to_bus[MAX_BUS_DEVICES];
-	uint8_t device_index;
+	uint8_t _device_index;
 	int get_index_of_connected_device(uint16_t address);
 
 private:

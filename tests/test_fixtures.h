@@ -5,13 +5,15 @@
 #include "memory_map.h"
 #include "bus.h"
 #include "cpu.h"
+#include "ppu.h"
 #include "ram.h"
 #include "cartridge.h"
 
-extern bus test_bus;
+extern bus test_bus, test_ppu_bus;
 extern cpu test_cpu; 
 extern ram test_ram;
 extern cartridge test_cart;
+extern ppu test_ppu;
 
 class emulator_test_fixtures {
 public:
@@ -20,6 +22,14 @@ public:
         // register some test devices on the bus
         test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, test_ram._read_function_ptr, test_ram._write_function_ptr);    
         test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
+
+         // register the PPU to the CPU bus
+        test_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, test_ppu._read_function_ptr, test_ppu._write_function_ptr);
+
+        // register our ppu bus devices
+        test_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, test_cart._ppu_read_function_ptr, test_cart._ppu_write_function_ptr);
+
+        test_ppu.reset();
 
         // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU
         test_cart.debug_write_relative(RESET_VECTOR_LOW - PGM_ROM_ADDRESS_SPACE_START, 0x00); 

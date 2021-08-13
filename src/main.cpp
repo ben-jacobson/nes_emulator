@@ -47,8 +47,9 @@ int main(int argc, char *argv[])
 	// initialize our PPU bus, pattern tables and name tables
 	bus nes_ppu_bus;
 	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus, &nes_cpu);
-	ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END); 	// pallette ram, plus it's mirror
-	nes_ppu_bus.register_new_bus_device(PATTERN_TABLE_0_START, PATTERN_TABLE_1_END, nes_cart._ppu_read_function_ptr);
+	//ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END); 	// pallette ram, plus it's mirror
+	//nes_ppu_bus.register_new_bus_device(PATTERN_TABLE_0_START, PATTERN_TABLE_1_END, nes_cart._ppu_read_function_ptr);
+	nes_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, nes_cart._ppu_read_function_ptr, nes_cart._ppu_write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr); // register the PPU to the CPU bus
 
 	// Check to see if we can load a ROM from argc
