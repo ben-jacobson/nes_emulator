@@ -20,9 +20,6 @@ void ppu::cycle(void) {
 }
 
 void ppu::reset(void) {
-    _instruction_ready = true; 
-    _latched_address = false; 
-
     //reset statuses back to starting position
     _PPU_control_register = 0;
     _PPU_status_register = 0;
@@ -39,6 +36,7 @@ uint8_t ppu::read(uint16_t address) {
     uint8_t data = 0; 
 
     switch (address) { 
+        // some ports are read only
         case PPUSTATUS:
             data = _PPU_status_register; 
             break;

@@ -42,8 +42,78 @@ private:
 	bus* _ppu_bus_ptr;
 	cpu* _cpu_ptr; 
 
-	bool _latched_address, _instruction_ready; // has this come across as an addressed command? 
-	uint16_t _latched_address_low, _latched_address_high;
+	uint8_t _PPU_control_register; 
+	uint8_t _PPU_mask_register; 
+	uint8_t _PPU_status_register; 
+	uint8_t _PPU_oam_addr_status_register;
+	uint8_t _PPU_oam_data_status_register;
+	uint8_t _PPU_data_register;
 
-	uint8_t _PPU_control_register, _PPU_mask_register, _PPU_status_register, _PPU_oam_addr_status_register, _PPU_oam_data_status_register, _PPU_data_register;
+	// our NTSC Pallete is stored internally
+	std::array <std::array<uint8_t, 3>, 64> NTSC_PALLETTE = {{
+		{84, 84, 84},
+		{0, 30, 116},
+		{8, 16, 144},
+		{48, 0, 136},
+		{68, 0, 100},
+		{92, 0, 48},
+		{84, 4, 0},
+		{60, 24, 0},
+		{32, 42, 0},
+		{8, 58, 0},
+		{0, 64, 0},
+		{0, 60, 0},
+		{0, 50, 60},
+		{0, 0, 0},
+		{0, 0, 0},
+		{0, 0, 0},
+		{152, 150, 152},
+		{8, 76, 196},
+		{48, 50, 236},
+		{92, 30, 228},
+		{136, 20, 176},
+		{160, 20, 100},
+		{152, 34, 32},
+		{120, 60, 0},
+		{84, 90, 0},
+		{40, 114, 0},
+		{8, 124, 0},
+		{0, 118, 40},
+		{0, 102, 120},
+		{0, 0, 0},
+		{0, 0, 0},
+		{0, 0, 0},
+		{236, 238, 236},
+		{76, 154, 236},
+		{120, 124, 236},
+		{176, 98, 236},
+		{228, 84, 236},
+		{236, 88, 180},
+		{236, 106, 100},
+		{212, 136, 32},
+		{160, 170, 0},
+		{116, 196, 0},
+		{76, 208, 32},
+		{56, 204, 108},
+		{56, 180, 204},
+		{60, 60, 60},
+		{0, 0, 0},
+		{0, 0, 0},
+		{236, 238, 236},
+		{168, 204, 236},
+		{188, 188, 236},
+		{212, 178, 236},
+		{236, 174, 236},
+		{236, 174, 212},
+		{236, 180, 176},
+		{228, 196, 144},
+		{204, 210, 120},
+		{180, 222, 120},
+		{168, 226, 144},
+		{152, 226, 180},
+		{160, 214, 228},
+		{160, 162, 160},
+		{0, 0, 0},
+		{0, 0, 0}
+	}}; 
 };
