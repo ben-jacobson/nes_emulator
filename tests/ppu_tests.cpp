@@ -51,3 +51,31 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test read only port", "[ppu]") {
     uint8_t result = test_bus.read_data();
     CHECK(result != 0xFE);
 }
+
+TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test palette ram registration", "[ppu]") {
+    test_ppu_bus.set_address(PALETTE_RAM_INDEX_START);
+    test_ppu_bus.write_data(0xFE);
+
+    test_ppu_bus.set_address(0xFFFF);
+    uint8_t result = test_ppu_bus.read_data();
+
+    test_ppu_bus.set_address(PALETTE_RAM_INDEX_START);
+    result = test_ppu_bus.read_data();
+
+    CHECK(result == 0xFE);
+}
+
+TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test palette getter", "[ppu]") {
+    /*for (uint8_t i = 0; i < 64; i++) {
+        uint16_t R, G, B;
+        R = test_ppu.NTSC_PALETTE[i][0];
+        G = test_ppu.NTSC_PALETTE[i][1];
+        B = test_ppu.NTSC_PALETTE[i][2];
+
+        std::cout << "R: " << R << ", G: " << G << ", B: " << B << std::endl;
+    }*/
+    
+    uint8_t red_value = test_ppu.NTSC_PALETTE[0x2C][0];
+    REQUIRE(red_value == 56);
+}
+

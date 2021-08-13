@@ -17,6 +17,9 @@ void ppu::cycle(void) {
         we use this cycle method to update the internal status, and handle all of the heavy lifting, but using the read/write functions allow 
         to interface with it's memory
     */ 
+
+   // just some temporary code to get us through. set the vertical blank
+   _PPU_status_register = (1 << 7); 
 }
 
 void ppu::reset(void) {

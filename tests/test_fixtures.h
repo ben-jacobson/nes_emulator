@@ -14,6 +14,7 @@ extern cpu test_cpu;
 extern ram test_ram;
 extern cartridge test_cart;
 extern ppu test_ppu;
+extern ram test_palette_ram;
 
 class emulator_test_fixtures {
 public:
@@ -28,6 +29,7 @@ public:
 
         // register our ppu bus devices
         test_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, test_cart._ppu_read_function_ptr, test_cart._ppu_write_function_ptr);
+        test_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, test_palette_ram._read_function_ptr, test_palette_ram._write_function_ptr);
 
         test_ppu.reset();
 

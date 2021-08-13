@@ -33,24 +33,10 @@ public:
 
     // For reading and writing to the PPU bus 
 	//uint8_t PPUread(uint16_t address);
-	//void PPUwrite(uint16_t address, uint8_t data);	   
+	//void PPUwrite(uint16_t address, uint8_t data);
 
-private:
-	//std::array <uint16_t, 9> ADDRESS_PORTS = {PPUCTRL, PPUMASK, PPUSTATUS, OAMADDR, OAMDATA, PPUSCROLL, PPUADDR, PPUDATA, OAMDMA};
-
-	bus* _cpu_bus_ptr; 
-	bus* _ppu_bus_ptr;
-	cpu* _cpu_ptr; 
-
-	uint8_t _PPU_control_register; 
-	uint8_t _PPU_mask_register; 
-	uint8_t _PPU_status_register; 
-	uint8_t _PPU_oam_addr_status_register;
-	uint8_t _PPU_oam_data_status_register;
-	uint8_t _PPU_data_register;
-
-	// our NTSC Pallete is stored internally
-	std::array <std::array<uint8_t, 3>, 64> NTSC_PALLETTE = {{
+	// our NTSC Palette is stored internally
+	const std::array <std::array<uint8_t, 3>, 64> NTSC_PALETTE = {{	
 		{84, 84, 84},
 		{0, 30, 116},
 		{8, 16, 144},
@@ -115,5 +101,19 @@ private:
 		{160, 162, 160},
 		{0, 0, 0},
 		{0, 0, 0}
-	}}; 
+	}}; 		   
+
+private:
+	//std::array <uint16_t, 9> ADDRESS_PORTS = {PPUCTRL, PPUMASK, PPUSTATUS, OAMADDR, OAMDATA, PPUSCROLL, PPUADDR, PPUDATA, OAMDMA};
+
+	bus* _cpu_bus_ptr; 
+	bus* _ppu_bus_ptr;
+	cpu* _cpu_ptr; 
+
+	uint8_t _PPU_control_register; 
+	uint8_t _PPU_mask_register; 
+	uint8_t _PPU_status_register; 
+	uint8_t _PPU_oam_addr_status_register;
+	uint8_t _PPU_oam_data_status_register;
+	uint8_t _PPU_data_register;
 };
