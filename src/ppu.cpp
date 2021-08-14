@@ -47,7 +47,7 @@ uint8_t ppu::read(uint16_t address) {
             data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
-            data = _PPU_data_register;
+            data = _ppu_bus_ptr->read_data();
             break;
     }  
     return data;
@@ -70,9 +70,15 @@ void ppu::write(uint16_t address, uint8_t data) {
             break;            
         case OAMDATA:
             _PPU_oam_data_status_register = data;
-            break;       
+            break;     
+        case PPUADDR:
+            // this requires two writes to work.
+            _PPU_addr_register = _PPU_addr_register << 8;
+            _PPU_addr_register |= data;
+            _ppu_bus_ptr->set_address(_PPU_addr_register);  //unsure if setting the address when only 1/2 of the address is gathered will cause a bug or not.  
+            break;              
         case PPUDATA:
-            _PPU_data_register = data;
+            _ppu_bus_ptr->write_data(data);
             break;            
     }  
 }

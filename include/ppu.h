@@ -115,5 +115,6 @@ private:
 	uint8_t _PPU_status_register; 
 	uint8_t _PPU_oam_addr_status_register;
 	uint8_t _PPU_oam_data_status_register;
+	uint16_t _PPU_addr_register;
 	uint8_t _PPU_data_register;
 };

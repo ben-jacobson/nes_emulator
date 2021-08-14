@@ -42,7 +42,7 @@ void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address
         _device_index++;
     }
     else {
-        std::cout << "Error: attempting to register new bus device, but max devices reached" << std::endl;
+        std::cout << "Error: attempting to register new bus device, but max devices reached." << std::endl;
     }
 }
 

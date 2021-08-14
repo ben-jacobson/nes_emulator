@@ -79,22 +79,51 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test palette getter", "[ppu]") {
     REQUIRE(red_value == 56);
 }
 
-TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port and read/write data", "[ppu]") {
+TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port, write and read data", "[ppu]") {
+   /* Remember, this is a process where the CPU interfaces with the PPU via it's ports. 
+   // We'll start by simulating the CPU "instructing" the PPU to set it's address,
+   // then read from the PPU bus to see if the address was set. A common use case for this is setting the palette RAM, like this:
 
-    /*
-        Next step, let's write tests for using port 2006 and 2007.
-        The code for loading the palette into ram is as follows
-
-        // set the ppu address bus to 0x3F00, 
+        // set the ppu address bus to 0x3F00, via the exposed port 
         C03D   A9 3F                LDA #$3F
         C03F   8D 06 20             STA $2006
         C042   A9 00                LDA #$00
         C044   8D 06 20             STA $2006
 
         C047   A2 00                LDX #$00        // load 0 into x register
-        C049   BD 78 FF   LC049     LDA $FF78,X     // load A with value at FF78
-        C04C   8D 07 20             STA $2007       // write data with port 2007
-    */ 
-   
-    REQUIRE(1 != 1);
+        C049   BD 78 FF   LC049     LDA $FF78,X     // load A with value in memory location FF78 = 0x0F
+        C04C   8D 07 20             STA $2007       // write 0x0F data with port 2007
+   */
+
+    // First test that we can set our address
+    test_ppu_bus.set_address(0x0000); // reset in case a previous test interferes
+
+    test_bus.set_address(PPUADDR); 
+    test_bus.write_data(0x3F);
+    test_bus.set_address(PPUADDR); 
+    test_bus.write_data(0x00);
+
+    uint16_t result_addr = test_ppu_bus.read_address();
+    CHECK(result_addr == 0x3F00);
+
+    // Then test if we can write data and read it back via the PPU bus
+    test_bus.set_address(PPUDATA);
+    test_bus.write_data(0x1F);
+
+    test_ppu_bus.set_address(PALETTE_RAM_INDEX_START);
+    uint8_t result = test_ppu_bus.read_data();
+    CHECK(result == 0x1F);
+
+    // set the PPU address bus to something else just to make sure we aren't getting any false positives
+    test_ppu_bus.set_address(0x0000);
+
+    // Finally check if we can read data back from the port, reset the bus back and read the data
+    test_bus.set_address(PPUADDR); 
+    test_bus.write_data(0x3F);
+    test_bus.set_address(PPUADDR); 
+    test_bus.write_data(0x00);
+
+    test_bus.set_address(PPUDATA);
+    result = test_bus.read_data();
+    CHECK(result == 0x1F);
 }
