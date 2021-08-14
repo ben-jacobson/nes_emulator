@@ -19,13 +19,12 @@ void ppu::reset(void) {
     _PPU_status_register = 0;
     _PPU_oam_data_status_register = 0;
 
-<<<<<<< HEAD
     // set the palette to all black (0x3F, the final entry in the palette)
     for(uint8_t i = 0; i < PALETTE_RAM_SIZE; i++) {
         _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + i);
         _ppu_bus_ptr->write_data(0x3F);
     }
-=======
+
     _address_latch = false; 
     _addr_second_write = false; 
     _scroll_second_write = false; 
@@ -33,8 +32,7 @@ void ppu::reset(void) {
     _video_memory_address = 0; // reset the video memory address
 
     // set the vertical blank bit to 1, indicating the PPU is busy
-    _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);
->>>>>>> 7ff53730f52158801d142baf29623cfd82927565
+    _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
 }
 
 void ppu::trigger_cpu_NMI(void) {
