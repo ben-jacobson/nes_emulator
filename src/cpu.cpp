@@ -245,3 +245,7 @@ uint8_t cpu::get_last_fetched_opcode(void) {
 uint8_t cpu::get_last_fetched_instr_cycles(void) {
     return _instr_cycles;
 }
+
+uint8_t check_bit(uint8_t data, uint8_t bit) {
+	return ((data & (1 << bit)) >> bit) == 1 ? 1 : 0;
+}

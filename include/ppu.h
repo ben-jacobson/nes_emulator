@@ -15,7 +15,22 @@ constexpr uint16_t OAMDATA 		= 0x2004;
 constexpr uint16_t PPUSCROLL 	= 0x2005;
 constexpr uint16_t PPUADDR 		= 0x2006;
 constexpr uint16_t PPUDATA 		= 0x2007;
-//constexpr uint16_t OAMDMA 		= 0x4014;
+//constexpr uint16_t OAMDMA 		= 0x4014;		// this will need to be implemented elsewhere, maybe the APU/IO?? unsure. will come back to this later
+
+// PPUCTRL flag bits
+constexpr uint8_t PPUCTRL_NAME_TABLE_ADDRESS_LO 	= 0;
+constexpr uint8_t PPUCTRL_NAME_TABLE_ADDRESS_HI 	= 1;
+constexpr uint8_t PPUCTRL_VRAM_INCREMENT 			= 2;
+constexpr uint8_t PPUCTRL_FG_PATTERN_TABLE_ADDR 	= 3;			// for sprites
+constexpr uint8_t PPUCTRL_BG_PATTERN_TABLE_ADDR 	= 4;			// for backgrounds
+constexpr uint8_t PPUCTRL_SPRITE_SIZE		 		= 5;	
+constexpr uint8_t PPUCTRL_PPU_MASTER_SLAVE		 	= 6;	
+constexpr uint8_t PPUCTRL_VERTICAL_BLANK_NMI		= 7; 
+
+// PPUSTATUS flag bits first 5 bits are the LSB of written to PPU register
+constexpr uint8_t PPUSTATUS_SPRITE_OVERFLOW			= 5; 
+constexpr uint8_t PPUSTATUS_SPRITE_ZERO_HIT			= 6; 
+constexpr uint8_t PPUSTATUS_VERTICAL_BLANK			= 7; 
 
 class ppu : public bus_device
 {
@@ -31,11 +46,12 @@ public:
 	uint8_t read(uint16_t address) override;
 	void write(uint16_t address, uint8_t data) override;	   
 
-    // For reading and writing to the PPU bus 
-	//uint8_t PPUread(uint16_t address);
-	//void PPUwrite(uint16_t address, uint8_t data);
+	void vertical_blank(void);
+	uint16_t get_video_memory_address(void);
+	bool get_address_latch(void);
+	bool get_vertical_blank(void);
 
-	// our NTSC Palette is stored internally
+	// our NTSC Palette is stored internally to the device, at some point in the future it might be good to load a .pal file for this. 
 	const std::array <std::array<uint8_t, 3>, 64> NTSC_PALETTE = {{	
 		{84, 84, 84},
 		{0, 30, 116},
@@ -110,10 +126,17 @@ private:
 	bus* _ppu_bus_ptr;
 	cpu* _cpu_ptr; 
 
+	uint16_t _video_memory_address; // this is a bit like the CPU's program counter
+
 	uint8_t _PPU_control_register; 
 	uint8_t _PPU_mask_register; 
 	uint8_t _PPU_status_register; 
 	uint8_t _PPU_oam_addr_status_register;
 	uint8_t _PPU_oam_data_status_register;
+	uint16_t _PPU_addr_register;
 	uint8_t _PPU_data_register;
+
+	bool _address_latch, _addr_second_write, _scroll_second_write;
+
+	void increment_video_memory_address(void);
 };

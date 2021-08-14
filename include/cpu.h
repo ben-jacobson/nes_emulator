@@ -45,6 +45,8 @@ struct opcode {
     uint8_t cycles_needed;
 };
 
+uint8_t check_bit(uint8_t data, uint8_t bit);
+
 class cpu : public bus_device
 {
 public:
@@ -136,10 +138,6 @@ public:
     inline void check_if_carry(uint16_t data) {
         // check to see if the calculation you are about to perform will set the carry flag. put the 8 bit memory into a 16 bit word and see if it's larger than 255
         _status_flags_reg.c = data > 255 ? 1 : 0;
-    }
-
-    inline uint8_t check_bit(uint8_t data, uint8_t bit) {
-        return ((data & (1 << bit)) >> bit) == 1 ? 1 : 0;
     }
     
     // Instruction set in alphabetical order
