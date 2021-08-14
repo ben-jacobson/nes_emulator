@@ -27,6 +27,12 @@ void ppu::reset(void) {
     _PPU_control_register = 0;
     _PPU_status_register = 0;
     _PPU_oam_data_status_register = 0;
+
+    // set the palette to all black (0x3F, the final entry in the palette)
+    for(uint8_t i = 0; i < PALETTE_RAM_SIZE; i++) {
+        _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + i);
+        _ppu_bus_ptr->write_data(0x3F);
+    }
 }
 
 void ppu::trigger_cpu_NMI(void) {
