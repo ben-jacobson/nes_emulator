@@ -1,9 +1,13 @@
 #include "pattern_table_preview.h"
 
-pattern_table_preview::pattern_table_preview(bus* ppu_bus_ptr, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y)
+pattern_table_preview::pattern_table_preview(bus* ppu_bus_ptr, ppu* ppu_ptr, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y)
 {
     // set up the ppu bus ptr
     _ppu_bus_ptr = ppu_bus_ptr;
+    _ppu_ptr = ppu_ptr;
+
+    _palette_selected_index = 0; // offset 0, viewing palettes from memory 0x3F00
+    update_palette_array(); // feed in initial palette data, should be RGB 0,0,0
 
     // set up our renderer
     _renderer = renderer;
@@ -68,9 +72,9 @@ void pattern_table_preview::clear_pixel_data(void) {
 }
 
 void pattern_table_preview::convert_last_pattern_to_pixel_data(uint16_t x, uint16_t y) {
-    std::array <uint8_t, 4> R_values = {0, 64, 128, 255};       // placeholder, grayscale for now and will be replaced with actual pallettes
+    /*std::array <uint8_t, 4> R_values = {0, 64, 128, 255};       // placeholder, grayscale for now and will be replaced with actual pallettes
     std::array <uint8_t, 4> G_values = {0, 64, 128, 255};
-    std::array <uint8_t, 4> B_values = {0, 64 ,128, 255};
+    std::array <uint8_t, 4> B_values = {0, 64 ,128, 255};*/
     uint16_t new_x = x, new_y = y; 
     unsigned int offset;
 
@@ -81,9 +85,13 @@ void pattern_table_preview::convert_last_pattern_to_pixel_data(uint16_t x, uint1
         // fill in the RGB values
         if (offset + 3 < _pixel_data.size()) {
             _last_pattern_retrieved[i] = _last_pattern_retrieved[i] & 0x03; // lop off the top 6 bits in case we try to read something outside of the valid memory range.
-            _pixel_data[offset + 0] = R_values[_last_pattern_retrieved[i]];
+           /* _pixel_data[offset + 0] = R_values[_last_pattern_retrieved[i]];
             _pixel_data[offset + 1] = G_values[_last_pattern_retrieved[i]];
-            _pixel_data[offset + 2] = B_values[_last_pattern_retrieved[i]];
+            _pixel_data[offset + 2] = B_values[_last_pattern_retrieved[i]];*/
+
+            _pixel_data[offset + 0] = _palette_selected[_last_pattern_retrieved[i]][R];
+            _pixel_data[offset + 1] = _palette_selected[_last_pattern_retrieved[i]][G];
+            _pixel_data[offset + 2] = _palette_selected[_last_pattern_retrieved[i]][B];            
             _pixel_data[offset + 3] = SDL_ALPHA_OPAQUE;
         }
         new_x++;
@@ -129,3 +137,30 @@ void pattern_table_preview::display_contents(void) {
     SDL_RenderCopy(_renderer, _texture, NULL, &_rect);
 }
 
+void pattern_table_preview::update_palette_array(void) {
+    // grab the four colours associated with this pallette
+    uint16_t abs_address = 0x3F00 + _palette_selected_index;
+    //std::cout << "Switching to palette: " << std::hex << abs_address << std::dec << std::endl;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        _ppu_bus_ptr->set_address(abs_address + i);
+        uint8_t colour_index = _ppu_bus_ptr->read_data();
+
+        _palette_selected[i][R] = _ppu_ptr->NTSC_PALETTE[colour_index][R];
+        _palette_selected[i][G] = _ppu_ptr->NTSC_PALETTE[colour_index][G];
+        _palette_selected[i][B] = _ppu_ptr->NTSC_PALETTE[colour_index][B];
+        //std::cout << "  index: 0x" << std::hex << (uint16_t)colour_index << std::dec << " -  R: " << (uint16_t)_palette_selected[i][R] << ", G: " << (uint16_t)_palette_selected[i][G] << ", B: " << (uint16_t)_palette_selected[i][G] << std::endl;
+    }
+
+    for (uint8_t i = 0; i < 16; i++) {
+        _ppu_bus_ptr->set_address(0x3F00 + i);
+        uint8_t read = _ppu_bus_ptr->read_data();
+        std::cout << (uint16_t)i << ": " << std::hex << (uint16_t)read << std::dec << std::endl;
+    }
+}
+
+void pattern_table_preview::select_palette(void) {
+    _palette_selected_index += 4; // move to next palette, which is usually 4 locations forward
+    _palette_selected_index = _palette_selected_index % 16; // wrap this palette around if over 16. 
+    update_palette_array(); // and update the palette
+}

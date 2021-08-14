@@ -86,13 +86,13 @@ void ppu::write(uint16_t address, uint8_t data) {
             // this requires two writes to work and only works if the address latch is on
             if (_address_latch) {
                 if (_addr_second_write) {
-                    _PPU_addr_register = _PPU_addr_register << 8;   // shift the upper 8 bits into position
-                    _PPU_addr_register |= data;                     // read the lower 8 bits on the second read
-                    _ppu_bus_ptr->set_address(_PPU_addr_register); 
+                    _video_memory_address = _ppu_addr_temp_register << 8;   // shift the upper 8 bits into position
+                    _video_memory_address |= data;                     // read the lower 8 bits on the second read
+                    _ppu_bus_ptr->set_address(_video_memory_address); 
                     _addr_second_write = false;         // reset back to default
                 }
                 else {
-                    _PPU_addr_register = data;  // this reads the upper 8 bits
+                    _ppu_addr_temp_register = data;  // this reads the upper 8 bits
                     _addr_second_write = true;       // enable the second write
                 } 
             }

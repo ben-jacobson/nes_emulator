@@ -135,14 +135,24 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port, write and
     test_bus.set_address(PPUADDR); 
     test_bus.write_data(0x00);
 
+    // check it on the bus
     uint16_t result_addr = test_ppu_bus.read_address();
     CHECK(result_addr == 0x3F00);   
 
+    // and check it in the PPU vram memory address
+    test_ppu_bus.set_address(0x0000); // this doesn't stay in sync necessarily. A bit like how the address doesn't have to be set by PC with the CPU
+    result_addr = test_ppu.get_video_memory_address();
+    CHECK(result_addr == 0x3F00);   
+
     // Then test if we can write data and read it back via the PPU bus
+    test_bus.set_address(PPUADDR); 
+    test_bus.write_data(0x3F);
+    test_bus.set_address(PPUADDR); 
+    test_bus.write_data(0x00);    
     test_bus.set_address(PPUDATA);
     test_bus.write_data(0x1F);
 
-    test_ppu_bus.set_address(PALETTE_RAM_INDEX_START);
+    test_ppu_bus.set_address(PALETTE_RAM_INDEX_START); // we need to correct for incrementing
     uint8_t result = test_ppu_bus.read_data();
     CHECK(result == 0x1F);
 

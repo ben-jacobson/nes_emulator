@@ -133,8 +133,8 @@ private:
 	uint8_t _PPU_status_register; 
 	uint8_t _PPU_oam_addr_status_register;
 	uint8_t _PPU_oam_data_status_register;
-	uint16_t _PPU_addr_register;
 	uint8_t _PPU_data_register;
+	uint8_t _ppu_addr_temp_register;
 
 	bool _address_latch, _addr_second_write, _scroll_second_write;
 

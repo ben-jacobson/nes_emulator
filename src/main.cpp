@@ -72,6 +72,9 @@ int main(int argc, char *argv[])
 		}
 		//nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
 		//std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
+
+		nes_cart.load_content_from_stream("3D C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
+		std::cout << "Reset vector altered to be 0xC03D to test palette loading in nestest rom" << std::endl;		
 	}
 	
 	// Init SDL
@@ -110,7 +113,7 @@ int main(int argc, char *argv[])
 	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
 	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (25 * font_size)); // 7 lines below processor status
-	pattern_table_preview debug_pattern_table(&nes_ppu_bus, renderer, 20 + 512 + 20, 25 + (28 * font_size));
+	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (28 * font_size));
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
@@ -122,7 +125,7 @@ int main(int argc, char *argv[])
 
 	//bool nes_tests_error_code_found = false;
 	//uint16_t nop_tracker = 0x0000; // nes tests uses nops to indicate the start of the test. we'll continually update the 
-	uint16_t halt_at_pc = 0x0000;	// 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0xC054;	// 0x0000 will disable this behaviour
 
 	while (!quit) { // main application running loop
 
@@ -233,6 +236,10 @@ int main(int argc, char *argv[])
 						nes_cpu.reset();
 						single_cycle = true; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 						std::cout << "CPU Reset" << std::endl;
+						break;
+
+					case SDLK_p:
+						debug_pattern_table.select_palette();
 						break;
 
 					case SDLK_ESCAPE:
