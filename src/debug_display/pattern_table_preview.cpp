@@ -1,9 +1,9 @@
 #include "pattern_table_preview.h"
 
-pattern_table_preview::pattern_table_preview(cartridge* cartridge_ptr, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y)
+pattern_table_preview::pattern_table_preview(bus* ppu_bus_ptr, SDL_Renderer* renderer, uint16_t preset_display_x, uint16_t preset_display_y)
 {
-    // copy over our cartridge pointer
-    _cartridge_ptr = cartridge_ptr;
+    // set up the ppu bus ptr
+    _ppu_bus_ptr = ppu_bus_ptr;
 
     // set up our renderer
     _renderer = renderer;
@@ -39,15 +39,17 @@ pattern_table_preview::~pattern_table_preview() {
 }
 
 void pattern_table_preview::get_pattern(uint16_t address) {
-    uint8_t row_data_plane_0 = _cartridge_ptr->ppu_read(address);
-    uint8_t row_data_plane_1 = _cartridge_ptr->ppu_read(address + 1);
-
     // read the pattern, row by row
-    for (uint8_t i = 0; i < 8; i++) {        
-        row_data_plane_0 = _cartridge_ptr->ppu_read(address + i);
-        row_data_plane_1 = _cartridge_ptr->ppu_read(address + i + 8);      
-        uint8_t plane_0_bit = 0, plane_1_bit = 0;
+    for (uint8_t i = 0; i < 8; i++) {     
+        uint8_t row_data_plane_0, row_data_plane_1, plane_0_bit = 0, plane_1_bit = 0;
 
+        if (address + i + 8 <= PATTERN_TABLE_1_END) {
+            _ppu_bus_ptr->set_address(address + i);
+            row_data_plane_0 = _ppu_bus_ptr->read_data();
+            _ppu_bus_ptr->set_address(address + i + 8);
+            row_data_plane_1 = _ppu_bus_ptr->read_data();              
+        }
+        
         // split out an 8 bit value into array of values. Oring them to get the full value from 0-4        
         for (uint8_t j = 0; j < 8; j++) {
             plane_0_bit = ((1 << j) & row_data_plane_0) >> j;
@@ -121,7 +123,7 @@ void pattern_table_preview::display_contents(void) {
             x = 16;
             y++;
         }
-    }  
+    } 
 
     SDL_UpdateTexture(_texture, NULL, _pixel_data.data(), _rect.w * 4);
     SDL_RenderCopy(_renderer, _texture, NULL, &_rect);
