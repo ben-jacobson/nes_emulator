@@ -72,9 +72,6 @@ int main(int argc, char *argv[])
 		}
 		//nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
 		//std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
-
-		nes_cart.load_content_from_stream("3D C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
-		std::cout << "Reset vector altered to be 0xC03D to test palette loading in nestest rom" << std::endl;		
 	}
 	
 	// Init SDL
@@ -123,8 +120,6 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	//bool nes_tests_error_code_found = false;
-	//uint16_t nop_tracker = 0x0000; // nes tests uses nops to indicate the start of the test. we'll continually update the 
 	uint16_t halt_at_pc = 0xC054;	// 0x0000 will disable this behaviour
 
 	while (!quit) { // main application running loop
@@ -167,16 +162,6 @@ int main(int argc, char *argv[])
 				//std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
 				single_cycle = false;
 			}
-
-			/*if (nes_cpu.get_last_fetched_opcode() == 0xEA) {
-				nop_tracker = nes_cpu.get_program_counter() - 1;	// keep track of the last unit being tested
-			}*/
-
-			/*if (run_mode && nes_tests_error_code_found == false) && (nes_ram.read(0x0000) != 0x00 || nes_ram.read(0x0003) != 0x00)) { // indicating that the test rom has found an error
-				std::cout << "Halting at nestest error detection. Start of test: " << "0x" << std::uppercase << std::hex << nop_tracker << std::dec << std::endl;
-				halt_at_pc = nop_tracker; 	// set this up to halt at the start of the last test
-				nes_tests_error_code_found = true;		
-			}*/		
 
 			if (run_mode && (/*nes_tests_error_code_found == true ||*/ nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;

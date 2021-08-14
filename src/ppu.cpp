@@ -19,7 +19,7 @@ void ppu::reset(void) {
     _PPU_status_register = 0;
     _PPU_oam_data_status_register = 0;
 
-    // set the palette to all black (0x3F, the final entry in the palette)
+    // set the palette to all black (0x3F, the final entry in the palette) If you do this before registering bus devices, this will do nothing
     for(uint8_t i = 0; i < PALETTE_RAM_SIZE; i++) {
         _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + i);
         _ppu_bus_ptr->write_data(0x3F);
@@ -47,9 +47,9 @@ uint8_t ppu::read(uint16_t address) {
     switch (address) { 
         // some ports are read only
         case PPUSTATUS:
-            _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank on status reads
             _address_latch = true;  // allow PPUADDRESS and PPUSCROLL to start their 2x write process
             data = _PPU_status_register; 
+            _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
 
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
             break;
