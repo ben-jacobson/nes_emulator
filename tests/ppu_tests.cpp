@@ -185,7 +185,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - test status reads clears vertica
     bool vertical_blank = test_ppu.get_vertical_blank();
     CHECK(vertical_blank == true);
 
-    // reading the status register clears vertical blank. Doesn't make sense to me, but aparently that's how things work
+    // reading the status register clears vertical blank, regardless if you were in VB
     test_bus.set_address(PPUSTATUS); 
     test_bus.read_data();
 

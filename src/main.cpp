@@ -153,8 +153,8 @@ int main(int argc, char *argv[])
 
 		// process the PPU and CPU as needed by the user
 		if (run_mode || single_cycle) {
-			// the PPU cycles roughly four times for every cpu cycle. This is a bit crude for now, and we can come up with a better implementation soon.
-			for (uint8_t i = 0; i < 4; i++) {
+			// the PPU cycles roughly three times for every cpu cycle.
+			for (uint8_t i = 0; i < 3; i++) {
 				nes_ppu.cycle();
 			}
 			

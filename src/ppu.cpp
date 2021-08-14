@@ -9,17 +9,8 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
 }
 
 void ppu::cycle(void) {
-    /*
-        The CPU works by taking an instruction from the byte read from data. However the PPU works differently
-        The CPU interfaces with the PPU simply by reading or writing to it's address range.
-        The first byte is the port, and the second byte being the instruction
-
-        we use this cycle method to update the internal status, and handle all of the heavy lifting, but using the read/write functions allow 
-        to interface with it's memory
-    */ 
-
-   // just some temporary code to get us through. set the vertical blank
-   _PPU_status_register = (1 << 7); 
+    // draw pixel by pixel to output
+    vertical_blank();
 }
 
 void ppu::reset(void) {
@@ -55,7 +46,6 @@ uint8_t ppu::read(uint16_t address) {
             data = _PPU_status_register; 
 
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
-
             break;
         case OAMDATA:
             data = _PPU_oam_data_status_register;
@@ -120,11 +110,14 @@ bool ppu::get_vertical_blank(void) {
     return check_bit(_PPU_status_register, 7);
 }
 
-void ppu::vertical_blank(void) {
-    // TODO!! 
-    
-    // clear the vertical blank bit in the Status register
+void ppu::vertical_blank(void) {    
+    // set the vertical blank bit in the Status register, indicating to the rest of the system that we are okay to start writing pixel data
+    _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);
+
     // trigger the NMI if that PPUCTRL register was set
+    if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
+        trigger_cpu_NMI();
+    }
 }
 
 void ppu::increment_video_memory_address(void) {
