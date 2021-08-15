@@ -49,9 +49,23 @@ int main(int argc, char *argv[])
 	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus, &nes_cpu);
 	ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END);
 
+	// nametables, or VRAM
+	ram nametable_0_memory(NAMETABLE_SIZE, NAMETABLE_0_START, NAMETABLE_0_END);
+	ram nametable_1_memory(NAMETABLE_SIZE, NAMETABLE_1_START, NAMETABLE_1_END);
+	ram nametable_2_memory(NAMETABLE_SIZE, NAMETABLE_2_START, NAMETABLE_2_END);
+	ram nametable_3_memory(NAMETABLE_SIZE, NAMETABLE_3_START, NAMETABLE_3_END);
+
 	nes_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, nes_cart._ppu_read_function_ptr, nes_cart._ppu_write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr); // register the PPU to the CPU bus
 	nes_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, palette_ram._read_function_ptr, palette_ram._write_function_ptr);
+
+	// register our nametables
+	nes_ppu_bus.register_new_bus_device(NAMETABLE_0_START, NAMETABLE_0_END, nametable_0_memory._read_function_ptr, nametable_0_memory._write_function_ptr);
+	nes_ppu_bus.register_new_bus_device(NAMETABLE_1_START, NAMETABLE_1_END, nametable_1_memory._read_function_ptr, nametable_1_memory._write_function_ptr);
+	nes_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, nametable_2_memory._read_function_ptr, nametable_2_memory._write_function_ptr);
+	nes_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, nametable_3_memory._read_function_ptr, nametable_3_memory._write_function_ptr);
+
+
 
 	// Check to see if we can load a ROM from argc
 	if (argc < 2) {
@@ -96,6 +110,7 @@ int main(int argc, char *argv[])
 	std::cout << "  <F5> Toggle run, disabling single step mode" << std::endl;  
 	std::cout << "  <Del> Reset CPU" << std::endl;  
 	std::cout << "  <TAB> Peek at memory location on CPU bus" << std::endl;  
+	std::cout << "  <F1> Peek at memory location on PPU bus" << std::endl;  
 	std::cout << "  <P> Switch palette in pattern table preview window" << std::endl;  
 	std::cout << "  <ESC> Quit" << std::endl;
 
@@ -115,13 +130,14 @@ int main(int argc, char *argv[])
 	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
 	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
 	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
-	memory_peek_graphics debug_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (25 * font_size)); // 7 lines below processor status
-	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (28 * font_size));
+	memory_peek_graphics debug_cpu_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, "CPU Mem Peek", 20 + 512 + 20, 25 + (25 * font_size)); 
+	memory_peek_graphics debug_ppu_memory_peek(&nes_ppu_bus, renderer, font_fullpath.c_str(), font_size, "PPU Mem Peek", 20 + 512 + 20, 25 + (26 * font_size)); 
+	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (29 * font_size));
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
 	SDL_KeyboardEvent *key_event;
-	memory_peek_text_input_processor memory_peek_text_input;
+	memory_peek_text_input_processor cpu_memory_peek_text_input, ppu_memory_peek_text_input;
 	SDL_StopTextInput();	// stop text input by default
 
 	bool quit = false; 
@@ -168,7 +184,8 @@ int main(int argc, char *argv[])
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
 			debug_rom_display.display_contents(); 	
-			debug_memory_peek.display_contents();
+			debug_cpu_memory_peek.display_contents();
+			debug_ppu_memory_peek.display_contents();
 			debug_pattern_table.display_contents();					
 
 			// update the display with new info from renderer
@@ -203,12 +220,24 @@ int main(int argc, char *argv[])
 				switch (key_event->keysym.sym) {
 					case SDLK_TAB:	// Enter memory peek mode
 						SDL_StartTextInput();
-						debug_memory_peek.activate_cursor();
+						cpu_memory_peek_text_input.activate();
+						debug_cpu_memory_peek.activate_cursor();	
+						break;
+
+					case SDLK_F1:	// Enter memory peek mode
+						SDL_StartTextInput();
+						ppu_memory_peek_text_input.activate();
+						debug_ppu_memory_peek.activate_cursor();	
 						break;
 
 					case SDLK_RETURN:	// Finish memory peek mode
 						if (SDL_IsTextInputActive()) {
-							debug_memory_peek.set_address(memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+							if (cpu_memory_peek_text_input.input_active()) {
+								debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+							}
+							if (ppu_memory_peek_text_input.input_active()) {
+								debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+							}
 							SDL_StopTextInput();
 						}
 						break;
@@ -246,12 +275,22 @@ int main(int argc, char *argv[])
 			else if (event_handler.type == SDL_TEXTINPUT) {
 				char key_pressed = event_handler.text.text[0];	
 
-				debug_memory_peek.input_partial_address(key_pressed);
+				if (cpu_memory_peek_text_input.input_active()) {
+					debug_cpu_memory_peek.input_partial_address(key_pressed);
 
-				if (memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
-					debug_memory_peek.set_address(memory_peek_text_input.process());							
-					SDL_StopTextInput();
+					if (cpu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
+						debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());							
+						SDL_StopTextInput();
+					}
 				}
+				if (ppu_memory_peek_text_input.input_active()) {
+					debug_ppu_memory_peek.input_partial_address(key_pressed);
+
+					if (ppu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
+						debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());							
+						SDL_StopTextInput();
+					}
+				}				
 			}
 
 			else if (event_handler.type == SDL_QUIT) {

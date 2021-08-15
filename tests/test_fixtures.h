@@ -15,6 +15,7 @@ extern ram test_ram;
 extern cartridge test_cart;
 extern ppu test_ppu;
 extern ram test_palette_ram;
+extern ram test_nametable_0_memory, test_nametable_1_memory, test_nametable_2_memory, test_nametable_3_memory;
 
 class emulator_test_fixtures {
 public:
@@ -32,6 +33,11 @@ public:
         // register our ppu bus devices
         test_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, test_cart._ppu_read_function_ptr, test_cart._ppu_write_function_ptr);
         test_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, test_palette_ram._read_function_ptr, test_palette_ram._write_function_ptr);
+
+        test_ppu_bus.register_new_bus_device(NAMETABLE_0_START, NAMETABLE_0_END, test_nametable_0_memory._read_function_ptr, test_nametable_0_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_1_START, NAMETABLE_1_END, test_nametable_1_memory._read_function_ptr, test_nametable_1_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, test_nametable_2_memory._read_function_ptr, test_nametable_2_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, test_nametable_3_memory._read_function_ptr, test_nametable_3_memory._write_function_ptr);
 
         test_ppu.reset();
 

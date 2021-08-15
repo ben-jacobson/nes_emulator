@@ -1,6 +1,6 @@
 #include "memory_peek_graphics.h"
 
-memory_peek_graphics::memory_peek_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y)
+memory_peek_graphics::memory_peek_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, std::string headline, uint16_t preset_display_x, uint16_t preset_display_y)
     : status_graphics(renderer, font_filename, ptsize)
 {
     _bus_ptr = bus_ptr;
@@ -10,6 +10,7 @@ memory_peek_graphics::memory_peek_graphics(bus* bus_ptr, SDL_Renderer* renderer,
     _preset_display_y = preset_display_y;
 
     _cursor_active = false; 
+    _headline = headline; 
 }
 
 void memory_peek_graphics::display_contents(void) {
@@ -18,7 +19,7 @@ void memory_peek_graphics::display_contents(void) {
 
     _bus_ptr->set_address(_address);
 
-    peek_contents_line << "Peek address: "; 
+    peek_contents_line << _headline << ": "; 
     set_colour({255, 255, 255, 255});
     draw_to_buffer(peek_contents_line.str(), _preset_display_x, _preset_display_y);
     

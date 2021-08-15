@@ -39,6 +39,7 @@ void game_display_placeholder_output::draw(void) {
 
 memory_peek_text_input_processor::memory_peek_text_input_processor() {
     _char_count = 0;
+    _active = false; 
 }
 
 uint16_t memory_peek_text_input_processor::process(void) {
@@ -50,6 +51,18 @@ uint16_t memory_peek_text_input_processor::process(void) {
     _char_count = 0;		// reset out char count*/
 
     return byte_val;
+}
+
+bool memory_peek_text_input_processor::input_active(void) {
+    return _active; 
+}
+
+void memory_peek_text_input_processor::activate(void) {
+    _active = true;
+}
+
+void memory_peek_text_input_processor::deactivate(void) {
+    _active = false; 
 }
  
 bool memory_peek_text_input_processor::add_character(char input) {

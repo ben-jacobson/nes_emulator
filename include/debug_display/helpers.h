@@ -33,8 +33,14 @@ public:
 	~memory_peek_text_input_processor() = default;
 	uint16_t process(void);
 	bool add_character(char input);
+	
+	bool input_active(void);
+	void activate(void);
+	void deactivate(void);
 
 private:
 	std::string text_input;
 	uint8_t _char_count;
+
+	bool _active; 
 };
