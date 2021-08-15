@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xC054; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0xC2E2; // 0x0000 will disable this behaviour
 	bool update_display = true;
 
 	while (!quit) { // main application running loop
@@ -139,13 +139,14 @@ int main(int argc, char *argv[])
 			for (uint8_t i = 0; i < 3; i++) {
 				nes_ppu.cycle();
 			}
-			
+
 			nes_cpu.cycle();
 
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
 				single_cycle = false;
+				update_display = true;
 			}
-
+			
 			if (run_mode && (nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {   
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;

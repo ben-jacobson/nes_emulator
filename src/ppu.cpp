@@ -121,9 +121,9 @@ void ppu::vertical_blank(void) {
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);
 
     // trigger the NMI if that PPUCTRL register was set
-    if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
-        trigger_cpu_NMI();
-    }
+    /*if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
+        trigger_cpu_NMI(); // temporarily disabling as this is causing an odd bug while the rest of the implementation isn't switched on. We'll come back to this when the rest of the code is fully implemented
+    }*/
 }
 
 void ppu::increment_video_memory_address(void) {
