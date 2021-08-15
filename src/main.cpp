@@ -91,7 +91,13 @@ int main(int argc, char *argv[])
 
 	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
 	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
-	std::cout << "Emulation started. Press <Space> to step through instructions, <F5> to toggle run, <Del> to reset and <ESC> to quit" << std::endl;
+	std::cout << "Emulation started. Keys:" << std::endl; 
+	std::cout << "  <Space> Execute next instruction in single step mode" << std::endl;  
+	std::cout << "  <F5> Toggle run, disabling single step mode" << std::endl;  
+	std::cout << "  <Del> Reset CPU" << std::endl;  
+	std::cout << "  <TAB> Peek at memory location on CPU bus" << std::endl;  
+	std::cout << "  <P> Switch palette in pattern table preview window" << std::endl;  
+	std::cout << "  <ESC> Quit" << std::endl;
 
 	// Some font objects
 	uint8_t font_size = 14; 
@@ -121,8 +127,10 @@ int main(int argc, char *argv[])
 	bool quit = false; 
 
 	uint16_t halt_at_pc = 0xC054; // 0x0000 will disable this behaviour
+	bool update_display = true;
 
 	while (!quit) { // main application running loop
+
 		// process the PPU and CPU as needed by the user
 		if (run_mode || single_cycle) {
 			instruction_trace_log.update();
@@ -141,11 +149,12 @@ int main(int argc, char *argv[])
 			if (run_mode && (nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {   
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
-				single_cycle = true; // get this up to the next cycle
+				update_display = true;
+				single_cycle = true; // get this up to the next cycle before finishing run mode
 			}	
-		}
+		}	
 
-		if (!run_mode && nes_cpu.finished_instruction()) {				
+		if (update_display) {				
 			// clear the screen
 			SDL_RenderClear(renderer); 		
 
@@ -166,7 +175,7 @@ int main(int argc, char *argv[])
 
 			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 			//SDL_Delay(16); 
-		}		
+		}	
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
@@ -206,6 +215,7 @@ int main(int argc, char *argv[])
 					case SDLK_F5: // Toggle run mode
 						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
 						run_mode = !run_mode; 
+						update_display = !update_display; // temporarily toggle the display so that it doesn't slow the emulator down
 						break;
 
 					case SDLK_SPACE:	// Single cycle through CPU
@@ -214,9 +224,11 @@ int main(int argc, char *argv[])
 						}
 						break;
 
-					case SDLK_DELETE:		// RESET CPU and RAM
+					case SDLK_DELETE:		// RESET CPU, PPU and all RAMs
 						nes_ram.clear_ram();
+						palette_ram.clear_ram();
 						nes_cpu.reset();
+						nes_ppu.reset();
 						single_cycle = true; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 						std::cout << "CPU Reset" << std::endl;
 						break;
