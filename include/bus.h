@@ -24,6 +24,7 @@ public:
 
 	void write_data(uint8_t data);
 	uint8_t read_data(void);
+	uint8_t debug_read_data(uint16_t address);
 	void register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr = nullptr);
 	void clear_bus_devices(void);
 

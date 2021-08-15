@@ -48,10 +48,10 @@ void pattern_table_preview::get_pattern(uint16_t address) {
         uint8_t row_data_plane_0, row_data_plane_1, plane_0_bit = 0, plane_1_bit = 0;
 
         if (address + i + 8 <= PATTERN_TABLE_1_END) {
-            _ppu_bus_ptr->set_address(address + i);
-            row_data_plane_0 = _ppu_bus_ptr->read_data();
-            _ppu_bus_ptr->set_address(address + i + 8);
-            row_data_plane_1 = _ppu_bus_ptr->read_data();              
+            //_ppu_bus_ptr->set_address(address + i);
+            row_data_plane_0 = _ppu_bus_ptr->debug_read_data(address + i);
+            //_ppu_bus_ptr->set_address(address + i + 8);
+            row_data_plane_1 = _ppu_bus_ptr->debug_read_data(address + i + 8);              
         }
         
         // split out an 8 bit value into array of values. Oring them to get the full value from 0-4        
@@ -85,7 +85,7 @@ void pattern_table_preview::convert_last_pattern_to_pixel_data(uint16_t x, uint1
         // fill in the RGB values
         if (offset + 3 < _pixel_data.size()) {
             _last_pattern_retrieved[i] = _last_pattern_retrieved[i] & 0x03; // lop off the top 6 bits in case we try to read something outside of the valid memory range.
-           /* _pixel_data[offset + 0] = R_values[_last_pattern_retrieved[i]];
+            /*_pixel_data[offset + 0] = R_values[_last_pattern_retrieved[i]];
             _pixel_data[offset + 1] = G_values[_last_pattern_retrieved[i]];
             _pixel_data[offset + 2] = B_values[_last_pattern_retrieved[i]];*/
 
@@ -104,8 +104,10 @@ void pattern_table_preview::convert_last_pattern_to_pixel_data(uint16_t x, uint1
 }
 
 void pattern_table_preview::display_contents(void) {
-    clear_pixel_data();
     uint8_t x = 0, y = 0; 
+
+    clear_pixel_data();
+    update_palette_array();
 
     // render pattern table left
     for (uint16_t i = 0; i < 512; i += 2) {
@@ -138,24 +140,15 @@ void pattern_table_preview::display_contents(void) {
 }
 
 void pattern_table_preview::update_palette_array(void) {
-    // grab the four colours associated with this pallette
+    // grab the four colours associated with this palette
     uint16_t abs_address = 0x3F00 + _palette_selected_index;
-    //std::cout << "Switching to palette: " << std::hex << abs_address << std::dec << std::endl;
 
     for (uint8_t i = 0; i < 4; i++) {
-        _ppu_bus_ptr->set_address(abs_address + i);
-        uint8_t colour_index = _ppu_bus_ptr->read_data();
+        uint8_t colour_index = _ppu_bus_ptr->debug_read_data(abs_address + i);
 
         _palette_selected[i][R] = _ppu_ptr->NTSC_PALETTE[colour_index][R];
         _palette_selected[i][G] = _ppu_ptr->NTSC_PALETTE[colour_index][G];
         _palette_selected[i][B] = _ppu_ptr->NTSC_PALETTE[colour_index][B];
-        //std::cout << "  index: 0x" << std::hex << (uint16_t)colour_index << std::dec << " -  R: " << (uint16_t)_palette_selected[i][R] << ", G: " << (uint16_t)_palette_selected[i][G] << ", B: " << (uint16_t)_palette_selected[i][G] << std::endl;
-    }
-
-    for (uint8_t i = 0; i < 16; i++) {
-        _ppu_bus_ptr->set_address(0x3F00 + i);
-        uint8_t read = _ppu_bus_ptr->read_data();
-        std::cout << (uint16_t)i << ": " << std::hex << (uint16_t)read << std::dec << std::endl;
     }
 }
 

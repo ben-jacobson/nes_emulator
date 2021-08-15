@@ -120,37 +120,13 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xC054;	// 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0xC054; // 0x0000 will disable this behaviour
 
 	while (!quit) { // main application running loop
-
-		if (nes_cpu.finished_instruction()) { 		// only update the screen if the instruction has finished, saving us many re-displays
-			// update the log
-			instruction_trace_log.update();
-
-			// clear the screen
-			SDL_RenderClear(renderer); 
-			
-			//draw the game area placeholder
-			placeholder_game_area_rect.draw();	
-
-			// draw the debug emulator status displays
-			debug_instr_trace.display_contents();	
-			debug_processor_status.display_contents();
-			debug_ram_display.display_contents();
-			debug_rom_display.display_contents(); 	
-			debug_memory_peek.display_contents();
-			debug_pattern_table.display_contents();
-
-			// update the display with new info from renderer
-			SDL_RenderPresent(renderer);	
-
-			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
-			//SDL_Delay(16); 
-		}
-
 		// process the PPU and CPU as needed by the user
 		if (run_mode || single_cycle) {
+			instruction_trace_log.update();
+
 			// the PPU cycles roughly three times for every cpu cycle.
 			for (uint8_t i = 0; i < 3; i++) {
 				nes_ppu.cycle();
@@ -159,17 +135,38 @@ int main(int argc, char *argv[])
 			nes_cpu.cycle();
 
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
-				//std::cout << "CPU cycle: " << nes_cpu.debug_get_cycle_count() << std::endl;
 				single_cycle = false;
 			}
 
-			if (run_mode && (/*nes_tests_error_code_found == true ||*/ nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {  // alternaitvely, nes_cpu.get_program_counter() == halt_at_pc || 
+			if (run_mode && (nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {   
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
 				single_cycle = true; // get this up to the next cycle
-				//nes_tests_error_code_found = false; // allows you to continue execution if you choose. 
 			}	
 		}
+
+		if (!run_mode && nes_cpu.finished_instruction()) {				
+			// clear the screen
+			SDL_RenderClear(renderer); 		
+
+			//draw the game area placeholder
+			placeholder_game_area_rect.draw();					
+			// only update the debug displays if not in run mode and instruction has finished, saving us many re-displays
+
+			// draw the debug emulator status displays
+			debug_instr_trace.display_contents();	
+			debug_processor_status.display_contents();
+			debug_ram_display.display_contents();
+			debug_rom_display.display_contents(); 	
+			debug_memory_peek.display_contents();
+			debug_pattern_table.display_contents();					
+
+			// update the display with new info from renderer
+			SDL_RenderPresent(renderer);	
+
+			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
+			//SDL_Delay(16); 
+		}		
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
@@ -212,8 +209,9 @@ int main(int argc, char *argv[])
 						break;
 
 					case SDLK_SPACE:	// Single cycle through CPU
-						if (!run_mode)  // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
-						single_cycle = true;
+						if (!run_mode) { // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
+							single_cycle = true;
+						}
 						break;
 
 					case SDLK_DELETE:		// RESET CPU and RAM

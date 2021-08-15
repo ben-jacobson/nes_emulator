@@ -129,4 +129,5 @@ void ppu::vertical_blank(void) {
 void ppu::increment_video_memory_address(void) {
     // PPUCTRL register is read, and bit 3 determines if we increment by 1 (going x) or 32 (incrementing our y)
     _video_memory_address += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
+    _ppu_bus_ptr->set_address(_video_memory_address); 
 }
