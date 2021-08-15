@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 	// Some font objects
 	uint8_t font_size = 14; 
 	std::string font_fullpath = (std::string)base_path;
-	font_fullpath.append("C64_Pro_Mono-STYLE.ttf"); 
+	font_fullpath.append("C64_Pro_Mono-STYLE.ttf"); 	
 
 	// set up our instruction trace logger
 	std::string log_fullpath = (std::string)base_path;
@@ -221,12 +221,14 @@ int main(int argc, char *argv[])
 					case SDLK_TAB:	// Enter memory peek mode
 						SDL_StartTextInput();
 						cpu_memory_peek_text_input.activate();
+						ppu_memory_peek_text_input.deactivate();
 						debug_cpu_memory_peek.activate_cursor();	
 						break;
 
 					case SDLK_F1:	// Enter memory peek mode
 						SDL_StartTextInput();
 						ppu_memory_peek_text_input.activate();
+						cpu_memory_peek_text_input.deactivate();
 						debug_ppu_memory_peek.activate_cursor();	
 						break;
 
@@ -282,8 +284,8 @@ int main(int argc, char *argv[])
 
 					if (cpu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
 						debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());							
-						SDL_StopTextInput();
 						cpu_memory_peek_text_input.deactivate();
+						SDL_StopTextInput();
 					}
 				}
 				if (ppu_memory_peek_text_input.input_active()) {
@@ -291,8 +293,8 @@ int main(int argc, char *argv[])
 
 					if (ppu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
 						debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());							
+						ppu_memory_peek_text_input.deactivate();
 						SDL_StopTextInput();
-						cpu_memory_peek_text_input.deactivate();
 					}
 				}				
 			}
