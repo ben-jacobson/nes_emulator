@@ -92,7 +92,7 @@ void cpu::reset(void) {
     _status_flags_reg.i = 1;    // interrupt mask is set (IRQ disabled on reset)
     _status_flags_reg.d = 0;   
     _status_flags_reg.b = 0;    
-    _status_flags_reg.u = 0;    
+    _status_flags_reg.u = 1;    // unused flag is always set to 1 and never cleared
     _status_flags_reg.v = 0;  
     _status_flags_reg.n = 0;  
 

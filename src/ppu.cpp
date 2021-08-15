@@ -5,12 +5,45 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     _ppu_bus_ptr = ppu_bus_ptr;
     _cpu_ptr = cpu_ptr;
 
+    _colour_depth = 4; 
+    _raw_pixel_data.resize(FRAME_WIDTH * FRAME_HEIGHT * _colour_depth); 
+
     reset();
 }
 
 void ppu::cycle(void) {
-    // draw pixel by pixel to output
-    vertical_blank();
+    // clock out pixel by pixel to output buffer
+    x_pos++;
+    
+    // draw a pixel from pattern table (background) if rendering is enabled
+    if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND)) {
+        // todo
+    }
+
+    // draw a pixel from the OAM table (sprites) if rendering is enabled
+    if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES)) {
+        // todo
+    }
+
+    if (x_pos > PIXELS_PER_SCANLINE) {
+        x_pos = 0;
+        y_pos++;
+
+        if (y_pos > SCANLINES_PER_FRAME) {
+            y_pos = 0;
+        }
+    }
+
+    // x:1 y:241 is when vertical blank is set
+    if (y_pos == 241 && x_pos == 1) {
+        vertical_blank();
+    }
+
+    // x:1 y:261 is when vertical blank is cleared
+    if (y_pos == 261 && x_pos == 1) {
+        // clear the VBlank bit, signifying that we are busy
+        _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
+    }
 }
 
 void ppu::reset(void) {
@@ -33,6 +66,9 @@ void ppu::reset(void) {
 
     // set the vertical blank bit to 1, indicating the PPU is busy
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
+
+    x_pos = 0;
+    y_pos = 0;
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -121,13 +157,21 @@ void ppu::vertical_blank(void) {
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);
 
     // trigger the NMI if that PPUCTRL register was set
-    /*if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
+    if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
         trigger_cpu_NMI(); // temporarily disabling as this is causing an odd bug while the rest of the implementation isn't switched on. We'll come back to this when the rest of the code is fully implemented
-    }*/
+    }
 }
 
 void ppu::increment_video_memory_address(void) {
     // PPUCTRL register is read, and bit 3 determines if we increment by 1 (going x) or 32 (incrementing our y)
     _video_memory_address += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
     _ppu_bus_ptr->set_address(_video_memory_address); 
+}
+
+uint16_t ppu::get_x(void) {
+    return x_pos;
+}
+
+uint16_t ppu::get_y(void) {
+    return y_pos;
 }

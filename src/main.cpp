@@ -84,8 +84,9 @@ int main(int argc, char *argv[])
 		else {
 			std::cout << "Successfully loaded " << rom_fullpath << std::endl;
 		}
-		//nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
-		//std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
+		
+		nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
+		std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
 	}
 	
 	// Init SDL
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
 	instr_trace_graphics debug_instr_trace(&instruction_trace_log, renderer, font_fullpath.c_str(), font_size, 0, 520);
 	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
 	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
-	processor_status_graphics debug_processor_status(&nes_cpu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
+	processor_status_graphics debug_processor_status(&nes_cpu, &nes_ppu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
 	memory_peek_graphics debug_cpu_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, "CPU Mem Peek", 20 + 512 + 20, 25 + (25 * font_size)); 
 	memory_peek_graphics debug_ppu_memory_peek(&nes_ppu_bus, renderer, font_fullpath.c_str(), font_size, "PPU Mem Peek", 20 + 512 + 20, 25 + (26 * font_size)); 
 	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (29 * font_size));
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0xDA83; // 0x0000 will disable this behaviour
 	bool update_display = true;
 
 	while (!quit) { // main application running loop

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 
 #include "bus.h"
 #include "bus_device.h"
@@ -32,6 +33,22 @@ constexpr uint8_t PPUSTATUS_SPRITE_OVERFLOW			= 5;
 constexpr uint8_t PPUSTATUS_SPRITE_ZERO_HIT			= 6; 
 constexpr uint8_t PPUSTATUS_VERTICAL_BLANK			= 7; 
 
+// PPUMASK flag bits
+constexpr uint8_t PPUMASK_SHOWLEFT_SPRITES			= 3; 
+constexpr uint8_t PPUMASK_SHOW_BACKGROUND			= 4; 
+constexpr uint8_t PPUMASK_SHOW_SPRITES				= 5; 
+constexpr uint8_t PPUMASK_EMPHASISE_RED				= 5; 
+constexpr uint8_t PPUMASK_EMPHASISE_GREEN			= 6; 
+constexpr uint8_t PPUMASK_EMPHASISE_BLUE			= 7; 
+
+
+// details about rendering surface
+constexpr uint16_t FRAME_WIDTH						= 256;
+constexpr uint16_t FRAME_HEIGHT						= 240;
+constexpr uint16_t PIXELS_PER_SCANLINE				= 340;
+constexpr uint16_t SCANLINES_PER_FRAME				= 262;
+constexpr uint16_t VISIBLE_SCANLINES				= FRAME_HEIGHT;
+
 class ppu : public bus_device
 {
 public:
@@ -50,6 +67,9 @@ public:
 	uint16_t get_video_memory_address(void);
 	bool get_address_latch(void);
 	bool get_vertical_blank(void);
+
+	uint16_t get_x(void);
+	uint16_t get_y(void);
 
 	// our NTSC Palette is stored internally to the device, at some point in the future it might be good to load a .pal file for this. 
 	const std::array <std::array<uint8_t, 3>, 64> NTSC_PALETTE = {{	
@@ -139,4 +159,8 @@ private:
 	bool _address_latch, _addr_second_write, _scroll_second_write;
 
 	void increment_video_memory_address(void);
+
+	uint16_t x_pos, y_pos; 
+    std::vector<uint8_t> _raw_pixel_data;
+	uint8_t _colour_depth; 
 };

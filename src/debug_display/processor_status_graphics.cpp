@@ -1,9 +1,11 @@
 #include "processor_status_graphics.h"
 
-processor_status_graphics::processor_status_graphics(cpu* cpu_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y)
+processor_status_graphics::processor_status_graphics(cpu* cpu_ptr, ppu* ppu_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, uint16_t preset_display_x, uint16_t preset_display_y)
     : status_graphics(renderer, font_filename, ptsize)
 {
     _cpu_ptr = cpu_ptr;
+    _ppu_ptr = ppu_ptr;
+
     _preset_display_x = preset_display_x;
     _preset_display_y = preset_display_y;
 }
@@ -44,6 +46,7 @@ void processor_status_graphics::display_contents(void) {
     draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 5));
 
     register_values = std::stringstream();
-    register_values << "Cycles: " << _cpu_ptr->debug_get_cycle_count();
-    draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 6));
+    register_values << "Cycles: " << _cpu_ptr->debug_get_cycle_count() << ". ";
+    register_values << "PPU: " << _ppu_ptr->get_y() << ", " << _ppu_ptr->get_x();
+    draw_to_buffer(register_values.str(), _preset_display_x, _preset_display_y + (_font_height * 6));    
 }
