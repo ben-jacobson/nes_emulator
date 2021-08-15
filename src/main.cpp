@@ -65,8 +65,6 @@ int main(int argc, char *argv[])
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, nametable_2_memory._read_function_ptr, nametable_2_memory._write_function_ptr);
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, nametable_3_memory._read_function_ptr, nametable_3_memory._write_function_ptr);
 
-
-
 	// Check to see if we can load a ROM from argc
 	if (argc < 2) {
 		std::cout << "No ROM file specified in argument, loading default test code" << std::endl;
@@ -85,8 +83,8 @@ int main(int argc, char *argv[])
 			std::cout << "Successfully loaded " << rom_fullpath << std::endl;
 		}
 		
-		nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
-		std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
+		//nes_cart.load_content_from_stream("00 C0", RESET_VECTOR_LOW); // while using nestests, we want to overwrite the reset vector to start the program elsewhere
+		//std::cout << "Reset vector altered to be 0xC000 for debugging purposes" << std::endl;
 	}
 	
 	// Init SDL
@@ -143,7 +141,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xDA83; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
 	bool update_display = true;
 
 	while (!quit) { // main application running loop
