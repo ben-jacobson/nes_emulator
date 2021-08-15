@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xC2E2; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
 	bool update_display = true;
 
 	while (!quit) { // main application running loop
@@ -234,9 +234,11 @@ int main(int argc, char *argv[])
 						if (SDL_IsTextInputActive()) {
 							if (cpu_memory_peek_text_input.input_active()) {
 								debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+								cpu_memory_peek_text_input.deactivate();
 							}
 							if (ppu_memory_peek_text_input.input_active()) {
 								debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+								ppu_memory_peek_text_input.deactivate();
 							}
 							SDL_StopTextInput();
 						}
@@ -281,6 +283,7 @@ int main(int argc, char *argv[])
 					if (cpu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
 						debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());							
 						SDL_StopTextInput();
+						cpu_memory_peek_text_input.deactivate();
 					}
 				}
 				if (ppu_memory_peek_text_input.input_active()) {
@@ -289,6 +292,7 @@ int main(int argc, char *argv[])
 					if (ppu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
 						debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());							
 						SDL_StopTextInput();
+						cpu_memory_peek_text_input.deactivate();
 					}
 				}				
 			}
