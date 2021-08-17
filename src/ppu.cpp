@@ -43,21 +43,27 @@ void ppu::cycle(void) {
         uint8_t palette_index = pattern_pixel; // TODO!
 
         // calculate an xy index from the scanline and clock
-        uint16_t pixel_index = scanline_y * FRAME_WIDTH + clock_pulse_x;        
+        uint32_t pixel_index = (FRAME_WIDTH * 4 * scanline_y) + (clock_pulse_x * 4);        
+
+        uint8_t static_snow = rand() % 255;
+        _raw_pixel_data[pixel_index + 0] = static_snow;
+        _raw_pixel_data[pixel_index + 1] = static_snow;
+        _raw_pixel_data[pixel_index + 2] = static_snow;                      
+        _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;  
 
         // draw a pixel from pattern table (background) if rendering is enabled
-        //if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {   
+        /*if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {   
             // look up the colour index from the NTSC palette and add to the rax pixel data
             _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_index][R];
             _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[palette_index][G];
             _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_index][B];                      
             _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;            
-        //}
+        }
 
         // draw a pixel from the OAM table (sprites) if rendering is enabled
         if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {
             // todo
-        }
+        }*/             
     }
 
     if (clock_pulse_x >= PIXELS_PER_SCANLINE) {

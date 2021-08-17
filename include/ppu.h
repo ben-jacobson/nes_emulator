@@ -46,7 +46,7 @@ constexpr uint8_t PPUMASK_EMPHASISE_BLUE			= 7;
 // details about rendering surface
 constexpr uint16_t FRAME_WIDTH						= 256;
 constexpr uint16_t FRAME_HEIGHT						= 240;
-constexpr uint16_t FRAME_ARRAY_SIZE					= FRAME_WIDTH * FRAME_HEIGHT;
+constexpr uint32_t FRAME_ARRAY_SIZE					= FRAME_WIDTH * FRAME_HEIGHT;	// this can fit into a 16 bit int, but just for safety in case our scaling screws this up
 constexpr uint16_t PIXELS_PER_SCANLINE				= 341;
 constexpr uint16_t SCANLINES_PER_FRAME				= 262;
 constexpr uint16_t VISIBLE_SCANLINES				= FRAME_HEIGHT;
