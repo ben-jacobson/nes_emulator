@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <vector>
 
+#include <SDL2/SDL.h>
+
 #include "bus.h"
 #include "bus_device.h"
 #include "cpu.h"
@@ -41,13 +43,21 @@ constexpr uint8_t PPUMASK_EMPHASISE_RED				= 5;
 constexpr uint8_t PPUMASK_EMPHASISE_GREEN			= 6; 
 constexpr uint8_t PPUMASK_EMPHASISE_BLUE			= 7; 
 
-
 // details about rendering surface
 constexpr uint16_t FRAME_WIDTH						= 256;
 constexpr uint16_t FRAME_HEIGHT						= 240;
-constexpr uint16_t PIXELS_PER_SCANLINE				= 340;
+constexpr uint16_t FRAME_ARRAY_SIZE					= FRAME_WIDTH * FRAME_HEIGHT;
+constexpr uint16_t PIXELS_PER_SCANLINE				= 341;
 constexpr uint16_t SCANLINES_PER_FRAME				= 262;
 constexpr uint16_t VISIBLE_SCANLINES				= FRAME_HEIGHT;
+
+constexpr uint8_t NAMETABLE_WIDTH					= 32;
+constexpr uint8_t NAMETABLE_HEIGHT					= 30;	
+constexpr uint8_t SPRITE_HEIGHT						= 8;		// tile width is variable, 8 or 16 px and is stored as a member variable
+
+constexpr uint8_t R = 0;
+constexpr uint8_t G = 1;
+constexpr uint8_t B = 2;
 
 class ppu : public bus_device
 {
@@ -70,6 +80,7 @@ public:
 
 	uint16_t get_x(void);
 	uint16_t get_y(void);
+	unsigned long get_frame_count(void);
 
 	// our NTSC Palette is stored internally to the device, at some point in the future it might be good to load a .pal file for this. 
 	const std::array <std::array<uint8_t, 3>, 64> NTSC_PALETTE = {{	
@@ -139,6 +150,8 @@ public:
 		{0, 0, 0}
 	}}; 		   
 
+    std::vector<uint8_t> _raw_pixel_data;
+
 private:
 	//std::array <uint16_t, 9> ADDRESS_PORTS = {PPUCTRL, PPUMASK, PPUSTATUS, OAMADDR, OAMDATA, PPUSCROLL, PPUADDR, PPUDATA, OAMDMA};
 
@@ -160,7 +173,11 @@ private:
 
 	void increment_video_memory_address(void);
 
-	uint16_t x_pos, y_pos; 
-    std::vector<uint8_t> _raw_pixel_data;
+	int scanline_y;
+	uint16_t clock_pulse_x;
+
 	uint8_t _colour_depth; 
+	uint8_t _sprite_width; 
+
+	unsigned long _frame_count; 
 };

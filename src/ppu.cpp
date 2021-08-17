@@ -6,41 +6,77 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     _cpu_ptr = cpu_ptr;
 
     _colour_depth = 4; 
-    _raw_pixel_data.resize(FRAME_WIDTH * FRAME_HEIGHT * _colour_depth); 
+    _raw_pixel_data.resize(FRAME_ARRAY_SIZE * _colour_depth); 
 
     reset();
+
+    _frame_count = 0;
 }
 
 void ppu::cycle(void) {
     // clock out pixel by pixel to output buffer
-    x_pos++;
+    clock_pulse_x++;
     
-    // draw a pixel from pattern table (background) if rendering is enabled
-    if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND)) {
-        // todo
+    // rendering area
+    if (/*clock_pulse_x >= 0 &&*/ clock_pulse_x <= FRAME_WIDTH && scanline_y >= 0 && scanline_y <= FRAME_HEIGHT) {
+        // boil down the scanline and clock to the x and y of the pattern table, also the individual x position within the sprite itself. 
+        uint8_t pattern_table_index_x = clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
+        uint8_t pattern_table_index_y = scanline_y / SPRITE_HEIGHT;            
+        uint8_t sprite_pixel_index_x = _sprite_width - (clock_pulse_x % _sprite_width);  // need to offset by sprite width as we read MSB
+        // We don't need the y position as we will load the entire row
+
+        // calculate the address within the pattern table
+        uint8_t pattern_table_address = (pattern_table_index_y * NAMETABLE_WIDTH) + pattern_table_index_x;
+        _ppu_bus_ptr->set_address(pattern_table_address);
+        // read the row data from the pattern table
+        uint8_t row_data_plane_0 = _ppu_bus_ptr->read_data(); 
+
+        _ppu_bus_ptr->set_address(pattern_table_address + 8);
+        uint8_t row_data_plane_1 = _ppu_bus_ptr->read_data(); 
+
+        // extract the bit from the pattern table, in plane 0 and 1, 
+        uint8_t plane_0_bit = ((1 << sprite_pixel_index_x) & row_data_plane_0) >> sprite_pixel_index_x;
+        uint8_t plane_1_bit = ((1 << sprite_pixel_index_x) & row_data_plane_1) >> sprite_pixel_index_x;
+
+        // get the pixel pattern and generate a colour index from it.
+        uint8_t pattern_pixel = (plane_0_bit << 1) & plane_1_bit;
+        uint8_t palette_index = pattern_pixel; // TODO!
+
+        // calculate an xy index from the scanline and clock
+        uint16_t pixel_index = scanline_y * FRAME_WIDTH + clock_pulse_x;        
+
+        // draw a pixel from pattern table (background) if rendering is enabled
+        //if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {   
+            // look up the colour index from the NTSC palette and add to the rax pixel data
+            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_index][R];
+            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[palette_index][G];
+            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_index][B];                      
+            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;            
+        //}
+
+        // draw a pixel from the OAM table (sprites) if rendering is enabled
+        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {
+            // todo
+        }
     }
 
-    // draw a pixel from the OAM table (sprites) if rendering is enabled
-    if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES)) {
-        // todo
-    }
-
-    if (x_pos > PIXELS_PER_SCANLINE) {
-        x_pos = 0;
-        y_pos++;
-
-        if (y_pos > SCANLINES_PER_FRAME) {
-            y_pos = 0;
+    if (clock_pulse_x >= PIXELS_PER_SCANLINE) {
+        clock_pulse_x = 0;
+        scanline_y++;
+        
+        if (scanline_y >= SCANLINES_PER_FRAME) {
+            scanline_y = -1;
+            _frame_count++; // indicate a completed frame (at least the visible portion)
         }
     }
 
     // x:1 y:241 is when vertical blank is set
-    if (y_pos == 241 && x_pos == 1) {
+    if (scanline_y == 241 && clock_pulse_x == 1) {
         vertical_blank();
     }
 
     // x:1 y:261 is when vertical blank is cleared
-    if (y_pos == 261 && x_pos == 1) {
+    if (scanline_y == 261 && clock_pulse_x == 1) {
         // clear the VBlank bit, signifying that we are busy
         _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
     }
@@ -67,8 +103,10 @@ void ppu::reset(void) {
     // set the vertical blank bit to 1, indicating the PPU is busy
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
 
-    x_pos = 0;
-    y_pos = 0;
+    scanline_y = 0;
+    clock_pulse_x = 0;
+
+    _sprite_width = 8; // we'll default to 8x wide for safety, but updating PPUCTRL will overwrite this
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -108,6 +146,7 @@ void ppu::write(uint16_t address, uint8_t data) {
         // not all of these ports have write access  
         case PPUCTRL:
             _PPU_control_register = data;
+            _sprite_width = (check_bit(_PPU_control_register, PPUCTRL_SPRITE_SIZE) == 0 ? 8 : 16); // update the sprite width
             break;
         case PPUMASK:
             _PPU_mask_register = data;
@@ -169,9 +208,13 @@ void ppu::increment_video_memory_address(void) {
 }
 
 uint16_t ppu::get_x(void) {
-    return x_pos;
+    return clock_pulse_x;
 }
 
 uint16_t ppu::get_y(void) {
-    return y_pos;
+    return scanline_y;
+}
+
+unsigned long ppu::get_frame_count(void) {
+    return _frame_count;
 }

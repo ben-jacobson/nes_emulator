@@ -6,10 +6,6 @@
 #include "bus.h"
 #include "ppu.h"
 
-constexpr uint8_t R = 0;
-constexpr uint8_t G = 1;
-constexpr uint8_t B = 2;
-
 class pattern_table_preview
 {
 public:
