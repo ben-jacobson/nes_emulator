@@ -134,13 +134,13 @@ uint8_t ppu::read(uint16_t address) {
             _address_latch = true;  // allow PPUADDRESS and PPUSCROLL to start their 2x write process
             data = _PPU_status_register; 
             _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
-
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
             break;
         case OAMDATA:
             data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
+            //_ppu_bus_ptr->set_address(_video_memory_address); // may need this later? seems to cause an issue with debug displays
             data = _ppu_bus_ptr->read_data();       // we rely on setting the address via PPUADDR writes, it's possible to get junk data from this if you just go straight for the read
             increment_video_memory_address();           
             break;
