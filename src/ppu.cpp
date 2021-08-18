@@ -33,9 +33,9 @@ void ppu::cycle(void) {
         // We don't need the y position as we will load the entire row
 
         // read the row data from the pattern table
-        _ppu_bus_ptr->set_address(pattern_address + pattern_table_row_y_index);
+        _ppu_bus_ptr->set_address((pattern_address * 8) + pattern_table_row_y_index);
         uint8_t row_data_plane_0 = _ppu_bus_ptr->read_data(); 
-        _ppu_bus_ptr->set_address(pattern_address + pattern_table_row_y_index + 8);
+        _ppu_bus_ptr->set_address((pattern_address * 8) + pattern_table_row_y_index + 8);
         uint8_t row_data_plane_1 = _ppu_bus_ptr->read_data(); 
 
         // extract the bit from the pattern table, in plane 0 and 1, 
