@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);	
 
-			/*std::cout << std::endl << std::endl; // delete me, output nametable to device
+			std::cout << std::endl << std::endl; // delete me, output nametable to device
 
 			for (uint16_t i = 0; i < (NAMETABLE_WIDTH * NAMETABLE_HEIGHT); i++)	{
 				std::cout << std::hex << (uint16_t)nes_ppu_bus.debug_read_data(0x2000 + i) << ",";
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 				if (i > 0 && i % NAMETABLE_WIDTH == 0) {
 					std::cout << std::endl;
 				}
-			}*/		
+			}
 		}
 	
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 

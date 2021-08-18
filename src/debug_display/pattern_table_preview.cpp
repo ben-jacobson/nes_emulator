@@ -60,7 +60,7 @@ void pattern_table_preview::get_pattern(uint16_t address) {
             plane_1_bit = ((1 << j) & row_data_plane_1) >> j;
             _last_pattern_retrieved[(i * 8) + (8 - j - 1)] = plane_0_bit | (plane_1_bit << 1);  // place them in MSB order
         }
-    }   
+    }      
 }
 
 void pattern_table_preview::clear_pixel_data(void) {
