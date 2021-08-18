@@ -201,18 +201,26 @@ int main(int argc, char *argv[])
 
 		if (frame_count != nes_ppu.get_frame_count()) {
 			// clear the screen
-			SDL_RenderClear(renderer);
 						
 			frame_count = nes_ppu.get_frame_count();
 			// draw the main screen
 			display_output.draw();	
 
 			// update the display with new info from renderer
-			SDL_RenderPresent(renderer);				
+			SDL_RenderPresent(renderer);	
+
+			std::cout << std::endl << std::endl;
+
+			for (uint16_t i = 0; i < (NAMETABLE_WIDTH * NAMETABLE_HEIGHT); i++)	{
+				nes_ppu_bus.set_address(0x2000 + i);
+				std::cout << std::hex << (uint16_t)nes_ppu_bus.read_data() << ",";
+
+				if (i > 0 && i % NAMETABLE_WIDTH == 0) {
+					std::cout << std::endl;
+				}
+			}		
 		}
 	
-	
-
 		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 		//SDL_Delay(16); 
 		
