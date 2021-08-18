@@ -173,7 +173,6 @@ void ppu::write(uint16_t address, uint8_t data) {
                 if (_addr_second_write) {
                     _video_memory_address = _ppu_addr_temp_register << 8;   // shift the upper 8 bits into position
                     _video_memory_address |= data;                     // read the lower 8 bits on the second read
-                    _ppu_bus_ptr->set_address(_video_memory_address); 
                     _addr_second_write = false;         // reset back to default
                 }
                 else {
@@ -183,7 +182,8 @@ void ppu::write(uint16_t address, uint8_t data) {
             }
             break;              
         case PPUDATA:
-            _ppu_bus_ptr->write_data(data);     // we rely on setting the address via PPUADDR writes, it's possible to write junk data to this if you just go straight for the write
+            _ppu_bus_ptr->set_address(_video_memory_address); 
+            _ppu_bus_ptr->write_data(data);     
             increment_video_memory_address();
             break;            
     }  
