@@ -27,47 +27,46 @@ void ppu::cycle(void) {
         _ppu_bus_ptr->set_address(NAMETABLE_0_START + nametable_index_offset);
         uint8_t pattern_address = _ppu_bus_ptr->read_data();
 
-        // boil down the scanline and clock to the x and y within the pattern table,
-        uint8_t sprite_pixel_index_x = _sprite_width - (clock_pulse_x % _sprite_width);  // need to offset by sprite width as we read MSB
+        // boil down the scanline and clock to the x and y within the tile,
+        uint8_t pattern_table_row_x_index = _sprite_width - (clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
+        uint8_t pattern_table_row_y_index = scanline_y % SPRITE_HEIGHT;
         // We don't need the y position as we will load the entire row
 
-        _ppu_bus_ptr->set_address(pattern_address);
         // read the row data from the pattern table
+        _ppu_bus_ptr->set_address(pattern_address + pattern_table_row_y_index);
         uint8_t row_data_plane_0 = _ppu_bus_ptr->read_data(); 
-
-        _ppu_bus_ptr->set_address(pattern_address + 8);
+        _ppu_bus_ptr->set_address(pattern_address + pattern_table_row_y_index + 8);
         uint8_t row_data_plane_1 = _ppu_bus_ptr->read_data(); 
 
         // extract the bit from the pattern table, in plane 0 and 1, 
-        uint8_t plane_0_bit = ((1 << sprite_pixel_index_x) & row_data_plane_0) >> sprite_pixel_index_x;
-        uint8_t plane_1_bit = ((1 << sprite_pixel_index_x) & row_data_plane_1) >> sprite_pixel_index_x;
+        uint8_t plane_0_bit = (row_data_plane_0 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+        uint8_t plane_1_bit = (row_data_plane_1 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
 
         // get the pixel pattern and generate a colour index from it.
-        uint8_t pattern_pixel = (plane_0_bit << 1) & plane_1_bit;
-        uint8_t palette_index = pattern_pixel; // TODO!
+        uint8_t pattern_pixel = plane_0_bit | (plane_1_bit << 1);
+        uint8_t palette_index = (plane_0_bit == 0 ? 0 : 255); // TODO!
 
         // calculate an xy index from the scanline and clock
         uint32_t pixel_index = (FRAME_WIDTH * 4 * scanline_y) + (clock_pulse_x * 4);        
 
-        /*uint8_t static_snow = rand() % 255;
-        _raw_pixel_data[pixel_index + 0] = static_snow;
-        _raw_pixel_data[pixel_index + 1] = static_snow;
-        _raw_pixel_data[pixel_index + 2] = static_snow;                      
-        _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;   */ 
-
         // draw a pixel from pattern table (background) if rendering is enabled
         if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {   
             // look up the colour index from the NTSC palette and add to the rax pixel data
-            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_index][R];
+            /*_raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_index][B];
             _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[palette_index][G];
-            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_index][B];                      
-            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;            
+            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_index][R];                      
+            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;            */
         }
+
+        _raw_pixel_data[pixel_index + 0] = palette_index;       // Blue
+        _raw_pixel_data[pixel_index + 1] = palette_index;     // Green
+        _raw_pixel_data[pixel_index + 2] = palette_index;       // Red       
+        _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;              
 
         // draw a pixel from the OAM table (sprites) if rendering is enabled
         if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {
             // todo
-        }          
+        } 
     }
 
     if (clock_pulse_x >= PIXELS_PER_SCANLINE) {

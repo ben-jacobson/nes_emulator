@@ -89,9 +89,9 @@ void pattern_table_preview::convert_last_pattern_to_pixel_data(uint16_t x, uint1
             _pixel_data[offset + 1] = G_values[_last_pattern_retrieved[i]];
             _pixel_data[offset + 2] = B_values[_last_pattern_retrieved[i]];*/
 
-            _pixel_data[offset + 0] = _palette_selected[_last_pattern_retrieved[i]][R];
+            _pixel_data[offset + 0] = _palette_selected[_last_pattern_retrieved[i]][B];
             _pixel_data[offset + 1] = _palette_selected[_last_pattern_retrieved[i]][G];
-            _pixel_data[offset + 2] = _palette_selected[_last_pattern_retrieved[i]][B];            
+            _pixel_data[offset + 2] = _palette_selected[_last_pattern_retrieved[i]][R];            
             _pixel_data[offset + 3] = SDL_ALPHA_OPAQUE;
         }
         new_x++;
