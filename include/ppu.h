@@ -36,9 +36,10 @@ constexpr uint8_t PPUSTATUS_SPRITE_ZERO_HIT			= 6;
 constexpr uint8_t PPUSTATUS_VERTICAL_BLANK			= 7; 
 
 // PPUMASK flag bits
-constexpr uint8_t PPUMASK_SHOWLEFT_SPRITES			= 3; 
-constexpr uint8_t PPUMASK_SHOW_BACKGROUND			= 4; 
-constexpr uint8_t PPUMASK_SHOW_SPRITES				= 5; 
+constexpr uint8_t PPUMASK_SHOWLEFT_BACK				= 1; 
+constexpr uint8_t PPUMASK_SHOWLEFT_SPRITES			= 2; 
+constexpr uint8_t PPUMASK_SHOW_BACKGROUND			= 3; 
+constexpr uint8_t PPUMASK_SHOW_SPRITES				= 4; 
 constexpr uint8_t PPUMASK_EMPHASISE_RED				= 5; 
 constexpr uint8_t PPUMASK_EMPHASISE_GREEN			= 6; 
 constexpr uint8_t PPUMASK_EMPHASISE_BLUE			= 7; 

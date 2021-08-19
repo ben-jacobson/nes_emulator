@@ -45,27 +45,22 @@ void ppu::cycle(void) {
 
         // get the pixel pattern and generate a colour index from it.
         uint8_t pattern_pixel = plane_0_bit | (plane_1_bit << 1);
-        uint8_t palette_index = (plane_0_bit == 0 ? 0 : 255); // TODO!
+        uint8_t palette_index = (pattern_pixel == 0 ? 0 : 255); // TODO!
 
         // calculate an xy index from the scanline and clock
         uint32_t pixel_index = (FRAME_WIDTH * 4 * scanline_y) + (clock_pulse_x * 4);        
 
         // draw a pixel from pattern table (background) if rendering is enabled
-        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {   
-            // look up the colour index from the NTSC palette and add to the rax pixel data
-            /*_raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_index][B];
-            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[palette_index][G];
-            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_index][R];                      
-            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;            */
+        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {   
+            // look up the colour index from the NTSC palette and add to the rax pixel dat
+            _raw_pixel_data[pixel_index + 0] = palette_index;       // Blue
+            _raw_pixel_data[pixel_index + 1] = palette_index;     // Green
+            _raw_pixel_data[pixel_index + 2] = palette_index;       // Red       
+            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;              
         }
 
-        _raw_pixel_data[pixel_index + 0] = palette_index;       // Blue
-        _raw_pixel_data[pixel_index + 1] = palette_index;     // Green
-        _raw_pixel_data[pixel_index + 2] = palette_index;       // Red       
-        _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;              
-
         // draw a pixel from the OAM table (sprites) if rendering is enabled
-        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES) && pixel_index + 3 <= FRAME_ARRAY_SIZE) {
+        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
             // todo
         } 
     }
