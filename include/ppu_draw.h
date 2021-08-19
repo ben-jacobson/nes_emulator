@@ -17,6 +17,6 @@ private:
 
 	SDL_Renderer* _renderer;
 	SDL_Surface* _surface; 
-	SDL_Rect _rect;
+	SDL_Rect _rect, _scaled_rect;
 	SDL_Texture* _texture;	
 };

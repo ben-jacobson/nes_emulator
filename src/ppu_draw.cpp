@@ -10,10 +10,15 @@ ppu_draw::ppu_draw(ppu* ppu_ptr, SDL_Renderer* renderer, uint16_t preset_display
     _preset_display_y = preset_display_y;   
     _pixel_scaling = pixel_scaling;
 
-    _rect.x = _preset_display_x;
-    _rect.y = _preset_display_y;
+    _rect.x = 0;
+    _rect.y = 0;
     _rect.w = FRAME_WIDTH;    
     _rect.h = FRAME_HEIGHT;	    
+
+    _scaled_rect.x = preset_display_x;
+    _scaled_rect.y = preset_display_y;
+    _scaled_rect.w = FRAME_WIDTH * _pixel_scaling;    
+    _scaled_rect.h = FRAME_HEIGHT * _pixel_scaling;
 
     // create the placeholder rectangle for when we eventually want to render some display
     _surface = SDL_CreateRGBSurface(0, _rect.w, _rect.h, 8, 0, 0, 0, 0); // 8 bit pixel depth, which is more than enough for what we need
@@ -36,5 +41,5 @@ ppu_draw::~ppu_draw() {
 
 void ppu_draw::draw(void) {
     SDL_UpdateTexture(_texture, NULL, _ppu_ptr->_raw_pixel_data.data(), _rect.w * 4);
-    SDL_RenderCopy(_renderer, _texture, NULL, &_rect);
+    SDL_RenderCopy(_renderer, _texture, &_rect, &_scaled_rect);
 }

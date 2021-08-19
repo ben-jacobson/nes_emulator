@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (29 * font_size));
 
 	// The main display object
-	ppu_draw display_output(&nes_ppu, renderer, 20, 20, 3);
+	ppu_draw display_output(&nes_ppu, renderer, 20, 20, 2);
 
 	// SDL event handler, including a keyboard event
 	SDL_Event event_handler; 
@@ -180,9 +180,6 @@ int main(int argc, char *argv[])
 		if (update_debug_display) {				
 			// clear the screen
 			SDL_RenderClear(renderer); 	
-
-			//draw the game area placeholder
-			placeholder_game_area_rect.draw();			
 
 			// draw the debug emulator status displays
 			debug_instr_trace.display_contents();	
