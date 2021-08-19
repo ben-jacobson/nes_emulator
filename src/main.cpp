@@ -20,6 +20,7 @@
 #include "ppu_draw.h"
 #include "ram.h"
 #include "cartridge.h"
+#include "apu_io.h"
 
 int main(int argc, char *argv[])
 {
@@ -39,8 +40,9 @@ int main(int argc, char *argv[])
 	bus nes_cpu_bus;
 	ram nes_ram(RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 	cartridge nes_cart(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
+	apu_io nes_apu_io(&nes_cpu_bus, APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END);
 	cpu nes_cpu(&nes_cpu_bus);  
-
+	
 	// register the devices that live on the bus
 	nes_cpu_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
@@ -177,7 +179,7 @@ int main(int argc, char *argv[])
 			// clear the screen
 			SDL_RenderClear(renderer); 	
 	
-				// draw the debug emulator status displays
+			// draw the debug emulator status displays
 			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
