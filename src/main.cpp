@@ -146,8 +146,8 @@ int main(int argc, char *argv[])
 	bool quit = false; 
 
 	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
-	bool update_debug_display = true;
 
+	unsigned long cycle_count = nes_cpu.debug_get_cycle_count();
 	unsigned long frame_count = nes_ppu.get_frame_count();
 
 	while (!quit) { // main application running loop
@@ -160,28 +160,30 @@ int main(int argc, char *argv[])
 			for (uint8_t i = 0; i < 3; i++) {
 				nes_ppu.cycle();
 			}
-
 			nes_cpu.cycle();
 
 			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
 				single_cycle = false;
-				update_debug_display = true;
 			}
 			
 			if (run_mode && (nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {   
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
-				update_debug_display = true;
 				single_cycle = true; // get this up to the next cycle before finishing run mode
 			}	
 		}			
 
-		// only update the debug displays if not in run mode and instruction has finished, saving us many re-displays
-		if (update_debug_display) {				
+		// if frame count has increased, update everything
+		if (frame_count != nes_ppu.get_frame_count() || single_cycle) {
+			// clear the screen
+						
+			frame_count = nes_ppu.get_frame_count();
+			// draw the main screen
+
 			// clear the screen
 			SDL_RenderClear(renderer); 	
-
-			// draw the debug emulator status displays
+	
+				// draw the debug emulator status displays
 			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
@@ -190,36 +192,15 @@ int main(int argc, char *argv[])
 			debug_ppu_memory_peek.display_contents();
 			debug_pattern_table.display_contents();		
 
+			display_output.draw();	
+			
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);			
-		}	
 
-		// NOTE! At the moment there's no way for both of these if statements to be true, debugging some timing issue, normally we wouldn't copy the render code like this
-
-		if (frame_count != nes_ppu.get_frame_count()) {
-			// clear the screen
-						
-			frame_count = nes_ppu.get_frame_count();
-			// draw the main screen
-			display_output.draw();	
-
-			// update the display with new info from renderer
-			SDL_RenderPresent(renderer);	
-
-			//std::cout << std::endl << std::endl; // delete me, output nametable to device
-
-			/*for (uint16_t i = 0; i < (NAMETABLE_WIDTH * NAMETABLE_HEIGHT); i++)	{
-				std::cout << std::hex << (uint16_t)nes_ppu_bus.debug_read_data(0x2000 + i) << ",";
-
-				if (i > 0 && i % NAMETABLE_WIDTH == 0) {
-					std::cout << std::endl;
-				}
-			}*/
+			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
+			//SDL_Delay(16); 
 		}
-	
-		// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
-		//SDL_Delay(16); 
-		
+
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
 
@@ -229,7 +210,6 @@ int main(int argc, char *argv[])
 		else if (keystates[SDL_SCANCODE_DOWN]) { // being a DPad, it's not possible to press up and down at the same time, either one or the other will be pressed
 			std::cout << "Down Key" << std::endl;
 		}
-
 		if (keystates[SDL_SCANCODE_LEFT]) {
 			std::cout << "Left Key" << std::endl;
 		}
@@ -274,7 +254,6 @@ int main(int argc, char *argv[])
 					case SDLK_F5: // Toggle run mode
 						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
 						run_mode = !run_mode; 
-						update_debug_display = !update_debug_display; // temporarily toggle the display so that it doesn't slow the emulator down
 						break;
 
 					case SDLK_SPACE:	// Single cycle through CPU
