@@ -46,7 +46,7 @@ bool cpu::finished_instruction(void) {
     return false;
 }
 
-uint16_t cpu::debug_get_cycle_count(void) {
+uint32_t cpu::debug_get_cycle_count(void) {
     return _cycle_count;
 }
 

@@ -146,9 +146,7 @@ int main(int argc, char *argv[])
 	bool quit = false; 
 
 	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
-
-	unsigned long cycle_count = nes_cpu.debug_get_cycle_count();
-	unsigned long frame_count = nes_ppu.get_frame_count();
+	bool frame_complete = false; 
 
 	while (!quit) { // main application running loop
 
@@ -171,15 +169,12 @@ int main(int argc, char *argv[])
 				run_mode = false;
 				single_cycle = true; // get this up to the next cycle before finishing run mode
 			}	
-		}			
+		}		
+
+		frame_complete = nes_ppu.get_frame_status();	
 
 		// if frame count has increased, update everything
-		if (frame_count != nes_ppu.get_frame_count() || single_cycle) {
-			// clear the screen
-						
-			frame_count = nes_ppu.get_frame_count();
-			// draw the main screen
-
+		if (frame_complete || single_cycle) {						
 			// clear the screen
 			SDL_RenderClear(renderer); 	
 	
@@ -192,8 +187,8 @@ int main(int argc, char *argv[])
 			debug_ppu_memory_peek.display_contents();
 			debug_pattern_table.display_contents();		
 
-			display_output.draw();	
-			
+			display_output.draw();				// draw the main screen
+
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);			
 

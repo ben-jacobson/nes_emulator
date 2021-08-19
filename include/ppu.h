@@ -80,8 +80,9 @@ public:
 	bool get_vertical_blank(void);
 
 	uint16_t get_x(void);
-	uint16_t get_y(void);
-	unsigned long get_frame_count(void);
+	int get_y(void);
+	uint32_t get_frame_count(void);
+	bool get_frame_status(void);
 
 	// our NTSC Palette is stored internally to the device, at some point in the future it might be good to load a .pal file for this. 
 	const std::array <std::array<uint8_t, 3>, 64> NTSC_PALETTE = {{	
@@ -174,11 +175,11 @@ private:
 
 	void increment_video_memory_address(void);
 
-	int scanline_y;
-	uint16_t clock_pulse_x;
+	int _scanline_y;
+	uint16_t _clock_pulse_x;
 
 	uint8_t _colour_depth; 
 	uint8_t _sprite_width; 
 
-	unsigned long _frame_count; 
+	uint32_t _frame_count; 
 };

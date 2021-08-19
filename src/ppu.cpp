@@ -15,13 +15,13 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
 
 void ppu::cycle(void) {
     // clock out pixel by pixel to output buffer
-    clock_pulse_x++;
+    _clock_pulse_x++;
     
     // rendering area
-    if (/*clock_pulse_x >= 0 &&*/ clock_pulse_x <= FRAME_WIDTH && scanline_y >= 0 && scanline_y <= FRAME_HEIGHT) {
+    if (/*clock_pulse_x >= 0 &&*/ _clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
         // boil down the scaline and clock to the tile on the nametable
-        uint16_t nametable_index_x = clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
-        uint16_t nametable_index_y = scanline_y / SPRITE_HEIGHT;            
+        uint16_t nametable_index_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
+        uint16_t nametable_index_y = _scanline_y / SPRITE_HEIGHT;            
         uint16_t nametable_index_offset = 0x2000 + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
 
         // grab the tile ID from the nametable
@@ -29,8 +29,8 @@ void ppu::cycle(void) {
         uint16_t pattern_address = _ppu_bus_ptr->read_data() << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020
 
         // boil down the scanline and clock to the x and y within the tile,
-        uint8_t pattern_table_row_x_index = _sprite_width - (clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
-        uint8_t pattern_table_row_y_index = scanline_y % SPRITE_HEIGHT;
+        uint8_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
+        uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
         // We don't need the y position as we will load the entire row
 
         // read the row data from the pattern table
@@ -48,7 +48,7 @@ void ppu::cycle(void) {
         uint8_t palette_index = (pattern_pixel == 0 ? 0 : 255); // TODO!
 
         // calculate an xy index from the scanline and clock
-        uint32_t pixel_index = (FRAME_WIDTH * 4 * scanline_y) + (clock_pulse_x * 4);        
+        uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
 
         // draw a pixel from pattern table (background) if rendering is enabled
         if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {   
@@ -65,23 +65,23 @@ void ppu::cycle(void) {
         } 
     }
 
-    if (clock_pulse_x >= PIXELS_PER_SCANLINE) {
-        clock_pulse_x = 0;
-        scanline_y++;
+    if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
+        _clock_pulse_x = 0;
+        _scanline_y++;
         
-        if (scanline_y >= SCANLINES_PER_FRAME) {
-            scanline_y = -1;
+        if (_scanline_y >= SCANLINES_PER_FRAME) {
+            _scanline_y = -1;
             _frame_count++; // indicate a completed frame (at least the visible portion)
         }
     }
 
     // x:1 y:241 is when vertical blank is set
-    if (scanline_y == 241 && clock_pulse_x == 1) {
+    if (_scanline_y == 241 && _clock_pulse_x == 1) {
         vertical_blank();
     }
 
     // x:1 y:261 is when vertical blank is cleared
-    if (scanline_y == 261 && clock_pulse_x == 1) {
+    if (_scanline_y == 261 && _clock_pulse_x == 1) {
         // clear the VBlank bit, signifying that we are busy
         _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
     }
@@ -108,8 +108,8 @@ void ppu::reset(void) {
     // set the vertical blank bit to 1, indicating the PPU is busy
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
 
-    scanline_y = 0;
-    clock_pulse_x = 0;
+    _scanline_y = 0;
+    _clock_pulse_x = 0;
 
     _sprite_width = 8; // we'll default to 8x wide for safety, but updating PPUCTRL will overwrite this
 }
@@ -213,13 +213,17 @@ void ppu::increment_video_memory_address(void) {
 }
 
 uint16_t ppu::get_x(void) {
-    return clock_pulse_x;
+    return _clock_pulse_x;
 }
 
-uint16_t ppu::get_y(void) {
-    return scanline_y;
+int ppu::get_y(void) {
+    return _scanline_y;
 }
 
-unsigned long ppu::get_frame_count(void) {
+uint32_t ppu::get_frame_count(void) {
     return _frame_count;
+}
+
+bool ppu::get_frame_status(void) {
+    return (_scanline_y == 0 && _clock_pulse_x == 0 ? true : false);
 }

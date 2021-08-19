@@ -54,7 +54,7 @@ public:
 	cpu(bus* bus_ptr);
 	~cpu();
 
-    uint16_t _cycle_count;
+    uint32_t _cycle_count;
 
     // opcode decoder struct
     opcode* _opcode_decoder_lookup;
@@ -66,7 +66,7 @@ public:
     bool NMI(void);     // non maskable interrupt
     //void fetch_opcode(void);    
 
-    uint16_t debug_get_cycle_count(void);
+    uint32_t debug_get_cycle_count(void);
     void debug_set_x_register(uint8_t data);
     void debug_set_y_register(uint8_t data);
     void debug_set_acc_register(uint8_t data);
