@@ -103,8 +103,6 @@ int main(int argc, char *argv[])
 	nes_cpu.reset();
 	nes_ppu.reset();
 
-	bool run_mode = false; // flag for whether or not code will run automatically, set to false since we want to manually step through instructions for a while. 
-	bool single_cycle = true; // set to true initially so as to cycle through the reset cycles
 	std::cout << "Emulation started. Keys:" << std::endl; 
 	std::cout << "  <Space> Execute next instruction in single step mode" << std::endl;  
 	std::cout << "  <F5> Toggle run, disabling single step mode" << std::endl;  
@@ -147,34 +145,35 @@ int main(int argc, char *argv[])
 
 	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
 	bool frame_complete = false; 
+	bool instruction_complete = false; 
+	bool run_mode = false; 
 
 	while (!quit) { // main application running loop
 
 		// process the PPU and CPU as needed by the user
-		if (run_mode || single_cycle) {
+		if (!instruction_complete) {
 			instruction_trace_log.update();
 
-			// the PPU cycles roughly three times for every cpu cycle.
+			// the PPU cycles three times for every cpu cycle.
 			for (uint8_t i = 0; i < 3; i++) {
 				nes_ppu.cycle();
 			}
 			nes_cpu.cycle();
 
-			if (!run_mode && nes_cpu.finished_instruction()) { // run the cpu until the instruction finishes
-				single_cycle = false;
-			}
-			
-			if (run_mode && (nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc)) {   
+			if (nes_cpu.finished_instruction() && !run_mode) { // run the cpu until the instruction finishes
+				instruction_complete = true;		// instruction complete is not allowed to be toggled if in run mode
+			}			
+
+			if (nes_cpu._hit_break == true || nes_cpu.get_program_counter() == halt_at_pc) {   
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
-				single_cycle = true; // get this up to the next cycle before finishing run mode
 			}	
 		}		
 
 		frame_complete = nes_ppu.get_frame_status();	
 
 		// if frame count has increased, update everything
-		if (frame_complete || single_cycle) {						
+		if (frame_complete || instruction_complete) {						
 			// clear the screen
 			SDL_RenderClear(renderer); 	
 	
@@ -249,11 +248,12 @@ int main(int argc, char *argv[])
 					case SDLK_F5: // Toggle run mode
 						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
 						run_mode = !run_mode; 
+						instruction_complete = false;
 						break;
 
 					case SDLK_SPACE:	// Single cycle through CPU
 						if (!run_mode) { // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
-							single_cycle = true;
+							instruction_complete = false; // prompt the cpu to complete it's next instruction
 						}
 						break;
 
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 						palette_ram.clear_ram();
 						nes_cpu.reset();
 						nes_ppu.reset();
-						single_cycle = true; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
+						instruction_complete = false; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 						std::cout << "CPU Reset" << std::endl;
 						break;
 
