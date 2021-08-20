@@ -40,12 +40,13 @@ int main(int argc, char *argv[])
 	bus nes_cpu_bus;
 	ram nes_ram(RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 	cartridge nes_cart(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
-	apu_io nes_apu_io(&nes_cpu_bus, APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END);
+	apu_io nes_apu_io(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END);
 	cpu nes_cpu(&nes_cpu_bus);  
 	
-	// register the devices that live on the bus
+	// register the devices that live on the bus TODO - Remove the need for mapping addresses, just pass a bus_device pointer and have the function figure the rest out. 
 	nes_cpu_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
+	nes_cpu_bus.register_new_bus_device(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END, nes_apu_io._read_function_ptr, nes_apu_io._write_function_ptr);
 
 	// initialize our PPU bus, pattern tables and name tables
 	bus nes_ppu_bus;
@@ -145,7 +146,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0xC5D3; // 0x0000 will disable this behaviour
 	bool frame_complete = false; 
 	bool instruction_complete = false; 
 	bool run_mode = false; 

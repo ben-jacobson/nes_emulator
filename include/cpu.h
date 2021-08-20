@@ -45,8 +45,6 @@ struct opcode {
     uint8_t cycles_needed;
 };
 
-uint8_t check_bit(uint8_t data, uint8_t bit);
-
 class cpu : public bus_device
 {
 public:

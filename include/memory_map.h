@@ -68,7 +68,7 @@ constexpr uint16_t PPU_MIRROR_SPACE_END         = 0x3FFF;
 
 // The two controllers sit in the APU IO space
 constexpr uint16_t PLAYER_ONE_CONTROLLER_REG    = 0x4016;
-constexpr uint16_t PLAYER_TWO_CONTROLLER_REG    = 0x4016;
+constexpr uint16_t PLAYER_TWO_CONTROLLER_REG    = 0x4017;
 
 /*
     PPU memory map - The PPU addresses a 16kB space, $0000-3FFF, completely separate from the CPU

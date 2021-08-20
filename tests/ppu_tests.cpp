@@ -103,9 +103,6 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - reading PPU status resets addres
     test_bus.write_data(0x3F);
     test_bus.set_address(PPUADDR); 
     test_bus.write_data(0x00);
-
-    result_addr = test_ppu_bus.read_address();
-    CHECK(result_addr == 0x3F00);   // we have not yet reset the address latch    
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port, write and read data", "[ppu]") {
@@ -135,13 +132,9 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port, write and
     test_bus.set_address(PPUADDR); 
     test_bus.write_data(0x00);
 
-    // check it on the bus
-    uint16_t result_addr = test_ppu_bus.read_address();
-    CHECK(result_addr == 0x3F00);   
-
     // and check it in the PPU vram memory address
     test_ppu_bus.set_address(0x0000); // this doesn't stay in sync necessarily. A bit like how the address doesn't have to be set by PC with the CPU
-    result_addr = test_ppu.get_video_memory_address();
+    uint16_t result_addr = test_ppu.get_video_memory_address();
     CHECK(result_addr == 0x3F00);   
 
     // Then test if we can write data and read it back via the PPU bus
@@ -164,10 +157,6 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port, write and
     test_bus.write_data(0x3F);
     test_bus.set_address(PPUADDR); 
     test_bus.write_data(0x00);
-
-    test_bus.set_address(PPUDATA);
-    result = test_bus.read_data();
-    CHECK(result == 0x1F);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ppu - read or write increments the video memory address", "[ppu]") {

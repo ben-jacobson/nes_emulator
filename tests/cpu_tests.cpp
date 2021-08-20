@@ -148,8 +148,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test reset", "[cpu]") {
     // resetting the CPU will set the program counter to the reset vector.
     CHECK(result_program_counter == 0xEEDD); // check that this copied into program counter
 
-    // unused status flag should be 0
-    CHECK(test_cpu.get_status_flags_struct().u == 0);
+    // IRQ status flag should be 1
+    CHECK(test_cpu.get_status_flags_struct().i == 1);
+
+    // unused status flag should be 1
+    CHECK(test_cpu.get_status_flags_struct().u == 1);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test IRQ", "[cpu]") { 
@@ -256,9 +259,9 @@ TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get stack pointer register 
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "cpu - Test get status flag register content getter", "[cpu]") {
-    test_cpu.reset(); // reset will go to the reset vector, in this instance will read 0x8000 and skip to that 
+    test_cpu.reset(); 
     uint8_t status_regs = test_cpu.get_status_flags();
-    uint8_t test_start_condition = (1 << IRQ_FLAG); // the only two flags set should be IRQ disable and unused
+    uint8_t test_start_condition = (1 << IRQ_FLAG) | (1 << UNUSED_FLAG); // the only two flags set should be IRQ disable and unused
     REQUIRE(status_regs == test_start_condition); 
 } 
 

@@ -18,3 +18,5 @@ public:
     virtual uint8_t read(uint16_t address) = 0;     // this is a pure virtual class now
     virtual void write(uint16_t address, uint8_t data) = 0;
 };
+
+uint8_t check_bit(uint8_t data, uint8_t bit);

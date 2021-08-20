@@ -8,10 +8,12 @@
 #include "ppu.h"
 #include "ram.h"
 #include "cartridge.h"
+#include "apu_io.h"
 
 extern bus test_bus, test_ppu_bus;
 extern cpu test_cpu; 
 extern ram test_ram;
+extern apu_io test_apu_io;
 extern cartridge test_cart;
 extern ppu test_ppu;
 extern ram test_palette_ram;
@@ -26,6 +28,7 @@ public:
         // register some test devices on the bus
         test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, test_ram._read_function_ptr, test_ram._write_function_ptr);    
         test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
+    	test_bus.register_new_bus_device(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END, test_apu_io._read_function_ptr, test_apu_io._write_function_ptr);
 
          // register the PPU to the CPU bus
         test_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, test_ppu._read_function_ptr, test_ppu._write_function_ptr);
