@@ -32,12 +32,18 @@ public:
 	void write(uint16_t address, uint8_t data) override;
 
 	void process_key(uint8_t player, uint8_t key, uint8_t state);
+
+	void debug_set_key_buffer(uint8_t player, uint8_t value);
+	uint8_t debug_get_key_buffer(uint8_t player);
+
 	void debug_set_key_register(uint8_t player, uint8_t value);
 	uint8_t debug_get_key_register(uint8_t player);
 
 private:
 	bus* _bus_ptr;
 
-	uint8_t controller_register_one, controller_register_two; // store the data at these registers to here. 
-	uint8_t _strobe; 
+	uint8_t controller_buffer_one, controller_buffer_two; // store the data at these registers to here. 
+	uint8_t controller_register_one, controller_register_two; // store the data at these registers to here when shifting out. 
+	uint8_t _strobe_count; 
+	bool _strobe_sequence;
 };
