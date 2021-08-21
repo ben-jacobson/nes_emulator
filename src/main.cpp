@@ -115,6 +115,13 @@ int main(int argc, char *argv[])
 	std::cout << "  <P> Switch palette in pattern table preview window" << std::endl;  
 	std::cout << "  <ESC> Quit" << std::endl;
 
+	std::cout << "Emulator controls:" << std::endl; 
+	std::cout << "  <UP/DOWN/LEFT/RIGHT> D-Pad controls" << std::endl;  
+	std::cout << "  <Z> A" << std::endl;  
+	std::cout << "  <X> B" << std::endl;  	
+	std::cout << "  <N> Sel" << std::endl;  
+	std::cout << "  <M> Start" << std::endl;  		
+
 	// Some font objects
 	uint8_t font_size = 14; 
 	std::string font_fullpath = (std::string)base_path;
@@ -146,7 +153,7 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0xC5D3; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
 	bool frame_complete = false; 
 	bool instruction_complete = false; 
 	bool run_mode = false; 
@@ -199,20 +206,16 @@ int main(int argc, char *argv[])
 		}
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
+		// SDL makes it quite easy for us, to handle this, we just process each key one at a time to load it into the internal shift register
 		const Uint8* keystates = SDL_GetKeyboardState(NULL);
-
-		if (keystates[SDL_SCANCODE_UP]) {
-			std::cout << "Up Key" << std::endl;
-		}
-		else if (keystates[SDL_SCANCODE_DOWN]) { // being a DPad, it's not possible to press up and down at the same time, either one or the other will be pressed
-			std::cout << "Down Key" << std::endl;
-		}
-		if (keystates[SDL_SCANCODE_LEFT]) {
-			std::cout << "Left Key" << std::endl;
-		}
-		else if (keystates[SDL_SCANCODE_RIGHT]) { // being a DPad, it's not possible to press left and right at the same time, either one or the other will be pressed
-			std::cout << "Right Key" << std::endl;
-		}
+		nes_apu_io.process_key(PLAYER_ONE, A_KEY, (1 - keystates[SDL_SCANCODE_Z]));		
+		nes_apu_io.process_key(PLAYER_ONE, B_KEY, (1 - keystates[SDL_SCANCODE_X]));		
+		nes_apu_io.process_key(PLAYER_ONE, SEL_KEY, (1 - keystates[SDL_SCANCODE_N]));				
+		nes_apu_io.process_key(PLAYER_ONE, START_KEY, (1 - keystates[SDL_SCANCODE_M]));		
+		nes_apu_io.process_key(PLAYER_ONE, UP_KEY, (1 - keystates[SDL_SCANCODE_UP]));
+		nes_apu_io.process_key(PLAYER_ONE, DOWN_KEY, (1 - keystates[SDL_SCANCODE_DOWN]));
+		nes_apu_io.process_key(PLAYER_ONE, LEFT_KEY, (1 - keystates[SDL_SCANCODE_LEFT]));		
+		nes_apu_io.process_key(PLAYER_ONE, RIGHT_KEY, (1 - keystates[SDL_SCANCODE_RIGHT]));		
 		
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
