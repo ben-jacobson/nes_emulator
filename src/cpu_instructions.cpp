@@ -350,16 +350,18 @@ uint8_t cpu::instr_PLP(void) {
 
 uint8_t cpu::instr_ROL(void) {
     if (_accumulator_addressing_mode) {
+        uint8_t carry_status = _status_flags_reg.c;
         _status_flags_reg.c = check_bit(_accumulator_reg, 7); // if we are shifting left, the MSB being a 1 would indicate the carry. Must be checked before processing the data
-        _accumulator_reg = (_accumulator_reg << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
+        _accumulator_reg = (_accumulator_reg << 1) | carry_status;  // place the carry bit at the LSB position. 
         check_if_negative(_accumulator_reg);
         check_if_zero(_accumulator_reg);        
     }
     else {
         _bus_ptr->set_address(_fetched_address);
         uint8_t memory = _bus_ptr->read_data();
+        uint8_t carry_status = _status_flags_reg.c;
         _status_flags_reg.c = check_bit(memory, 7); // if we are shifting left, the MSB being a 1 would indicate the carry. Must be checked before processing the data
-        memory = (memory << 1) | _status_flags_reg.c;  // place the carry bit at the LSB position. 
+        memory = (memory << 1) | carry_status;  // place the carry bit at the LSB position. 
         check_if_negative(memory);
         check_if_zero(memory);
         _bus_ptr->write_data(memory);

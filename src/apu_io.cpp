@@ -33,7 +33,7 @@ uint8_t apu_io::read(uint16_t address) {
         }
         else {            
             // the NES would continually return the A key status if we haven't written our strobe value yet
-            data = (check_bit(*controller_reg_ptr, 0) == 1 ? 0x40 : 0x41);   
+            data = (check_bit(*controller_reg_ptr, 0) == 1 ? 0x41 : 0x40);   
             _strobe_sequence = false; // reset so that we can kick this off once again soon.
 
             //reset registers just in case a new read comes in
