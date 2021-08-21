@@ -13,8 +13,8 @@ constexpr uint8_t DOWN_KEY 		= 5;
 constexpr uint8_t LEFT_KEY 		= 6;
 constexpr uint8_t RIGHT_KEY 	= 7;
 
-constexpr uint8_t BUTTON_DOWN 	= 0;
-constexpr uint8_t BUTTON_UP 	= 1;
+constexpr uint8_t BUTTON_DOWN 	= 0x41;
+constexpr uint8_t BUTTON_UP 	= 0x40;
 
 constexpr uint8_t LOW 			= 0;
 constexpr uint8_t HIGH 			= 1;
