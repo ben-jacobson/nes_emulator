@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 	instruction_log instruction_trace_log(log_fullpath, &nes_cpu, &nes_cpu_bus);
 
 	// set up our debug display objects, 
-	//text_renderer text_surface(font_fullpath, font_size, renderer);
+	text_renderer text_surface(font_fullpath, font_size, renderer);
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
 	instr_trace_graphics debug_instr_trace(&instruction_trace_log, renderer, font_fullpath.c_str(), font_size, 0, 520);
 	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
@@ -187,29 +187,32 @@ int main(int argc, char *argv[])
 		// if frame count has increased, update everything
 		if (frame_complete || instruction_complete) {						
 			// clear the screen
-			uint32_t ticks = SDL_GetTicks();
+			//uint32_t ticks = SDL_GetTicks();
 			SDL_RenderClear(renderer); 	
-			std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl;
+			//std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl;
 	
-			ticks = SDL_GetTicks();
+			//ticks = SDL_GetTicks();
 			// draw the debug emulator status displays
-			debug_instr_trace.display_contents();	
+			/*debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
 			debug_rom_display.display_contents(); 	
 			debug_cpu_memory_peek.display_contents();
 			debug_ppu_memory_peek.display_contents();
-			debug_pattern_table.display_contents();	
-			std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl;
+			debug_pattern_table.display_contents();	*/
 
-			ticks = SDL_GetTicks();
+			text_surface.debug_draw_atlas(0, 0);
+
+			//std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl;
+
+			//ticks = SDL_GetTicks();
 			display_output.draw();				// draw the main screen
-			std::cout << "Main display time taken: " << SDL_GetTicks() - ticks << std::endl;
+			//std::cout << "Main display time taken: " << SDL_GetTicks() - ticks << std::endl;
 
-			ticks = SDL_GetTicks();
+			//ticks = SDL_GetTicks();
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);			
-			std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl << std::endl;
+			//std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl << std::endl;
 
 			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 			//SDL_Delay(16); 
