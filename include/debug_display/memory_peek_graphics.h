@@ -1,13 +1,13 @@
 #pragma once
 
-#include "status_graphics.h"
+#include "text_renderer.h"
 #include "bus.h"
 #include <iomanip>
 
-class memory_peek_graphics : public status_graphics
+class memory_peek_graphics
 {
 public:
-	memory_peek_graphics(bus* bus_ptr, SDL_Renderer* renderer, const char* font_filename, int ptsize, std::string headline, uint16_t preset_display_x, uint16_t preset_display_y);
+	memory_peek_graphics(text_renderer* text_surface, bus* bus_ptr, std::string headline, uint16_t preset_display_x, uint16_t preset_display_y);
 	~memory_peek_graphics() = default;
 
     void activate_cursor(void);
@@ -16,6 +16,8 @@ public:
     void input_partial_address(char input);
 
 private:
+	text_renderer* _text_surface;
+
     bool _cursor_active; 
     uint16_t _preset_display_x, _preset_display_y; 
     uint16_t _address;

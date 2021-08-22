@@ -6,7 +6,6 @@
 
 #include "debug_display/helpers.h"
 #include "debug_display/text_renderer.h"
-#include "debug_display/status_graphics.h"
 #include "debug_display/processor_status_graphics.h"
 #include "debug_display/memory_status_graphics.h"
 #include "debug_display/memory_peek_graphics.h"
@@ -136,12 +135,12 @@ int main(int argc, char *argv[])
 	// set up our debug display objects, 
 	text_renderer text_surface(font_fullpath, font_size, renderer);
 	game_display_placeholder_output placeholder_game_area_rect(renderer, 20, 20, 2);
-	instr_trace_graphics debug_instr_trace(&instruction_trace_log, renderer, font_fullpath.c_str(), font_size, 0, 520);
-	memory_status_graphics debug_ram_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
-	memory_status_graphics debug_rom_display(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
-	processor_status_graphics debug_processor_status(&nes_cpu, &nes_ppu, renderer, font_fullpath.c_str(), font_size, 20 + 512 + 20, 25 + (18 * font_size));
-	memory_peek_graphics debug_cpu_memory_peek(&nes_cpu_bus, renderer, font_fullpath.c_str(), font_size, "CPU Mem Peek", 20 + 512 + 20, 25 + (25 * font_size)); 
-	memory_peek_graphics debug_ppu_memory_peek(&nes_ppu_bus, renderer, font_fullpath.c_str(), font_size, "PPU Mem Peek", 20 + 512 + 20, 25 + (26 * font_size)); 
+	instr_trace_graphics debug_instr_trace(&text_surface, &instruction_trace_log, 0, 520);
+	memory_status_graphics debug_ram_display(&text_surface, &nes_cpu_bus, 20 + 512 + 20, 20, "RAM Contents", RAM_ADDRESS_SPACE_START);
+	memory_status_graphics debug_rom_display(&text_surface, &nes_cpu_bus, 20 + 512 + 20, 25 + (9 * font_size), "ROM Contents", nes_cpu.get_program_counter()); 
+	processor_status_graphics debug_processor_status(&text_surface, &nes_cpu, &nes_ppu, 20 + 512 + 20, 25 + (18 * font_size));
+	memory_peek_graphics debug_cpu_memory_peek(&text_surface, &nes_cpu_bus, "CPU Mem Peek", 20 + 512 + 20, 25 + (25 * font_size)); 
+	memory_peek_graphics debug_ppu_memory_peek(&text_surface, &nes_ppu_bus, "PPU Mem Peek", 20 + 512 + 20, 25 + (26 * font_size)); 
 	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (29 * font_size));
 
 	// The main display object
@@ -191,22 +190,19 @@ int main(int argc, char *argv[])
 			SDL_RenderClear(renderer); 	
 			//std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl;
 	
-			//ticks = SDL_GetTicks();
 			// draw the debug emulator status displays
-			/*debug_instr_trace.display_contents();	
+			uint32_t ticks = SDL_GetTicks();
+			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
 			debug_rom_display.display_contents(); 	
 			debug_cpu_memory_peek.display_contents();
 			debug_ppu_memory_peek.display_contents();
-			debug_pattern_table.display_contents();	*/
-
-			text_surface.debug_draw_atlas(0, 0);
-
-			//std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl;
-
+			debug_pattern_table.display_contents();	
+			std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl; 
+			
 			//ticks = SDL_GetTicks();
-			display_output.draw();				// draw the main screen
+			//display_output.draw();				// draw the main screen
 			//std::cout << "Main display time taken: " << SDL_GetTicks() - ticks << std::endl;
 
 			//ticks = SDL_GetTicks();
