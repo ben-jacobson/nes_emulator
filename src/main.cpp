@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 			std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl; 
 			
 			//ticks = SDL_GetTicks();
-			//display_output.draw();				// draw the main screen
+			display_output.draw();				// draw the main screen
 			//std::cout << "Main display time taken: " << SDL_GetTicks() - ticks << std::endl;
 
 			//ticks = SDL_GetTicks();

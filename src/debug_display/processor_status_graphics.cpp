@@ -21,7 +21,7 @@ void processor_status_graphics::display_contents(void) {
     for (uint8_t i = 8; i > 0; i--) {
         flag_bit = (flags >> (i-1) & 1);
         flag_bit == 1 ? _text_surface->set_colour({0, 255, 0, 255}) : _text_surface->set_colour({255, 255, 255, 255}); // set colour based on bit value
-        _text_surface->draw_text(flag_bit == 1 ? "1 " : "0 ", _preset_display_x + (16 * _text_surface->_font_size) - (_text_surface->_font_size * 2 * i), _preset_display_y + (_text_surface->_font_size * 2));
+        _text_surface->draw_char(flag_bit == 1 ? '1' : '0', _preset_display_x + (16 * _text_surface->_font_size) - (_text_surface->_font_size * 2 * i), _preset_display_y + (_text_surface->_font_size * 2));
         //std::cout << (uint16_t)(i-1) << ": " << (uint16_t)flag_bit << std::endl;
     }
 

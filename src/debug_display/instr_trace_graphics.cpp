@@ -10,7 +10,7 @@ instr_trace_graphics::instr_trace_graphics(text_renderer* text_surface, instruct
 
 void instr_trace_graphics::display_contents() {
     _text_surface->set_colour({0, 255, 0, 255}); // green
-    _text_surface->draw_text(">", _preset_display_x, _preset_display_y + (_text_surface->_font_size * 4));
+    _text_surface->draw_char('>', _preset_display_x, _preset_display_y + (_text_surface->_font_size * 4));
 
     _text_surface->set_colour({255, 255, 255, 255}); // green
     _text_surface->draw_text("Instruction Trace", _preset_display_x + 20, _preset_display_y);
