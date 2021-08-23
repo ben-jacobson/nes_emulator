@@ -11,6 +11,7 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 
     _frame_count = 0;
+    _frame_complete_flag = false;
 }
 
 void ppu::cycle(void) {
@@ -72,6 +73,7 @@ void ppu::cycle(void) {
         if (_scanline_y >= SCANLINES_PER_FRAME) {
             _scanline_y = -1;
             _frame_count++; // indicate a completed frame (at least the visible portion)
+            _frame_complete_flag = true;
         }
     }
 
@@ -212,7 +214,11 @@ void ppu::increment_video_memory_address(void) {
     _ppu_bus_ptr->set_address(_video_memory_address); 
 }
 
-uint16_t ppu::get_x(void) {
+uint16_t ppu::get_clock_pulses(void) {
+    return _clock_pulse_x;
+}
+
+uint16_t ppu::get_x(void) {     // different terminology, same as above
     return _clock_pulse_x;
 }
 
@@ -224,6 +230,10 @@ uint32_t ppu::get_frame_count(void) {
     return _frame_count;
 }
 
-bool ppu::get_frame_status(void) {
-    return (_scanline_y == 0 && _clock_pulse_x == 0 ? true : false);
+bool ppu::get_frame_complete_flag(void) {
+    return _frame_complete_flag; 
+}
+
+void ppu::clear_frame_complete_flag(void) {
+    _frame_complete_flag = false;     // reset so that the renderer can set it
 }

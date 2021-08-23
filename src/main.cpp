@@ -165,11 +165,11 @@ int main(int argc, char *argv[])
 		if (!instruction_complete) {
 			instruction_trace_log.update();
 
-			// the PPU cycles three times for every cpu cycle.
-			for (uint8_t i = 0; i < 3; i++) {
-				nes_ppu.cycle();
-			}
-			nes_cpu.cycle();
+			nes_ppu.cycle();
+
+			if (nes_ppu.get_clock_pulses() % 3 == 0 || !instruction_complete)  {	// the CPU cycles once every 4 PPU cycles
+				nes_cpu.cycle();
+			}				
 
 			if (nes_cpu.finished_instruction() && !run_mode) { // run the cpu until the instruction finishes
 				instruction_complete = true;		// instruction complete is not allowed to be toggled if in run mode
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 			}	
 		}		
 
-		frame_complete = nes_ppu.get_frame_status();	
+		frame_complete = nes_ppu.get_frame_complete_flag();	
 
 		// if frame count has increased, update everything
 		if (frame_complete || instruction_complete) {						
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 			//std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl;
 	
 			// draw the debug emulator status displays
-			uint32_t ticks = SDL_GetTicks();
+			//uint32_t ticks = SDL_GetTicks();
 			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 			debug_cpu_memory_peek.display_contents();
 			debug_ppu_memory_peek.display_contents();
 			debug_pattern_table.display_contents();	
-			std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl; 
+			//std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl; 
 			
 			//ticks = SDL_GetTicks();
 			display_output.draw();				// draw the main screen
@@ -212,6 +212,8 @@ int main(int argc, char *argv[])
 
 			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
 			//SDL_Delay(16); 
+
+			nes_ppu.clear_frame_complete_flag();
 		}
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler

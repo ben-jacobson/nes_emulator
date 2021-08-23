@@ -79,10 +79,12 @@ public:
 	bool get_address_latch(void);
 	bool get_vertical_blank(void);
 
+	uint16_t get_clock_pulses(void);
 	uint16_t get_x(void);
 	int get_y(void);
 	uint32_t get_frame_count(void);
-	bool get_frame_status(void);
+	bool get_frame_complete_flag(void);
+	void clear_frame_complete_flag(void);
 
 	// our NTSC Palette is stored internally to the device, at some point in the future it might be good to load a .pal file for this. 
 	const std::array <std::array<uint8_t, 3>, 64> NTSC_PALETTE = {{	
@@ -182,4 +184,5 @@ private:
 	uint8_t _sprite_width; 
 
 	uint32_t _frame_count; 
+	bool _frame_complete_flag;
 };
