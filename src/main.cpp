@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 		// SDL makes it quite easy for us, to handle this, we just process each key one at a time to load it into the internal shift register
-		const Uint8* keystates = SDL_GetKeyboardState(NULL);
+/*		const Uint8* keystates = SDL_GetKeyboardState(NULL);
 		nes_apu_io.process_key(PLAYER_ONE, A_KEY, keystates[SDL_SCANCODE_Z]);		
 		nes_apu_io.process_key(PLAYER_ONE, B_KEY, keystates[SDL_SCANCODE_X]);		
 		nes_apu_io.process_key(PLAYER_ONE, SEL_KEY, keystates[SDL_SCANCODE_N]);				
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 		nes_apu_io.process_key(PLAYER_ONE, DOWN_KEY, keystates[SDL_SCANCODE_DOWN]);
 		nes_apu_io.process_key(PLAYER_ONE, LEFT_KEY, keystates[SDL_SCANCODE_LEFT]);		
 		nes_apu_io.process_key(PLAYER_ONE, RIGHT_KEY, keystates[SDL_SCANCODE_RIGHT]);		
-		
+*/		
 		// Handle all events on queue, including the call for quit
 		while (SDL_PollEvent(&event_handler) != 0) {		
 			if (event_handler.type == SDL_KEYUP) {
@@ -327,7 +327,6 @@ int main(int argc, char *argv[])
 					}
 				}				
 			}
-
 			else if (event_handler.type == SDL_QUIT) {
 				quit = true;
 			}
