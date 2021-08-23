@@ -14,10 +14,25 @@ instruction_log::instruction_log(std::string log_filename, cpu* cpu_ptr, bus* bu
     for (uint8_t i = 0; i < INSTRUCTION_COUNT; i++) {
         _instruction_trace.insert(_instruction_trace.end(), "NULL");
     }    
+
+    // by default switch off file logging as it is resource intensive
+    disable_file_logging();
 }
 	
 instruction_log::~instruction_log() {
     close_log_file();
+}
+
+void instruction_log::enable_file_logging(void) {
+    _file_logging = true;
+}
+
+void instruction_log::disable_file_logging(void) {
+    _file_logging = false;
+}
+
+bool instruction_log::file_logging_enabled(void) {
+    return _file_logging;
 }
 
 bool instruction_log::start_new_log_file(std::string filename) {
@@ -35,7 +50,7 @@ void instruction_log::close_log_file(void) {
     fclose(_file_handle);
 }
 
-void instruction_log::update_file_log(void) {
+void instruction_log::update(void) {
     // only update if we've moved to the next address
     if (_update_pc_check != _cpu_ptr->get_program_counter()) {
         // update the address, decode it and finally write it into the file
@@ -43,22 +58,11 @@ void instruction_log::update_file_log(void) {
         _update_pc_check = _current_pc;
         fetch_and_decode_next_instruction();
 
-        // write to the log file
-        std::string last_instruction_with_newline = _last_decoded_instruction + "\n";
-        fwrite(last_instruction_with_newline.c_str(), 1, last_instruction_with_newline.length(), _file_handle);
-
-        // update the array of strings showing the previous 3 instructions and the next 7 (depending on what is set with the constant INSTRUCTION_COUNT)
-        update_trace();
-    }
-}
-
-void instruction_log::update_display_log(void) {
-    // only update if we've moved to the next address
-    if (_update_pc_check != _cpu_ptr->get_program_counter()) {
-        // update the address, decode it and finally write it into the file
-        _current_pc = _cpu_ptr->get_program_counter();
-        _update_pc_check = _current_pc;
-        fetch_and_decode_next_instruction();
+        // write to the log file, if enabled
+        if (_file_logging) {
+            std::string last_instruction_with_newline = _last_decoded_instruction + "\n";
+            fwrite(last_instruction_with_newline.c_str(), 1, last_instruction_with_newline.length(), _file_handle);
+        }
 
         // update the array of strings showing the previous 3 instructions and the next 7 (depending on what is set with the constant INSTRUCTION_COUNT)
         update_trace();

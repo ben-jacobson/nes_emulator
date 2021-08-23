@@ -152,7 +152,6 @@ int main(int argc, char *argv[])
 	memory_peek_text_input_processor cpu_memory_peek_text_input, ppu_memory_peek_text_input;
 	SDL_StopTextInput();	// stop text input by default
 
-	bool logging = false;
 	bool quit = false; 
 
 	uint16_t halt_at_pc = 0x0000; //0xC5D3; // 0x0000 will disable this behaviour
@@ -161,13 +160,16 @@ int main(int argc, char *argv[])
 	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
 
 	uint32_t time_taken_render_frame = SDL_GetTicks();
+	
+	//instruction_trace_log.enable_file_logging();
 
 	while (!quit) { // main application running loop
 
 		// process the PPU and CPU as needed by the user
 		if (!instruction_complete) {
-			if (logging) {
-				instruction_trace_log.update_file_log(); // update our trace log, logging to file and also updating the trace log on screen
+			if (instruction_trace_log.file_logging_enabled()) {
+				// if we are file logging, we want to update this before every PPU/CPU cycle
+				instruction_trace_log.update(); // update our trace log, logging to file and also updating the trace log on screen
 			}
 
 			nes_ppu.cycle();
@@ -197,7 +199,10 @@ int main(int argc, char *argv[])
 	
 			// draw the debug emulator status displays
 			//uint32_t ticks = SDL_GetTicks();
-			instruction_trace_log.update_display_log();
+			if (!instruction_trace_log.file_logging_enabled()) { // if we are not file logging, we can update this on every frame draw, making this faster
+				instruction_trace_log.update();
+			}
+
 			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();

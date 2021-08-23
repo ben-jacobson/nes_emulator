@@ -10,8 +10,11 @@ class instruction_log
 public:
 	instruction_log(std::string log_filename, cpu* cpu_ptr, bus* bus_ptr);
 	~instruction_log();
-	void update_file_log(void);
-	void update_display_log(void);
+	void update(void);
+
+	void enable_file_logging(void);
+	void disable_file_logging(void);
+	bool file_logging_enabled(void);
 
 	static constexpr uint8_t INSTRUCTION_COUNT = 10;
 	std::vector<std::string> _instruction_trace;
@@ -22,6 +25,7 @@ private:
 	void fetch_and_decode_next_instruction(void);
 	void update_trace(void);
 
+	bool _file_logging;
 	FILE* _file_handle;
 	cpu* _cpu_ptr;
 	bus* _bus_ptr;
