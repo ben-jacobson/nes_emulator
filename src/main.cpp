@@ -157,14 +157,14 @@ int main(int argc, char *argv[])
 	uint16_t halt_at_pc = 0x0000; //0xC5D3; // 0x0000 will disable this behaviour
 	bool frame_complete = false; 
 	bool instruction_complete = false; 
-	bool run_mode = false; 
+	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
+
+	uint32_t time_taken_render_frame = SDL_GetTicks();
 
 	while (!quit) { // main application running loop
 
 		// process the PPU and CPU as needed by the user
 		if (!instruction_complete) {
-			instruction_trace_log.update();
-
 			nes_ppu.cycle();
 
 			if (nes_ppu.get_clock_pulses() % 3 == 0 || !instruction_complete)  {	// the CPU cycles once every 4 PPU cycles
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 				std::cout << "Halting at 0x" << std::hex << std::uppercase << nes_cpu.get_program_counter() << std::dec << std::endl;
 				run_mode = false;
 			}	
-		}		
+		}	
 
 		frame_complete = nes_ppu.get_frame_complete_flag();	
 
@@ -192,6 +192,7 @@ int main(int argc, char *argv[])
 	
 			// draw the debug emulator status displays
 			//uint32_t ticks = SDL_GetTicks();
+			instruction_trace_log.update();
 			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();
@@ -214,6 +215,8 @@ int main(int argc, char *argv[])
 			//SDL_Delay(16); 
 
 			nes_ppu.clear_frame_complete_flag();
+			std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl << std::endl;
+			time_taken_render_frame = SDL_GetTicks();
 		}
 
 		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
