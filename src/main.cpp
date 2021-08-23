@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
 	memory_peek_text_input_processor cpu_memory_peek_text_input, ppu_memory_peek_text_input;
 	SDL_StopTextInput();	// stop text input by default
 
+	bool logging = false;
 	bool quit = false; 
 
 	uint16_t halt_at_pc = 0x0000; //0xC5D3; // 0x0000 will disable this behaviour
@@ -165,6 +166,10 @@ int main(int argc, char *argv[])
 
 		// process the PPU and CPU as needed by the user
 		if (!instruction_complete) {
+			if (logging) {
+				instruction_trace_log.update_file_log(); // update our trace log, logging to file and also updating the trace log on screen
+			}
+
 			nes_ppu.cycle();
 
 			if (nes_ppu.get_clock_pulses() % 3 == 0 || !instruction_complete)  {	// the CPU cycles once every 4 PPU cycles
@@ -192,7 +197,7 @@ int main(int argc, char *argv[])
 	
 			// draw the debug emulator status displays
 			//uint32_t ticks = SDL_GetTicks();
-			instruction_trace_log.update();
+			instruction_trace_log.update_display_log();
 			debug_instr_trace.display_contents();	
 			debug_processor_status.display_contents();
 			debug_ram_display.display_contents();

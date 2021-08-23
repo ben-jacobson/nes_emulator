@@ -10,7 +10,8 @@ class instruction_log
 public:
 	instruction_log(std::string log_filename, cpu* cpu_ptr, bus* bus_ptr);
 	~instruction_log();
-	void update(void);
+	void update_file_log(void);
+	void update_display_log(void);
 
 	static constexpr uint8_t INSTRUCTION_COUNT = 10;
 	std::vector<std::string> _instruction_trace;
