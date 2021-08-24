@@ -159,11 +159,15 @@ int main(int argc, char *argv[])
 	bool instruction_complete = false; 
 	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
 
-	uint32_t time_taken_render_frame = SDL_GetTicks();
-	
+	//uint32_t time_taken_render_frame = SDL_GetTicks();
+
 	//instruction_trace_log.enable_file_logging();
 
 	while (!quit) { // main application running loop
+
+		/*====================
+			Game logic
+		  ====================*/
 
 		// process the PPU and CPU as needed by the user
 		if (!instruction_complete) {
@@ -191,7 +195,120 @@ int main(int argc, char *argv[])
 		frame_complete = nes_ppu.get_frame_complete_flag();	
 
 		// if frame count has increased, update everything
-		if (frame_complete || instruction_complete) {						
+		if (frame_complete || instruction_complete) {		
+			/*====================
+				Process inputs
+			====================*/
+
+			// this might look a bit unconventional, but we only want to check the key input right before rendering the frame. Otherwise this loop runs 80K times before each frame is rendered. 
+
+			// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
+			// SDL makes it quite easy for us, to handle this, we just process each key one at a time to load it into the internal shift register
+			const Uint8* keystates = SDL_GetKeyboardState(NULL);
+			nes_apu_io.process_key(PLAYER_ONE, A_KEY, keystates[SDL_SCANCODE_Z]);		
+			nes_apu_io.process_key(PLAYER_ONE, B_KEY, keystates[SDL_SCANCODE_X]);		
+			nes_apu_io.process_key(PLAYER_ONE, SEL_KEY, keystates[SDL_SCANCODE_N]);				
+			nes_apu_io.process_key(PLAYER_ONE, START_KEY, keystates[SDL_SCANCODE_M]);		
+			nes_apu_io.process_key(PLAYER_ONE, UP_KEY, keystates[SDL_SCANCODE_UP]);
+			nes_apu_io.process_key(PLAYER_ONE, DOWN_KEY, keystates[SDL_SCANCODE_DOWN]);
+			nes_apu_io.process_key(PLAYER_ONE, LEFT_KEY, keystates[SDL_SCANCODE_LEFT]);		
+			nes_apu_io.process_key(PLAYER_ONE, RIGHT_KEY, keystates[SDL_SCANCODE_RIGHT]);		
+			
+			// Handle all events on queue, including the call for quit
+			while (SDL_PollEvent(&event_handler)) {		
+				if (event_handler.type == SDL_KEYUP) {
+					key_event = &event_handler.key;
+
+					switch (key_event->keysym.sym) {
+						case SDLK_TAB:	// Enter memory peek mode
+							SDL_StartTextInput();
+							cpu_memory_peek_text_input.activate();
+							ppu_memory_peek_text_input.deactivate();
+							debug_cpu_memory_peek.activate_cursor();	
+							break;
+
+						case SDLK_F1:	// Enter memory peek mode
+							SDL_StartTextInput();
+							ppu_memory_peek_text_input.activate();
+							cpu_memory_peek_text_input.deactivate();
+							debug_ppu_memory_peek.activate_cursor();	
+							break;
+
+						case SDLK_RETURN:	// Finish memory peek mode
+							if (SDL_IsTextInputActive()) {
+								if (cpu_memory_peek_text_input.input_active()) {
+									debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+									cpu_memory_peek_text_input.deactivate();
+								}
+								if (ppu_memory_peek_text_input.input_active()) {
+									debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
+									ppu_memory_peek_text_input.deactivate();
+								}
+								SDL_StopTextInput();
+							}
+							break;
+
+						case SDLK_F5: // Toggle run mode
+							std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
+							run_mode = !run_mode; 
+							instruction_complete = false;
+							break;
+
+						case SDLK_SPACE:	// Single cycle through CPU
+							if (!run_mode) { // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
+								instruction_complete = false; // prompt the cpu to complete it's next instruction
+							}
+							break;
+
+						case SDLK_DELETE:		// RESET CPU, PPU and all RAMs
+							nes_ram.clear_ram();
+							palette_ram.clear_ram();
+							nes_cpu.reset();
+							nes_ppu.reset();
+							instruction_complete = false; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
+							std::cout << "CPU Reset" << std::endl;
+							break;
+
+						case SDLK_p:
+							debug_pattern_table.select_palette();
+							break;
+
+						case SDLK_ESCAPE:
+							quit = true;	// quit the program
+							break;																	
+					}
+				}
+				else if (event_handler.type == SDL_TEXTINPUT) {
+					char key_pressed = event_handler.text.text[0];	
+
+					if (cpu_memory_peek_text_input.input_active()) {
+						debug_cpu_memory_peek.input_partial_address(key_pressed);
+
+						if (cpu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
+							debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());							
+							cpu_memory_peek_text_input.deactivate();
+							SDL_StopTextInput();
+						}
+					}
+					if (ppu_memory_peek_text_input.input_active()) {
+						debug_ppu_memory_peek.input_partial_address(key_pressed);
+
+						if (ppu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
+							debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());							
+							ppu_memory_peek_text_input.deactivate();
+							SDL_StopTextInput();
+						}
+					}				
+				}
+				else if (event_handler.type == SDL_QUIT) {
+					quit = true;
+				}
+			}		
+
+			/*====================
+				Display
+			====================*/	
+
 			// clear the screen
 			//uint32_t ticks = SDL_GetTicks();
 			SDL_RenderClear(renderer); 	
@@ -225,111 +342,8 @@ int main(int argc, char *argv[])
 			//SDL_Delay(16); 
 
 			nes_ppu.clear_frame_complete_flag();
-			std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl << std::endl;
-			time_taken_render_frame = SDL_GetTicks();
-		}
-
-		// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
-		// SDL makes it quite easy for us, to handle this, we just process each key one at a time to load it into the internal shift register
-/*		const Uint8* keystates = SDL_GetKeyboardState(NULL);
-		nes_apu_io.process_key(PLAYER_ONE, A_KEY, keystates[SDL_SCANCODE_Z]);		
-		nes_apu_io.process_key(PLAYER_ONE, B_KEY, keystates[SDL_SCANCODE_X]);		
-		nes_apu_io.process_key(PLAYER_ONE, SEL_KEY, keystates[SDL_SCANCODE_N]);				
-		nes_apu_io.process_key(PLAYER_ONE, START_KEY, keystates[SDL_SCANCODE_M]);		
-		nes_apu_io.process_key(PLAYER_ONE, UP_KEY, keystates[SDL_SCANCODE_UP]);
-		nes_apu_io.process_key(PLAYER_ONE, DOWN_KEY, keystates[SDL_SCANCODE_DOWN]);
-		nes_apu_io.process_key(PLAYER_ONE, LEFT_KEY, keystates[SDL_SCANCODE_LEFT]);		
-		nes_apu_io.process_key(PLAYER_ONE, RIGHT_KEY, keystates[SDL_SCANCODE_RIGHT]);		
-*/		
-		// Handle all events on queue, including the call for quit
-		while (SDL_PollEvent(&event_handler) != 0) {		
-			if (event_handler.type == SDL_KEYUP) {
-				key_event = &event_handler.key;
-
-				switch (key_event->keysym.sym) {
-					case SDLK_TAB:	// Enter memory peek mode
-						SDL_StartTextInput();
-						cpu_memory_peek_text_input.activate();
-						ppu_memory_peek_text_input.deactivate();
-						debug_cpu_memory_peek.activate_cursor();	
-						break;
-
-					case SDLK_F1:	// Enter memory peek mode
-						SDL_StartTextInput();
-						ppu_memory_peek_text_input.activate();
-						cpu_memory_peek_text_input.deactivate();
-						debug_ppu_memory_peek.activate_cursor();	
-						break;
-
-					case SDLK_RETURN:	// Finish memory peek mode
-						if (SDL_IsTextInputActive()) {
-							if (cpu_memory_peek_text_input.input_active()) {
-								debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
-								cpu_memory_peek_text_input.deactivate();
-							}
-							if (ppu_memory_peek_text_input.input_active()) {
-								debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());		// if user presses less than 4 chars, pad with zeros and go with what was entered						
-								ppu_memory_peek_text_input.deactivate();
-							}
-							SDL_StopTextInput();
-						}
-						break;
-
-					case SDLK_F5: // Toggle run mode
-						std::cout << "Run mode: " << (run_mode ? "off" : "on") << std::endl;
-						run_mode = !run_mode; 
-						instruction_complete = false;
-						break;
-
-					case SDLK_SPACE:	// Single cycle through CPU
-						if (!run_mode) { // cycle the cpu, but only if not in run mode, we don't want to cycle twice in one main loop.
-							instruction_complete = false; // prompt the cpu to complete it's next instruction
-						}
-						break;
-
-					case SDLK_DELETE:		// RESET CPU, PPU and all RAMs
-						nes_ram.clear_ram();
-						palette_ram.clear_ram();
-						nes_cpu.reset();
-						nes_ppu.reset();
-						instruction_complete = false; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
-						std::cout << "CPU Reset" << std::endl;
-						break;
-
-					case SDLK_p:
-						debug_pattern_table.select_palette();
-						break;
-
-					case SDLK_ESCAPE:
-						quit = true;	// quit the program
-						break;																	
-				}
-			}
-			else if (event_handler.type == SDL_TEXTINPUT) {
-				char key_pressed = event_handler.text.text[0];	
-
-				if (cpu_memory_peek_text_input.input_active()) {
-					debug_cpu_memory_peek.input_partial_address(key_pressed);
-
-					if (cpu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
-						debug_cpu_memory_peek.set_address(cpu_memory_peek_text_input.process());							
-						cpu_memory_peek_text_input.deactivate();
-						SDL_StopTextInput();
-					}
-				}
-				if (ppu_memory_peek_text_input.input_active()) {
-					debug_ppu_memory_peek.input_partial_address(key_pressed);
-
-					if (ppu_memory_peek_text_input.add_character(key_pressed)) {	// returns true if 4 characters have been entered, so that user doesn't have to press enter, they can just pop in their 4 chars
-						debug_ppu_memory_peek.set_address(ppu_memory_peek_text_input.process());							
-						ppu_memory_peek_text_input.deactivate();
-						SDL_StopTextInput();
-					}
-				}				
-			}
-			else if (event_handler.type == SDL_QUIT) {
-				quit = true;
-			}
+			//std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl << std::endl;
+			//time_taken_render_frame = SDL_GetTicks();
 		}		
 	}
 
