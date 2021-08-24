@@ -196,11 +196,12 @@ int main(int argc, char *argv[])
 
 		// if frame count has increased, update everything
 		if (frame_complete || instruction_complete) {		
+
 			/*====================
 				Process inputs
 			====================*/
 
-			// this might look a bit unconventional, but we only want to check the key input right before rendering the frame. Otherwise this loop runs 80K times before each frame is rendered. 
+			// this might look a bit unconventional, but we only want to check the key input right before rendering the frame. Otherwise this loop runs ~80K times before each frame is rendered. 
 
 			// For gameplay keypresses, we don't want any delay on the keys, so we handle them with a keyboard state, outside of the event handler
 			// SDL makes it quite easy for us, to handle this, we just process each key one at a time to load it into the internal shift register

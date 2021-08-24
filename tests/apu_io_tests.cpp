@@ -3,12 +3,12 @@
     
 TEST_CASE_METHOD(emulator_test_fixtures, "apu_io - Test process key", "[apu_io]") {
     // alter the register values and determine if it worked
-    test_apu_io.process_key(PLAYER_ONE, RIGHT_KEY, BUTTON_DOWN);
+    test_apu_io.process_key(PLAYER_ONE, RIGHT_KEY, 0);
     uint8_t io_result = test_apu_io.debug_get_key_buffer(PLAYER_ONE);
     CHECK(io_result == 0x7F);
 
     // and again for good measure
-    test_apu_io.process_key(PLAYER_TWO, A_KEY, BUTTON_DOWN);
+    test_apu_io.process_key(PLAYER_TWO, A_KEY, 0);
     io_result = test_apu_io.debug_get_key_buffer(PLAYER_TWO);
     CHECK(io_result == 0xFE); 
 
@@ -40,7 +40,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "apu_io - Test key strobing behaviour w
     test_apu_io.debug_set_key_register(PLAYER_ONE, 0x00);
 
     test_bus.set_address(PLAYER_ONE_CONTROLLER_REG);
-    test_bus.write_data(0); // start by deliberately not setting the strobe, we should essentially just be reading the A key over and over now. 
+    // start by deliberately not setting the strobe, we should essentially just be reading the A key over and over now. 
 
     // process 8 reads, one for each key, they should all be button up
     for (uint8_t i = 0; i < RIGHT_KEY; i++) {
