@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	bool instruction_complete = false; 
 	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
 
-	//uint32_t time_taken_render_frame = SDL_GetTicks();
+	uint32_t time_taken_render_frame = SDL_GetTicks();
 
 	//instruction_trace_log.enable_file_logging();
 
@@ -170,6 +170,7 @@ int main(int argc, char *argv[])
 		  ====================*/
 
 		// process the PPU and CPU as needed by the user
+
 		if (!instruction_complete) {
 			if (instruction_trace_log.file_logging_enabled()) {
 				// if we are file logging, we want to update this before every PPU/CPU cycle
@@ -178,7 +179,7 @@ int main(int argc, char *argv[])
 
 			nes_ppu.cycle();
 
-			if (nes_ppu.get_clock_pulses() % 3 == 0 || !instruction_complete)  {	// the CPU cycles once every 4 PPU cycles
+			if (nes_ppu.get_clock_pulses() % 4 == 0 || (!run_mode && !instruction_complete))  {	// the CPU cycles once every 4 PPU cycles. The runmode && instruc is to complete the next instruction when paused
 				nes_cpu.cycle();
 			}				
 
@@ -311,12 +312,9 @@ int main(int argc, char *argv[])
 			====================*/	
 
 			// clear the screen
-			//uint32_t ticks = SDL_GetTicks();
 			SDL_RenderClear(renderer); 	
-			//std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl;
 	
 			// draw the debug emulator status displays
-			//uint32_t ticks = SDL_GetTicks();
 			if (!instruction_trace_log.file_logging_enabled()) { // if we are not file logging, we can update this on every frame draw, making this faster
 				instruction_trace_log.update();
 			}
@@ -328,23 +326,15 @@ int main(int argc, char *argv[])
 			debug_cpu_memory_peek.display_contents();
 			debug_ppu_memory_peek.display_contents();
 			debug_pattern_table.display_contents();	
-			//std::cout << "Debug display time taken: " << SDL_GetTicks() - ticks << std::endl; 
-			
-			//ticks = SDL_GetTicks();
+		
 			display_output.draw();				// draw the main screen
-			//std::cout << "Main display time taken: " << SDL_GetTicks() - ticks << std::endl;
-
-			//ticks = SDL_GetTicks();
+		
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);			
-			//std::cout << "Render clear time taken: " << SDL_GetTicks() - ticks << std::endl << std::endl;
-
-			// Cap to roughly 60 FPS, we'll work out something a bit more official shortly. 
-			//SDL_Delay(16); 
-
 			nes_ppu.clear_frame_complete_flag();
-			//std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl << std::endl;
-			//time_taken_render_frame = SDL_GetTicks();
+			
+			std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl;
+			time_taken_render_frame = SDL_GetTicks();
 		}		
 	}
 
