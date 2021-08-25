@@ -23,6 +23,10 @@ output/*.rom
 output/*.nes
 output/*.log
 output/nestest disassembled.txt
+output/branch_timing_tests/
+output/cpu_dummy_writes/
+output/cpu_exec_space/
+output/blargg_ppu_tests/
 
 # Precompiled Headers
 *.gch
