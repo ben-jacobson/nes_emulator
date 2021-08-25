@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	bool instruction_complete = false; 
 	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
 
-	uint32_t time_taken_render_frame = SDL_GetTicks();
+	//uint32_t time_taken_render_frame = SDL_GetTicks();
 
 	//instruction_trace_log.enable_file_logging();
 
@@ -267,6 +267,7 @@ int main(int argc, char *argv[])
 							palette_ram.clear_ram();
 							nes_cpu.reset();
 							nes_ppu.reset();
+							run_mode = true;
 							instruction_complete = false; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 							std::cout << "CPU Reset" << std::endl;
 							break;
@@ -333,8 +334,8 @@ int main(int argc, char *argv[])
 			SDL_RenderPresent(renderer);			
 			nes_ppu.clear_frame_complete_flag();
 			
-			std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl;
-			time_taken_render_frame = SDL_GetTicks();
+			//std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl;
+			//time_taken_render_frame = SDL_GetTicks();
 		}		
 	}
 
