@@ -175,8 +175,6 @@ private:
 
 	bool _address_latch, _addr_second_write, _scroll_second_write;
 
-	void increment_video_memory_address(void);
-
 	int _scanline_y;
 	uint16_t _clock_pulse_x;
 
@@ -185,4 +183,11 @@ private:
 
 	uint32_t _frame_count; 
 	bool _frame_complete_flag;
+	
+	// We buffer a few of the addresses used in cycle() to avoid unnecessary read/write
+	uint16_t _nametable_index_offset;
+	uint16_t _pattern_address;
+	uint8_t row_data_plane_0, row_data_plane_1;
+
+	void increment_video_memory_address(void);
 };

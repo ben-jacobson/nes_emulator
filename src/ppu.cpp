@@ -9,12 +9,10 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     _raw_pixel_data.resize(FRAME_ARRAY_SIZE * _colour_depth); 
 
     reset();
-
-    _frame_count = 0;
-    _frame_complete_flag = false;
 }
 
 void ppu::cycle(void) {
+    bool new_pattern_address = false; 
     // clock out pixel by pixel to output buffer
     _clock_pulse_x++;
     
@@ -23,22 +21,29 @@ void ppu::cycle(void) {
         // boil down the scaline and clock to the tile on the nametable
         uint16_t nametable_index_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
         uint16_t nametable_index_y = _scanline_y / SPRITE_HEIGHT;            
-        uint16_t nametable_index_offset = 0x2000 + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
+        uint16_t new_nametable_index_offset = 0x2000 + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
 
-        // grab the tile ID from the nametable
-        _ppu_bus_ptr->set_address(nametable_index_offset);
-        uint16_t pattern_address = _ppu_bus_ptr->read_data() << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020
+        if (new_nametable_index_offset != _nametable_index_offset) {
+            _nametable_index_offset = new_nametable_index_offset; // buffer this
+
+            // grab the tile ID from the nametable
+            _ppu_bus_ptr->set_address(_nametable_index_offset);
+            _pattern_address = _ppu_bus_ptr->read_data() << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020
+            new_pattern_address = true; 
+        }
 
         // boil down the scanline and clock to the x and y within the tile,
         uint8_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
-        uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
-        // We don't need the y position as we will load the entire row
 
-        // read the row data from the pattern table
-        _ppu_bus_ptr->set_address(pattern_address + pattern_table_row_y_index);
-        uint8_t row_data_plane_0 = _ppu_bus_ptr->read_data(); 
-        _ppu_bus_ptr->set_address(pattern_address + pattern_table_row_y_index + 8);
-        uint8_t row_data_plane_1 = _ppu_bus_ptr->read_data(); 
+        if (new_pattern_address) {
+            uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
+
+            // read the row data from the pattern table
+            _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index);
+            row_data_plane_0 = _ppu_bus_ptr->read_data(); 
+            _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index + 8);
+            row_data_plane_1 = _ppu_bus_ptr->read_data(); 
+        }
 
         // extract the bit from the pattern table, in plane 0 and 1, 
         uint8_t plane_0_bit = (row_data_plane_0 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
@@ -114,6 +119,12 @@ void ppu::reset(void) {
     _clock_pulse_x = 0;
 
     _sprite_width = 8; // we'll default to 8x wide for safety, but updating PPUCTRL will overwrite this
+
+    _frame_count = 0;
+    _frame_complete_flag = false;
+
+    _nametable_index_offset = 0;
+    _pattern_address = 0;    
 }
 
 void ppu::trigger_cpu_NMI(void) {
