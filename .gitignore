@@ -27,6 +27,7 @@ output/branch_timing_tests/
 output/cpu_dummy_writes/
 output/cpu_exec_space/
 output/blargg_ppu_tests/
+output/scanline/
 
 # Precompiled Headers
 *.gch
