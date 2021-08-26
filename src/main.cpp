@@ -20,6 +20,7 @@
 #include "ppu.h"
 #include "ppu_draw.h"
 #include "ram.h"
+#include "palette_ram.h"
 #include "cartridge.h"
 #include "apu_io.h"
 
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
 	// initialize our PPU bus, pattern tables and name tables
 	bus nes_ppu_bus;
 	ppu nes_ppu(&nes_cpu_bus, &nes_ppu_bus, &nes_cpu);
-	ram palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END);
+	palette_ram nes_palette_ram;
 
 	// nametables, or VRAM
 	ram nametable_0_memory(NAMETABLE_SIZE, NAMETABLE_0_START, NAMETABLE_0_END);
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
 
 	nes_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, nes_cart._ppu_read_function_ptr, nes_cart._ppu_write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr); // register the PPU to the CPU bus
-	nes_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, palette_ram._read_function_ptr, palette_ram._write_function_ptr);
+	nes_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, nes_palette_ram._read_function_ptr, nes_palette_ram._write_function_ptr);
 
 	// register our nametables
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_0_START, NAMETABLE_0_END, nametable_0_memory._read_function_ptr, nametable_0_memory._write_function_ptr);
@@ -266,7 +267,7 @@ int main(int argc, char *argv[])
 
 						case SDLK_DELETE:		// RESET CPU, PPU and all RAMs
 							nes_ram.clear_ram();
-							palette_ram.clear_ram();
+							nes_palette_ram.clear_ram();
 							nes_cpu.reset();
 							nes_ppu.reset();
 							instruction_complete = false; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction

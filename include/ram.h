@@ -18,7 +18,7 @@ public:
 
 	void clear_ram(void);
 
-private:
+protected:
 	uint16_t _ram_size;
 	uint8_t* _ram_data;	// will use heap memory to store the 2Kb of memory used by the system.
 };

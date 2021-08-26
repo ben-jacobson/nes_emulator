@@ -7,6 +7,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "ram.h"
+#include "palette_ram.h"
 #include "cartridge.h"
 #include "apu_io.h"
 
@@ -16,7 +17,7 @@ extern ram test_ram;
 extern apu_io test_apu_io;
 extern cartridge test_cart;
 extern ppu test_ppu;
-extern ram test_palette_ram;
+extern palette_ram test_palette_ram;
 extern ram test_nametable_0_memory, test_nametable_1_memory, test_nametable_2_memory, test_nametable_3_memory;
 
 class emulator_test_fixtures {

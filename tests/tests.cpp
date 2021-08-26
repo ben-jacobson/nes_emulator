@@ -12,7 +12,7 @@ cpu test_cpu(&test_bus);
 // PPU fixtures
 bus test_ppu_bus;
 ppu test_ppu(&test_bus, &test_ppu_bus, &test_cpu);
-ram test_palette_ram(PALETTE_RAM_SIZE, PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END);
+palette_ram test_palette_ram;
 
 // Nametables or VRAM fixtures
 ram test_nametable_0_memory(NAMETABLE_SIZE, NAMETABLE_0_START, NAMETABLE_0_END);
