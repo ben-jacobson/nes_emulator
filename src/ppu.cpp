@@ -22,7 +22,7 @@ void ppu::cycle(void) {
         // determine which base nametable address to use
         uint16_t base_nametable_address;
 
-        switch(_PPU_control_register & 0x04) {
+        switch(_PPU_control_register & 0x03) {
             case 0:
                base_nametable_address = 0x2000;
                break; 
