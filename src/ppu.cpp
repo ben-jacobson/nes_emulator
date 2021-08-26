@@ -13,11 +13,11 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
 
 void ppu::cycle(void) {
     bool new_pattern_address = false; 
-    // clock out pixel by pixel to output buffer
-    _clock_pulse_x++;
-    
-    // rendering area
-    if (/*clock_pulse_x >= 0 &&*/ _clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
+
+    _clock_pulse_x++;     // clock out pixel by pixel to output buffer
+
+    // manage what to do in the rendering area
+    if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
         // boil down the scaline and clock to the tile on the nametable
         uint16_t nametable_index_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
         uint16_t nametable_index_y = _scanline_y / SPRITE_HEIGHT;            
@@ -51,18 +51,23 @@ void ppu::cycle(void) {
 
         // get the pixel pattern and generate a colour index from it.
         uint8_t pattern_pixel = plane_0_bit | (plane_1_bit << 1);
-        uint8_t palette_index = (pattern_pixel == 0 ? 0 : 255); // TODO!
+
+        // pull down the pallette from the OAM and determine which palette to apply
+        //0x3F00 refers to the transparent color
+        //3F01, 3F05, 3F09, 3F0D are used for background palettes
+        _ppu_bus_ptr->set_address(0x3F00 + pattern_pixel);
+        uint8_t palette_info = _ppu_bus_ptr->read_data();
 
         // calculate an xy index from the scanline and clock
         uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
 
         // draw a pixel from pattern table (background) if rendering is enabled
         if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {   
-            // look up the colour index from the NTSC palette and add to the rax pixel dat
-            _raw_pixel_data[pixel_index + 0] = palette_index;       // Blue
-            _raw_pixel_data[pixel_index + 1] = palette_index;     // Green
-            _raw_pixel_data[pixel_index + 2] = palette_index;       // Red       
-            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;              
+            // look up the colour index from the NTSC palette and add to the rax pixel data
+            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_info][B];       
+            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[palette_info][G];       
+            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_info][R];              
+            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;             
         }
 
         // draw a pixel from the OAM table (sprites) if rendering is enabled
