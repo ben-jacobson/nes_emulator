@@ -12,6 +12,7 @@
 #include "debug_display/instr_trace_graphics.h"
 #include "debug_display/instruction_log.h"
 #include "debug_display/pattern_table_preview.h"
+#include "debug_display/fps_counter.h"
 
 #include "memory_map.h"
 #include "bus.h"
@@ -142,6 +143,7 @@ int main(int argc, char *argv[])
 	memory_peek_graphics debug_cpu_memory_peek(&text_surface, &nes_cpu_bus, "CPU Mem Peek", 20 + 512 + 20, 25 + (25 * font_size)); 
 	memory_peek_graphics debug_ppu_memory_peek(&text_surface, &nes_ppu_bus, "PPU Mem Peek", 20 + 512 + 20, 25 + (26 * font_size)); 
 	pattern_table_preview debug_pattern_table(&nes_ppu_bus, &nes_ppu, renderer, 20 + 512 + 20, 25 + (29 * font_size));
+	fps_counter frame_counter(&text_surface, 1280 - (font_size * 6), 0);
 
 	// The main display object
 	ppu_draw display_output(&nes_ppu, renderer, 20, 20, 2);
@@ -159,7 +161,7 @@ int main(int argc, char *argv[])
 	bool instruction_complete = false; 
 	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
 
-	uint32_t time_taken_render_frame = SDL_GetTicks();
+	frame_counter.get_frame_start_time();
 
 	//instruction_trace_log.enable_file_logging();
 
@@ -327,15 +329,15 @@ int main(int argc, char *argv[])
 			debug_cpu_memory_peek.display_contents();
 			debug_ppu_memory_peek.display_contents();
 			debug_pattern_table.display_contents();	
-		
+			frame_counter.display_contents();
+
 			display_output.draw();				// draw the main screen
 		
 			// update the display with new info from renderer
 			SDL_RenderPresent(renderer);			
 			nes_ppu.clear_frame_complete_flag();
 			
-			std::cout << "Frame render time: " << SDL_GetTicks() - time_taken_render_frame << std::endl;
-			time_taken_render_frame = SDL_GetTicks();
+			frame_counter.get_frame_start_time();
 		}		
 	}
 
