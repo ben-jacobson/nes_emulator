@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 		if (frame_complete || instruction_complete) {		
 
 			/*====================
-				Process inputs
+				Process input
 			====================*/
 
 			// this might look a bit unconventional, but we only want to check the key input right before rendering the frame. Otherwise this loop runs ~80K times before each frame is rendered. 
@@ -269,7 +269,6 @@ int main(int argc, char *argv[])
 							palette_ram.clear_ram();
 							nes_cpu.reset();
 							nes_ppu.reset();
-							run_mode = true;
 							instruction_complete = false; // do this so that the processor can progress the first initial clock cycles and pause on the first instruction
 							std::cout << "CPU Reset" << std::endl;
 							break;
