@@ -18,11 +18,32 @@ void ppu::cycle(void) {
 
     // manage what to do in the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        // boil down the scaline and clock to the tile on the nametable
-        // for now, just read from nametable 0
+
+        // determine which base nametable address to use
+        uint16_t base_nametable_address;
+
+        switch(_PPU_control_register & 0x04) {
+            case 0:
+               base_nametable_address = 0x2000;
+               break; 
+            case 1:
+               base_nametable_address = 0x2400;
+               break; 
+            case 2:
+               base_nametable_address = 0x2800;
+               break; 
+            case 3:
+               base_nametable_address = 0x2C00;
+               break; 
+            default:
+               base_nametable_address = 0x2000;
+               break; 
+        }
+
+        // boil down the scanline and clock to the tile on the nametable
         uint16_t nametable_index_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
         uint16_t nametable_index_y = _scanline_y / SPRITE_HEIGHT;            
-        uint16_t new_nametable_index_offset = 0x2000 + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
+        uint16_t new_nametable_index_offset = base_nametable_address + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
 
         if (new_nametable_index_offset != _nametable_index_offset) {
             _nametable_index_offset = new_nametable_index_offset; // buffer this
@@ -38,6 +59,10 @@ void ppu::cycle(void) {
 
         if (new_pattern_address) {
             uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
+
+            if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
+                _pattern_address += 0x1000;
+            }
 
             // read the row data from the pattern table
             _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index);
