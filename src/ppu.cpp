@@ -11,7 +11,7 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 }
 
-void ppu::read_nametable(void) {
+void ppu::bg_read_nametable(void) {
     // determine which base nametable address to use
     uint16_t base_nametable_address;
 
@@ -41,7 +41,7 @@ void ppu::read_nametable(void) {
     }
 }
 
-void ppu::read_pattern_table(void) {
+void ppu::bg_read_pattern_table(void) {
     // boil down the scanline and clock to the x and y within the tile,
     uint16_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
 
@@ -73,7 +73,7 @@ void ppu::read_pattern_table(void) {
     _pattern_pixel = plane_0_bit | (plane_1_bit << 1);
 }
 
-void ppu::read_attribute_table(void) {
+void ppu::bg_read_attribute_table(void) {
     // pull down the pallette from the OAM and determine which palette to apply
     //0x3F00 refers to the transparent color, 3F01, 3F05, 3F09, 3F0D are used for background palettes
     uint16_t base_attribute_table_address;
@@ -108,31 +108,41 @@ void ppu::read_attribute_table(void) {
         }
     }
 
-    uint8_t attribute_palette_x = (_nametable_x / 2) % 2;                                       
+    uint8_t attribute_palette_x = (_nametable_x / 2) % 2;                                                       
     uint8_t attribute_palette_y = (_nametable_y / 2) % 2; 
     uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x;          // should generate an index between 0 and 3. but in order 3-0 
     uint8_t attribute_bits = (_attribute_table_data >> (attribute_palette_index * 2)) & 0x03;   // shift right to get the lowest 2 bits, clear the upper 6 bits
-    uint16_t palette_address = PALETTE_RAM_INDEX_START + (attribute_bits * 4) + _pattern_pixel; 
+    uint16_t new_palette_address = PALETTE_RAM_INDEX_START + (attribute_bits * 4) + _pattern_pixel; 
 
-    _ppu_bus_ptr->set_address(palette_address);
-    _result_pixel = _ppu_bus_ptr->read_data();
+    if (new_palette_address != _palette_address) {
+        _palette_address = new_palette_address;
+        _ppu_bus_ptr->set_address(new_palette_address);
+        _result_pixel = _ppu_bus_ptr->read_data();
+    }
 }
 
-bool ppu::background_rendering_enabled(void) {
+bool ppu::bg_rendering_enabled(void) {
     return check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) == 0 ? false : true;
+}
+
+bool ppu::bg_left_eight_pixels_enabled(void) {
+    if (_clock_pulse_x >= 8) {
+        return true;
+    }
+    return check_bit(_PPU_mask_register, PPUMASK_SHOWLEFT_BG) == 0 ? false : true;
 }
 
 void ppu::cycle(void) {
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        read_nametable();            // Read data from the nametable, maintaining the nt x, y and offset
-        read_pattern_table();       // Read from the pattern table
-        read_attribute_table();     // Read from the palette information from attribute table
+        bg_read_nametable();            // Read data from the nametable, maintaining the nt x, y and offset
+        bg_read_pattern_table();       // Read from the pattern table
+        bg_read_attribute_table();     // Read from the palette information from attribute table
 
         // Check that background rendering is enabled and insert in to raw pixel data
         uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
 
-        if (background_rendering_enabled() && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
+        if (bg_rendering_enabled() && bg_left_eight_pixels_enabled() && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
             _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[_result_pixel][B];       
             _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[_result_pixel][G];       
             _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[_result_pixel][R];              
@@ -196,10 +206,21 @@ void ppu::reset(void) {
 
     for (auto& i: _raw_pixel_data) i = 0;   // clear the pixel data
 
-    //_nametable_index_offset = 0;
-    //_pattern_address = 0;    
-    //_attribute_table_index = 0;
-    //for (auto& p : _palette_info) p = 0;    // clear the palette data
+    // reset our ppu cached variables
+	_nametable_x = 0; 
+    _nametable_y = 0; 
+    _attribute_table_x = 0;
+    _attribute_table_y = 0;
+	_nametable_index = 0; 
+    _pattern_address = 0; 
+    _attribute_table_index = 0; 
+    _palette_address = 0;
+	_row_data_plane_0 = 0; 
+    _row_data_plane_1 = 0; 
+    _attribute_table_data = 0;
+    _pattern_pixel = 0; 
+    _result_pixel = 0;
+	_read_new_pattern = false;
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -223,7 +244,7 @@ uint8_t ppu::read(uint16_t address) {
             data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
-            //_ppu_bus_ptr->set_address(_video_memory_address); // may need this later? seems to cause an issue with debug displays
+            _ppu_bus_ptr->set_address(_video_memory_address); 
             data = _ppu_bus_ptr->read_data();       // we rely on setting the address via PPUADDR writes, it's possible to get junk data from this if you just go straight for the read
             increment_video_memory_address();           
             break;
