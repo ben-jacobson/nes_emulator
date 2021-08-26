@@ -93,9 +93,9 @@ void ppu::read_attribute_table(void) {
             break; 
     }
 
-    _attribute_table_x = _clock_pulse_x / 32; 
+    _attribute_table_x = _clock_pulse_x / 32;          
     _attribute_table_y = _scanline_y / 32;   
-    uint16_t new_attribute_table_index = base_attribute_table_address + ((_attribute_table_y * 8) + _attribute_table_x);
+    uint16_t new_attribute_table_index = base_attribute_table_address + ((_attribute_table_y * 8) + _attribute_table_x);    // attribute tables are 8x8
 
     if (new_attribute_table_index != _attribute_table_index) {
         _attribute_table_index = new_attribute_table_index;
@@ -108,12 +108,13 @@ void ppu::read_attribute_table(void) {
         }
     }
 
-    uint8_t attribute_palette_x = _nametable_x % 2; 
-    uint8_t attribute_palette_y = _nametable_y % 2; 
-    uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x; // should generate a number between 0 and 3. 
-    uint8_t attribute_bits = (_attribute_table_data >> (attribute_palette_index * 2)) & 0x03; // shift right to get the lowest 2 bits, clear the upper 6 bits
+    uint8_t attribute_palette_x = (_nametable_x / 2) % 2;                                       
+    uint8_t attribute_palette_y = (_nametable_y / 2) % 2; 
+    uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x;          // should generate an index between 0 and 3. but in order 3-0 
+    uint8_t attribute_bits = (_attribute_table_data >> (attribute_palette_index * 2)) & 0x03;   // shift right to get the lowest 2 bits, clear the upper 6 bits
+    uint16_t palette_address = PALETTE_RAM_INDEX_START + (attribute_bits * 4) + _pattern_pixel; 
 
-    _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + (attribute_bits * 4) + _pattern_pixel);
+    _ppu_bus_ptr->set_address(palette_address);
     _result_pixel = _ppu_bus_ptr->read_data();
 }
 
@@ -163,139 +164,6 @@ void ppu::cycle(void) {
         _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
     }
 }
-
-/*void ppu::cycle(void) {
-    bool new_pattern_address = false; 
-
-    // manage what to do in the rendering area
-    if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-    
-        // determine which base nametable address to use
-        uint16_t base_nametable_address;
-
-        switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits
-            case 0:
-               base_nametable_address = 0x2000;
-               break; 
-            case 1:
-               base_nametable_address = 0x2400;
-               break; 
-            case 2:
-               base_nametable_address = 0x2800;
-               break; 
-            case 3:
-               base_nametable_address = 0x2C00;
-               break; 
-        }
-
-        // boil down the scanline and clock to the tile on the nametable
-        uint16_t nametable_index_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
-        uint16_t nametable_index_y = _scanline_y / SPRITE_HEIGHT;            
-        uint16_t new_nametable_index_offset = base_nametable_address + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
-
-        if (new_nametable_index_offset != _nametable_index_offset) {
-            _nametable_index_offset = new_nametable_index_offset; // buffer this
-
-            // grab the tile ID from the nametable
-            _ppu_bus_ptr->set_address(_nametable_index_offset);
-            _pattern_address = _ppu_bus_ptr->read_data() << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020
-            new_pattern_address = true; 
-        }
-
-        // boil down the scanline and clock to the x and y within the tile,
-        uint8_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
-
-        if (new_pattern_address) {
-            uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
-
-            if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
-                _pattern_address += 0x1000;
-            }
-
-            // read the row data from the pattern table
-            _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index);
-            row_data_plane_0 = _ppu_bus_ptr->read_data(); 
-            _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index + 8);
-            row_data_plane_1 = _ppu_bus_ptr->read_data(); 
-        }
-
-        // extract the bit from the pattern table, in plane 0 and 1, 
-        uint8_t plane_0_bit = (row_data_plane_0 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
-        uint8_t plane_1_bit = (row_data_plane_1 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
-
-        // get the pixel pattern and generate a colour index from it.
-        uint8_t pattern_pixel = plane_0_bit | (plane_1_bit << 1);
-
-        // pull down the pallette from the OAM and determine which palette to apply
-        //0x3F00 refers to the transparent color
-        //3F01, 3F05, 3F09, 3F0D are used for background palettes
-
-        // for now, just read from Nametable 0 attribute data
-        uint16_t attribute_table_index_x = _clock_pulse_x / 32; 
-        uint16_t attribute_table_index_y = _scanline_y / 32;   
-        uint16_t new_attribute_table_index = 0x23C0 + ((attribute_table_index_y * 8) + attribute_table_index_x);
-
-        if (new_attribute_table_index != _attribute_table_index) {
-            _attribute_table_index = new_attribute_table_index;
-
-            _ppu_bus_ptr->set_address(_attribute_table_index);
-            uint8_t new_attribute_table_data = _ppu_bus_ptr->read_data();
-
-            if (new_attribute_table_data != _attribute_table_data) {
-                _attribute_table_data = new_attribute_table_data;
-            }
-        }
-
-        uint8_t attribute_palette_x = nametable_index_x % 2; 
-        uint8_t attribute_palette_y = nametable_index_y % 2; 
-        uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x; // should generate a number between 0 and 3. 
-        uint8_t attribute_bits = (_attribute_table_data >> (attribute_palette_index * 2)) & 0x03; // shift right to get the lowest 2 bits, clear the upper 6 bits
-
-        _ppu_bus_ptr->set_address(0x3F00 + (attribute_bits * 4) + pattern_pixel);
-        uint8_t p = _ppu_bus_ptr->read_data();
-
-        // calculate an xy index from the scanline and clock
-        uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
-
-        // draw a pixel from pattern table (background) if rendering is enabled
-        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {   
-            // look up the colour index from the NTSC palette and add to the rax pixel data
-            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[p][B];       
-            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[p][G];       
-            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[p][R];              
-            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;             
-        }
-
-        // draw a pixel from the OAM table (sprites) if rendering is enabled
-        if (check_bit(_PPU_mask_register, PPUMASK_SHOW_SPRITES) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
-            // todo
-        } 
-    }
-
-    _clock_pulse_x++;     // clock out pixel by pixel to output buffer
-
-    if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
-        _clock_pulse_x = 0;
-        _scanline_y++;
-        
-        if (_scanline_y >= SCANLINES_PER_FRAME) {
-            _scanline_y = -1;
-            _frame_count++; // indicate a completed frame (at least the visible portion)
-            _frame_complete_flag = true;
-        }
-    }
-
-    // x:1 y:241 is when vertical blank is set
-    if (_scanline_y == 241 && _clock_pulse_x == 1) {
-        vertical_blank();
-    }
-
-    // x:1 y:261 is when vertical blank is cleared
-    if (_scanline_y == 261 && _clock_pulse_x == 1) {
-        // clear the VBlank bit, signifying that we are busy
-        _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
-    }
-}*/
 
 void ppu::reset(void) {
     //reset statuses back to starting position
