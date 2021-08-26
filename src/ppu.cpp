@@ -22,7 +22,7 @@ void ppu::cycle(void) {
         // determine which base nametable address to use
         uint16_t base_nametable_address;
 
-        switch(_PPU_control_register & 0x03) {
+        switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits
             case 0:
                base_nametable_address = 0x2000;
                break; 
@@ -34,9 +34,6 @@ void ppu::cycle(void) {
                break; 
             case 3:
                base_nametable_address = 0x2C00;
-               break; 
-            default:
-               base_nametable_address = 0x2000;
                break; 
         }
 
