@@ -185,9 +185,9 @@ private:
 	bool _frame_complete_flag;
 	
 	// We buffer a few of the addresses used in cycle() to avoid unnecessary read/write
-	uint16_t _nametable_index_offset;
-	uint16_t _pattern_address;
-	uint8_t row_data_plane_0, row_data_plane_1;
+	uint16_t _nametable_index_offset, _pattern_address, _attribute_table_index;
+	uint8_t row_data_plane_0, row_data_plane_1, _attribute_table_data;
+	std::array<uint8_t, 4> _palette_info;
 
 	void increment_video_memory_address(void);
 };

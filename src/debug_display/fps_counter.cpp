@@ -8,7 +8,7 @@ fps_counter::fps_counter(text_renderer* text_surface, uint16_t preset_display_x,
     get_frame_start_time();
     _frame_count = 0;
 
-    for (auto& a : _average_frame_time_array) a = 1;   // fill the array with 60 to start with. It's important these values never go to 0
+    for (auto& a : _average_frame_time_array) a = 1;   // fill the array with 1 to start with. It's important these values never go to 0
 }
 
 void fps_counter::get_frame_start_time(void) {

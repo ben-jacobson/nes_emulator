@@ -115,6 +115,12 @@ constexpr uint16_t PALETTE_RAM_MIRROR_END       = 0x3FFF;
 
 constexpr uint16_t PALETTE_RAM_SIZE             = 0x0020; // each pallette ram is 32 bytes long 
 
+// Attribute tables for PPU background rendering
+constexpr uint16_t NT_0_ATTRIBUTE_TABLE         = 0x23C0;
+constexpr uint16_t NT_1_ATTRIBUTE_TABLE         = 0x27C0;
+constexpr uint16_t NT_2_ATTRIBUTE_TABLE         = 0x2BC0;
+constexpr uint16_t NT_3_ATTRIBUTE_TABLE         = 0x2FC0;
+
 // CHR ROM on the cartridge is typically mapped to the same location as Pattern Tables 0 & 1
 constexpr uint16_t CHR_ROM_START                = 0x0000;
 constexpr uint16_t CHR_ROM_END                  = 0x1FFF;

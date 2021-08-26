@@ -19,6 +19,7 @@ void ppu::cycle(void) {
     // manage what to do in the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
         // boil down the scaline and clock to the tile on the nametable
+        // for now, just read from nametable 0
         uint16_t nametable_index_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
         uint16_t nametable_index_y = _scanline_y / SPRITE_HEIGHT;            
         uint16_t new_nametable_index_offset = 0x2000 + ((nametable_index_y * NAMETABLE_WIDTH) + nametable_index_x);
@@ -55,8 +56,30 @@ void ppu::cycle(void) {
         // pull down the pallette from the OAM and determine which palette to apply
         //0x3F00 refers to the transparent color
         //3F01, 3F05, 3F09, 3F0D are used for background palettes
-        _ppu_bus_ptr->set_address(0x3F00 + pattern_pixel);
-        uint8_t palette_info = _ppu_bus_ptr->read_data();
+
+        // for now, just read from Nametable 0 attribute data
+        uint16_t attribute_table_index_x = _clock_pulse_x / 32; 
+        uint16_t attribute_table_index_y = _scanline_y / 32;   
+        uint16_t new_attribute_table_index = 0x23C0 + ((attribute_table_index_y * 8) + attribute_table_index_x);
+
+        if (new_attribute_table_index != _attribute_table_index) {
+            _attribute_table_index = new_attribute_table_index;
+
+            _ppu_bus_ptr->set_address(_attribute_table_index);
+            uint8_t new_attribute_table_data = _ppu_bus_ptr->read_data();
+
+            if (new_attribute_table_data != _attribute_table_data) {
+                _attribute_table_data = new_attribute_table_data;
+            }
+        }
+
+        uint8_t attribute_palette_x = nametable_index_x % 2; 
+        uint8_t attribute_palette_y = nametable_index_y % 2; 
+        uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x; // should generate a number between 0 and 3. 
+        uint8_t attribute_bits = (_attribute_table_data >> (attribute_palette_index * 2)) & 0x03; // shift right to get the lowest 2 bits, clear the upper 6 bits
+
+        _ppu_bus_ptr->set_address(0x3F00 + (attribute_bits * 4) + pattern_pixel);
+        uint8_t p = _ppu_bus_ptr->read_data();
 
         // calculate an xy index from the scanline and clock
         uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
@@ -64,9 +87,9 @@ void ppu::cycle(void) {
         // draw a pixel from pattern table (background) if rendering is enabled
         if (check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {   
             // look up the colour index from the NTSC palette and add to the rax pixel data
-            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[palette_info][B];       
-            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[palette_info][G];       
-            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[palette_info][R];              
+            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[p][B];       
+            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[p][G];       
+            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[p][R];              
             _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;             
         }
 
@@ -130,6 +153,9 @@ void ppu::reset(void) {
 
     _nametable_index_offset = 0;
     _pattern_address = 0;    
+    _attribute_table_index = 0;
+
+    for (auto& p : _palette_info) p = 0; 
 }
 
 void ppu::trigger_cpu_NMI(void) {
