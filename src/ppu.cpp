@@ -11,7 +11,11 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 }
 
-void ppu::bg_read_pattern_table(void) {
+void ppu::bg_read_pattern_table_from_cache(void) {
+    /*
+        NOTE! Currently does not read from cache, left here for debugging and will require a refactor
+    */
+
     _nametable_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
     _nametable_y = _scanline_y / SPRITE_HEIGHT;        
 
@@ -108,7 +112,7 @@ void ppu::cache_nametable_row(void) {
         Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
     */
 
-    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // just do this only once at the start
+    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_nametable_address = NAMETABLE_0_START; // failsafe
 
         switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits of this register
@@ -138,7 +142,18 @@ void ppu::cache_nametable_row(void) {
 }
 
 void ppu::cache_pattern_row(void) {
+    /*
+        Cache entire row of the patterns from the nametable
+        Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
+    */
 
+    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+        // read off the addresses from the nametable cache
+        // cache the first tile into the array
+
+        // every subsequent tile, check if we've already read this tile (look up the ID in the nametable cache)
+        // either pull from memory the tile data, or copy from a previous instance
+    }
 }
 
 void ppu::cache_attribute_table_row(void) {
@@ -153,7 +168,8 @@ void ppu::cycle(void) {
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
         //bg_read_nametable();           // Read data from the nametable, maintaining the nt x, y and offset
-        bg_read_pattern_table();       // Read from the pattern table
+        //bg_read_pattern_table();       // Read from the pattern table
+        bg_read_pattern_table_from_cache();
         bg_read_attribute_table();     // Read from the palette information from attribute table
 
         // Check that background rendering is enabled and insert in to raw pixel data

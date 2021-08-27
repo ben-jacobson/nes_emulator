@@ -197,7 +197,7 @@ private:
 
 	// ppu helper functions
 	void bg_read_nametable(void);
-	void bg_read_pattern_table(void);
+	void bg_read_pattern_table_from_cache(void);
 	void bg_read_attribute_table(void);
 	void bg_read_palette_data(void);
 	bool bg_rendering_enabled(void);
