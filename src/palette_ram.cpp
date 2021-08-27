@@ -30,18 +30,18 @@ uint8_t palette_ram::read(uint16_t address) {
 void palette_ram::write(uint16_t address, uint8_t data) {
     // First check if the read is within the specified address range
     if (address >= _address_space_lower && address <= _address_space_upper) {
-        if (address % _ram_size == SPECIAL_PALETTE_0 || address % _ram_size == SPECIAL_MIRROR_0) {          // Nes has some strange special use cases, this wouldn't apply through normal mirroring
+        if (address == SPECIAL_PALETTE_0 || address == SPECIAL_MIRROR_0) {          // Nes has some strange special use cases, this wouldn't apply through normal mirroring
             address = SPECIAL_MIRROR_0;
         }
-        if (address % _ram_size == SPECIAL_PALETTE_1 || address % _ram_size == SPECIAL_MIRROR_1) {
+        if (address == SPECIAL_PALETTE_1 || address == SPECIAL_MIRROR_1) {
             address = SPECIAL_MIRROR_1;
         }
-        if (address % _ram_size == SPECIAL_PALETTE_2 || address % _ram_size == SPECIAL_MIRROR_2) {
+        if (address == SPECIAL_PALETTE_2 || address == SPECIAL_MIRROR_2) {
             address = SPECIAL_MIRROR_2;
         }
-        if (address % _ram_size == SPECIAL_PALETTE_3 || address % _ram_size == SPECIAL_MIRROR_3) {
+        if (address == SPECIAL_PALETTE_3 || address == SPECIAL_MIRROR_3) {
             address = SPECIAL_MIRROR_3;
-        }      
+        }     
 
         _ram_data[(address - _address_space_lower) % _ram_size] = data;  // place it into the array at the new offset address
     }

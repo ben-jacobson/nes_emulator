@@ -11,59 +11,29 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 }
 
-void ppu::bg_read_nametable(void) {
-    // determine which base nametable address to use
-    uint16_t base_nametable_address;
-
-    switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits
-        case 0:
-            base_nametable_address = NAMETABLE_0_START;
-            break; 
-        case 1:
-            base_nametable_address = NAMETABLE_1_START;
-            break; 
-        case 2:
-            base_nametable_address = NAMETABLE_2_START;
-            break; 
-        case 3:
-            base_nametable_address = NAMETABLE_3_START;
-            break; 
-    }
-
-    // boil down the scanline and clock to the tile on the nametable
-    _nametable_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
-    _nametable_y = _scanline_y / SPRITE_HEIGHT;            
-    uint16_t new_nametable_index = base_nametable_address + ((_nametable_y * NAMETABLE_WIDTH) + _nametable_x);
-
-    if (new_nametable_index != _nametable_index) {
-        _nametable_index = new_nametable_index; // buffer this for next time
-        _read_new_pattern = true;
-    }
-}
-
 void ppu::bg_read_pattern_table(void) {
+    _nametable_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
+    _nametable_y = _scanline_y / SPRITE_HEIGHT;        
+
     // boil down the scanline and clock to the x and y within the tile,
     uint16_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
 
-    if (_read_new_pattern) {
-        // grab the tile ID from the nametable
-        _ppu_bus_ptr->set_address(_nametable_index);
-        _pattern_address = _ppu_bus_ptr->read_data() << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020     
-        _read_new_pattern = false; 
-   
-        uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
+    // grab the tile ID from the nametable
+    _pattern_address = nametable_row_cache[_nametable_x] << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020     
 
-        // adjust the pattern table between left and right table as required in PPU control register
-        if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
-            _pattern_address += 0x1000;
-        }
+    uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
 
-        // read the row data from the pattern table
-        _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index);
-        _row_data_plane_0 = _ppu_bus_ptr->read_data(); 
-        _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index + 8);
-        _row_data_plane_1 = _ppu_bus_ptr->read_data(); 
+    // adjust the pattern table between left and right table as required in PPU control register
+    if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
+        _pattern_address += 0x1000;
     }
+
+    // read the row data from the pattern table
+    _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index);
+    _row_data_plane_0 = _ppu_bus_ptr->read_data(); 
+    _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index + 8);
+    _row_data_plane_1 = _ppu_bus_ptr->read_data(); 
+
 
     // extract the bit from the pattern table, in plane 0 and 1, 
     uint8_t plane_0_bit = (_row_data_plane_0 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
@@ -132,10 +102,57 @@ bool ppu::bg_left_eight_pixels_enabled(void) {
     return check_bit(_PPU_mask_register, PPUMASK_SHOWLEFT_BG) == 0 ? false : true;
 }
 
+void ppu::cache_nametable_row(void) {
+    /*
+        Cache entire row of the nametable
+        Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
+    */
+
+    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // just do this only once at the start
+        uint16_t base_nametable_address = NAMETABLE_0_START; // failsafe
+
+        switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits of this register
+            case 0:
+                base_nametable_address = NAMETABLE_0_START;
+                break; 
+            case 1:
+                base_nametable_address = NAMETABLE_1_START;
+                break; 
+            case 2:
+                base_nametable_address = NAMETABLE_2_START;
+                break; 
+            case 3:
+                base_nametable_address = NAMETABLE_3_START;
+                break; 
+        }
+
+        // boil down the scanline and clock to determined nametable x and y position
+        _nametable_y = _scanline_y / SPRITE_HEIGHT;            
+        uint16_t nametable_index = base_nametable_address + (_nametable_y * NAMETABLE_WIDTH);   // we don't need the x offset since we are at x=0
+
+        for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {  // todo - add 1 for allow room for scrolling
+            _ppu_bus_ptr->set_address(nametable_index + i);  // todo - add in edge detection, and load in set of next tiles as needed
+            nametable_row_cache[i] = _ppu_bus_ptr->read_data();
+        }
+    }
+}
+
+void ppu::cache_pattern_row(void) {
+
+}
+
+void ppu::cache_attribute_table_row(void) {
+
+}
+
 void ppu::cycle(void) {
+    cache_nametable_row();
+    cache_pattern_row();
+    cache_attribute_table_row();
+
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        bg_read_nametable();            // Read data from the nametable, maintaining the nt x, y and offset
+        //bg_read_nametable();           // Read data from the nametable, maintaining the nt x, y and offset
         bg_read_pattern_table();       // Read from the pattern table
         bg_read_attribute_table();     // Read from the palette information from attribute table
 
@@ -221,6 +238,8 @@ void ppu::reset(void) {
     _pattern_pixel = 0; 
     _result_pixel = 0;
 	_read_new_pattern = false;
+
+    for (auto& i: nametable_row_cache) i = 0;
 }
 
 void ppu::trigger_cpu_NMI(void) {

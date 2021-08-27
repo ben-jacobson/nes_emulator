@@ -191,6 +191,8 @@ private:
 	uint8_t _row_data_plane_0, _row_data_plane_1, _attribute_table_data, _pattern_pixel, _result_pixel;
 	bool _read_new_pattern;
 
+	std::array <uint8_t, NAMETABLE_WIDTH> nametable_row_cache;
+
 	void increment_video_memory_address(void);
 
 	// ppu helper functions
@@ -200,4 +202,8 @@ private:
 	void bg_read_palette_data(void);
 	bool bg_rendering_enabled(void);
 	bool bg_left_eight_pixels_enabled(void);
+
+	void cache_nametable_row(void);
+    void cache_pattern_row(void);
+	void cache_attribute_table_row(void);
 };
