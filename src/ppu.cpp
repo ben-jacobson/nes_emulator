@@ -11,37 +11,18 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 }
 
-void ppu::bg_read_pattern_table_from_cache(void) {
-    /*
-        NOTE! Currently does not read from cache, left here for debugging and will require a refactor
-    */
-
-    _nametable_x = _clock_pulse_x / _sprite_width; // forcing into unsigned integer will round down
+void ppu::bg_read_pattern_pixel_from_cache(void) {
+    // update our nametable x and y 
+    _nametable_x = _clock_pulse_x / _sprite_width;
     _nametable_y = _scanline_y / SPRITE_HEIGHT;        
 
     // boil down the scanline and clock to the x and y within the tile,
-    uint16_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB
-
-    // grab the tile ID from the nametable
-    _pattern_address = nametable_row_cache[_nametable_x] << 4; // convert to the actual tile address, e.g 0x0020 becomes 0x020     
-
+    uint8_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB as left most pixel
     uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
 
-    // adjust the pattern table between left and right table as required in PPU control register
-    if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
-        _pattern_address += 0x1000;
-    }
-
-    // read the row data from the pattern table
-    _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index);
-    _row_data_plane_0 = _ppu_bus_ptr->read_data(); 
-    _ppu_bus_ptr->set_address(_pattern_address + pattern_table_row_y_index + 8);
-    _row_data_plane_1 = _ppu_bus_ptr->read_data(); 
-
-
     // extract the bit from the pattern table, in plane 0 and 1, 
-    uint8_t plane_0_bit = (_row_data_plane_0 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
-    uint8_t plane_1_bit = (_row_data_plane_1 & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+    uint8_t plane_0_bit = (pattern_row_plane_0_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+    uint8_t plane_1_bit = (pattern_row_plane_1_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
 
     // get the pixel pattern and generate a colour index from it.
     _pattern_pixel = plane_0_bit | (plane_1_bit << 1);
@@ -146,11 +127,16 @@ void ppu::cache_pattern_row(void) {
         Cache entire row of the patterns from the nametable
         Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
     */
-
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+        uint16_t pattern_offset = 0; 
+
+        if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
+            pattern_offset += 0x1000;
+        }
+
         for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {         // todo - add 1 for allow room for scrolling
-            uint16_t _pattern_address = nametable_row_cache[i] << 4;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
-    
+            uint16_t _pattern_address = (nametable_row_cache[i] << 4) + pattern_offset;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
+
             // todo, do a quick check to see if this has been seen before
 
             // load in each byte representing a row.
@@ -177,7 +163,7 @@ void ppu::cycle(void) {
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
         //bg_read_nametable();           // Read data from the nametable, maintaining the nt x, y and offset
         //bg_read_pattern_table();       // Read from the pattern table
-        bg_read_pattern_table_from_cache();
+        bg_read_pattern_pixel_from_cache();
         bg_read_attribute_table();     // Read from the palette information from attribute table
 
         // Check that background rendering is enabled and insert in to raw pixel data
