@@ -148,11 +148,19 @@ void ppu::cache_pattern_row(void) {
     */
 
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
-        // read off the addresses from the nametable cache
-        // cache the first tile into the array
+        for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {         // todo - add 1 for allow room for scrolling
+            uint16_t _pattern_address = nametable_row_cache[i] << 4;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
+    
+            // todo, do a quick check to see if this has been seen before
 
-        // every subsequent tile, check if we've already read this tile (look up the ID in the nametable cache)
-        // either pull from memory the tile data, or copy from a previous instance
+            // load in each byte representing a row.
+            for (uint8_t y = 0; y < SPRITE_HEIGHT; y++) {
+                _ppu_bus_ptr->set_address(_pattern_address + y);       
+                pattern_row_plane_0_cache[i][y] = _ppu_bus_ptr->read_data();            // read bit plane 0
+                _ppu_bus_ptr->set_address(_pattern_address + y + 8);                    
+                pattern_row_plane_1_cache[i][y] = _ppu_bus_ptr->read_data();            // then bit plane 1, 8 bits later
+            }
+        }                  
     }
 }
 
@@ -255,7 +263,9 @@ void ppu::reset(void) {
     _result_pixel = 0;
 	_read_new_pattern = false;
 
-    for (auto& i: nametable_row_cache) i = 0;
+    /*for (auto& i: nametable_row_cache) i = 0;       // clear the nametable row cache
+    for (auto& i: pattern_row_cache)
+        for () // clear the nametable row cache*/
 }
 
 void ppu::trigger_cpu_NMI(void) {

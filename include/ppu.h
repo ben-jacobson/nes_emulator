@@ -192,6 +192,7 @@ private:
 	bool _read_new_pattern;
 
 	std::array <uint8_t, NAMETABLE_WIDTH> nametable_row_cache;
+	std::array <std::array<uint8_t, SPRITE_HEIGHT>, NAMETABLE_WIDTH> pattern_row_plane_0_cache, pattern_row_plane_1_cache;
 
 	void increment_video_memory_address(void);
 

@@ -28,8 +28,6 @@ int main(int argc, char *argv[])
 {
 	constexpr uint16_t SCREEN_WIDTH = 1280;
 	constexpr uint16_t SCREEN_HEIGHT = 720;
-	// constexpr uint8_t TARGET_FRAMERATE = 60;  60 fps
-	// constexpr uint16_t SCREEN_TICKS_PER_FRAME = 1000 / TARGET_FRAMERATE;
 
 	// Create a base path for loading in assets
 	char *base_path = SDL_GetBasePath();
