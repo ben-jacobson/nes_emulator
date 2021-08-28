@@ -128,6 +128,9 @@ void ppu::cache_pattern_row(void) {
         Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
     */
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+        // update our nametable x as needed
+        _nametable_x = _clock_pulse_x / _sprite_width;
+
         uint16_t pattern_offset = 0; 
 
         if (check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR)) {
@@ -135,16 +138,32 @@ void ppu::cache_pattern_row(void) {
         }
 
         for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {         // todo - add 1 for allow room for scrolling
-            uint16_t _pattern_address = (nametable_row_cache[i] << 4) + pattern_offset;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
+            int used_before_index = -1;     // initially set to say this pattern is unique
 
-            // todo, do a quick check to see if this has been seen before
+            // first check to see if this address has been used before
+            if (_nametable_x > 0) {
+                for (uint8_t j = 0; j < NAMETABLE_WIDTH; j++) {
+                    if (nametable_row_cache[i] == nametable_row_cache[j]) { // if the same address was found before
+                        used_before_index = j;
+                        break; 
+                    }
+                }
+            }
 
-            // load in each byte representing a row.
-            for (uint8_t y = 0; y < SPRITE_HEIGHT; y++) {
-                _ppu_bus_ptr->set_address(_pattern_address + y);       
-                pattern_row_plane_0_cache[i][y] = _ppu_bus_ptr->read_data();            // read bit plane 0
-                _ppu_bus_ptr->set_address(_pattern_address + y + 8);                    
-                pattern_row_plane_1_cache[i][y] = _ppu_bus_ptr->read_data();            // then bit plane 1, 8 bits later
+            if (used_before_index == -1) { // check if the pattern is unique
+                uint16_t _pattern_address = (nametable_row_cache[i] << 4) + pattern_offset;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
+
+                // load in each byte representing a row.
+                for (uint8_t y = 0; y < SPRITE_HEIGHT; y++) {
+                    _ppu_bus_ptr->set_address(_pattern_address + y);       
+                    pattern_row_plane_0_cache[i][y] = _ppu_bus_ptr->read_data();            // read bit plane 0
+                    _ppu_bus_ptr->set_address(_pattern_address + y + 8);                    
+                    pattern_row_plane_1_cache[i][y] = _ppu_bus_ptr->read_data();            // then bit plane 1, 8 bits later
+                }   
+            }
+            else {
+                pattern_row_plane_0_cache[i] = pattern_row_plane_0_cache[used_before_index];            // std::array make this copy operation possible
+                pattern_row_plane_1_cache[i] = pattern_row_plane_1_cache[used_before_index];           
             }
         }                  
     }
@@ -161,8 +180,6 @@ void ppu::cycle(void) {
 
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        //bg_read_nametable();           // Read data from the nametable, maintaining the nt x, y and offset
-        //bg_read_pattern_table();       // Read from the pattern table
         bg_read_pattern_pixel_from_cache();
         bg_read_attribute_table();     // Read from the palette information from attribute table
 
