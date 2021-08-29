@@ -54,7 +54,12 @@ constexpr uint16_t VISIBLE_SCANLINES				= FRAME_HEIGHT;
 
 constexpr uint8_t NAMETABLE_WIDTH					= 32;
 constexpr uint8_t NAMETABLE_HEIGHT					= 30;	
+constexpr uint8_t ATTRTABLE_WIDTH					= 8;
+constexpr uint8_t ATTRTABLE_HEIGHT					= 8;	
 constexpr uint8_t SPRITE_HEIGHT						= 8;		// tile width is variable, 8 or 16 px and is stored as a member variable
+
+constexpr uint8_t BACKGROUND_PALETTES				= 16;
+constexpr uint8_t FOREGROUND_PALETTES				= 16;
 
 constexpr uint8_t R = 0;
 constexpr uint8_t G = 1;
@@ -184,27 +189,25 @@ private:
 	uint32_t _frame_count; 
 	bool _frame_complete_flag;
 	
-	// We buffer a lot of the addresses used in cycle() to avoid unnecessary read/writes. This does wonders for maintaining a high FPS
-	// variables for the PPU helper functions
-	uint16_t _nametable_x, _nametable_y, _attribute_table_x, _attribute_table_y;
-	uint16_t _nametable_index, _pattern_address, _attribute_table_index, _palette_address;
-	uint8_t _row_data_plane_0, _row_data_plane_1, _attribute_table_data, _pattern_pixel, _result_pixel;
-	bool _read_new_pattern;
+	// variables and array caches for the PPU helper functions
+	uint8_t _result_pixel;
+	uint16_t _nametable_x, _nametable_y;
 
-	std::array <uint8_t, NAMETABLE_WIDTH> nametable_row_cache;
-	std::array <std::array<uint8_t, SPRITE_HEIGHT>, NAMETABLE_WIDTH> pattern_row_plane_0_cache, pattern_row_plane_1_cache;
+	std::array <uint8_t, BACKGROUND_PALETTES> _background_palette_cache;
+	std::array <uint8_t, FOREGROUND_PALETTES> _foreground_palette_cache;
+	std::array <uint8_t, NAMETABLE_WIDTH> _nametable_row_cache;
+	std::array <uint8_t, ATTRTABLE_WIDTH> _attribute_table_row_cache;
+	std::array <std::array<uint8_t, SPRITE_HEIGHT>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
 
 	void increment_video_memory_address(void);
 
 	// ppu helper functions
-	void bg_read_nametable(void);
-	void bg_read_pattern_pixel_from_cache(void);
-	void bg_read_attribute_table(void);
-	void bg_read_palette_data(void);
+	void bg_set_pixel(void);
 	bool bg_rendering_enabled(void);
 	bool bg_left_eight_pixels_enabled(void);
 
 	void cache_nametable_row(void);
     void cache_pattern_row(void);
 	void cache_attribute_table_row(void);
+	void cache_bg_palettes(void);
 };

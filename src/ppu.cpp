@@ -11,7 +11,7 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 }
 
-void ppu::bg_read_pattern_pixel_from_cache(void) {
+void ppu::bg_set_pixel(void) {
     // update our nametable x and y 
     _nametable_x = _clock_pulse_x / _sprite_width;
     _nametable_y = _scanline_y / SPRITE_HEIGHT;        
@@ -21,58 +21,25 @@ void ppu::bg_read_pattern_pixel_from_cache(void) {
     uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
 
     // extract the bit from the pattern table, in plane 0 and 1, 
-    uint8_t plane_0_bit = (pattern_row_plane_0_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
-    uint8_t plane_1_bit = (pattern_row_plane_1_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+    uint8_t plane_0_bit = (_pattern_row_plane_0_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+    uint8_t plane_1_bit = (_pattern_row_plane_1_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
 
     // get the pixel pattern and generate a colour index from it.
-    _pattern_pixel = plane_0_bit | (plane_1_bit << 1);
-}
+    uint8_t pattern_pixel = plane_0_bit | (plane_1_bit << 1);
 
-void ppu::bg_read_attribute_table(void) {
-    // pull down the pallette from the OAM and determine which palette to apply
-    //0x3F00 refers to the transparent color, 3F01, 3F05, 3F09, 3F0D are used for background palettes
-    uint16_t base_attribute_table_address;
-
-    switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits
-        case 0:
-            base_attribute_table_address = NT_0_ATTRIBUTE_TABLE;
-            break; 
-        case 1:
-            base_attribute_table_address = NT_1_ATTRIBUTE_TABLE;
-            break; 
-        case 2:
-            base_attribute_table_address = NT_2_ATTRIBUTE_TABLE;
-            break; 
-        case 3:
-            base_attribute_table_address = NT_3_ATTRIBUTE_TABLE;
-            break; 
-    }
-
-    _attribute_table_x = _clock_pulse_x / 32;          
-    _attribute_table_y = _scanline_y / 32;   
-    uint16_t new_attribute_table_index = base_attribute_table_address + ((_attribute_table_y * 8) + _attribute_table_x);    // attribute tables are 8x8
-
-    if (new_attribute_table_index != _attribute_table_index) {
-        _attribute_table_index = new_attribute_table_index;
-
-        _ppu_bus_ptr->set_address(_attribute_table_index);
-        uint8_t new_attribute_table_data = _ppu_bus_ptr->read_data();
-
-        if (new_attribute_table_data != _attribute_table_data) {
-            _attribute_table_data = new_attribute_table_data;
-        }
-    }
-
+    // calculate the x and y within the cached attribute table, basically split this into the 2x2 matrix inside the table
     uint8_t attribute_palette_x = (_nametable_x / 2) % 2;                                                       
     uint8_t attribute_palette_y = (_nametable_y / 2) % 2; 
     uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x;          // should generate an index between 0 and 3. but in order 3-0 
-    uint8_t attribute_bits = (_attribute_table_data >> (attribute_palette_index * 2)) & 0x03;   // shift right to get the lowest 2 bits, clear the upper 6 bits
-    uint16_t new_palette_address = PALETTE_RAM_INDEX_START + (attribute_bits * 4) + _pattern_pixel; 
+    uint8_t attribute_bits = (_attribute_table_row_cache[_clock_pulse_x / 32] >> (attribute_palette_index * 2)) & 0x03;   // shift right to get the lowest 2 bits, clear the upper 6 bits
+    _result_pixel = _background_palette_cache[((attribute_bits * 4) + pattern_pixel) % BACKGROUND_PALETTES];
+}
 
-    if (new_palette_address != _palette_address) {
-        _palette_address = new_palette_address;
-        _ppu_bus_ptr->set_address(new_palette_address);
-        _result_pixel = _ppu_bus_ptr->read_data();
+void ppu::cache_bg_palettes(void) {
+    // At the start of every frame, we'll cache the 16 palettes to avoid doing copious amounts of reads per frame
+    for (uint8_t i = 0; i < BACKGROUND_PALETTES; i++) {
+        _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + i);
+        _background_palette_cache[i] = _ppu_bus_ptr->read_data();
     }
 }
 
@@ -117,7 +84,7 @@ void ppu::cache_nametable_row(void) {
 
         for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {  // todo - add 1 for allow room for scrolling
             _ppu_bus_ptr->set_address(nametable_index + i);  // todo - add in edge detection, and load in set of next tiles as needed
-            nametable_row_cache[i] = _ppu_bus_ptr->read_data();
+            _nametable_row_cache[i] = _ppu_bus_ptr->read_data();
         }
     }
 }
@@ -143,7 +110,7 @@ void ppu::cache_pattern_row(void) {
             // first check to see if this address has been used before
             if (_nametable_x > 0) {
                 for (uint8_t j = 0; j < NAMETABLE_WIDTH; j++) {
-                    if (nametable_row_cache[i] == nametable_row_cache[j]) { // if the same address was found before
+                    if (_nametable_row_cache[i] == _nametable_row_cache[j]) { // if the same address was found before
                         used_before_index = j;
                         break; 
                     }
@@ -151,26 +118,59 @@ void ppu::cache_pattern_row(void) {
             }
 
             if (used_before_index == -1) { // check if the pattern is unique
-                uint16_t _pattern_address = (nametable_row_cache[i] << 4) + pattern_offset;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
+                uint16_t _pattern_address = (_nametable_row_cache[i] << 4) + pattern_offset;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
 
                 // load in each byte representing a row.
                 for (uint8_t y = 0; y < SPRITE_HEIGHT; y++) {
                     _ppu_bus_ptr->set_address(_pattern_address + y);       
-                    pattern_row_plane_0_cache[i][y] = _ppu_bus_ptr->read_data();            // read bit plane 0
+                    _pattern_row_plane_0_cache[i][y] = _ppu_bus_ptr->read_data();            // read bit plane 0
                     _ppu_bus_ptr->set_address(_pattern_address + y + 8);                    
-                    pattern_row_plane_1_cache[i][y] = _ppu_bus_ptr->read_data();            // then bit plane 1, 8 bits later
+                    _pattern_row_plane_1_cache[i][y] = _ppu_bus_ptr->read_data();            // then bit plane 1, 8 bits later
                 }   
             }
             else {
-                pattern_row_plane_0_cache[i] = pattern_row_plane_0_cache[used_before_index];            // std::array make this copy operation possible
-                pattern_row_plane_1_cache[i] = pattern_row_plane_1_cache[used_before_index];           
+                _pattern_row_plane_0_cache[i] = _pattern_row_plane_0_cache[used_before_index];            // std::array make this copy operation possible
+                _pattern_row_plane_1_cache[i] = _pattern_row_plane_1_cache[used_before_index];           
             }
         }                  
     }
 }
 
 void ppu::cache_attribute_table_row(void) {
+    /*
+        Cache entire row of the attribute table at end nametable
+        Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
+    */
 
+    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+        uint16_t base_attribute_table_address;
+
+        switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits
+            case 0:
+                base_attribute_table_address = NT_0_ATTRIBUTE_TABLE;
+                break; 
+            case 1:
+                base_attribute_table_address = NT_1_ATTRIBUTE_TABLE;
+                break; 
+            case 2:
+                base_attribute_table_address = NT_2_ATTRIBUTE_TABLE;
+                break; 
+            case 3:
+                base_attribute_table_address = NT_3_ATTRIBUTE_TABLE;
+                break; 
+        }
+
+        // boil down the scanline and clock to determined attribute table x and y position
+        //uint16_t attribute_table_x = _clock_pulse_x / 32;     // doesn't seem we need this, but good to have     
+        uint16_t attribute_table_y = _scanline_y / 32;         
+
+        uint16_t attribute_table_index = base_attribute_table_address + (attribute_table_y * ATTRTABLE_WIDTH);   // we don't need the x offset since we are at x=0
+
+        for (uint8_t i = 0; i < ATTRTABLE_WIDTH; i++) {  // todo - add 1 for allow room for scrolling
+            _ppu_bus_ptr->set_address(attribute_table_index + i);  // todo - add in edge detection, and load in set of next tiles as needed
+            _attribute_table_row_cache[i] = _ppu_bus_ptr->read_data();
+        }
+    }
 }
 
 void ppu::cycle(void) {
@@ -180,8 +180,7 @@ void ppu::cycle(void) {
 
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        bg_read_pattern_pixel_from_cache();
-        bg_read_attribute_table();     // Read from the palette information from attribute table
+        bg_set_pixel();  
 
         // Check that background rendering is enabled and insert in to raw pixel data
         uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
@@ -204,6 +203,7 @@ void ppu::cycle(void) {
             _scanline_y = -1;
             _frame_count++; // indicate a completed frame (at least the visible portion)
             _frame_complete_flag = true;
+            cache_bg_palettes();    // cache new palettes at start of frame only
         }
     }
 
@@ -253,22 +253,7 @@ void ppu::reset(void) {
     // reset our ppu cached variables
 	_nametable_x = 0; 
     _nametable_y = 0; 
-    _attribute_table_x = 0;
-    _attribute_table_y = 0;
-	_nametable_index = 0; 
-    _pattern_address = 0; 
-    _attribute_table_index = 0; 
-    _palette_address = 0;
-	_row_data_plane_0 = 0; 
-    _row_data_plane_1 = 0; 
-    _attribute_table_data = 0;
-    _pattern_pixel = 0; 
     _result_pixel = 0;
-	_read_new_pattern = false;
-
-    /*for (auto& i: nametable_row_cache) i = 0;       // clear the nametable row cache
-    for (auto& i: pattern_row_cache)
-        for () // clear the nametable row cache*/
 }
 
 void ppu::trigger_cpu_NMI(void) {
