@@ -235,7 +235,7 @@ void ppu::reset(void) {
     _addr_second_write = false; 
     _scroll_second_write = false; 
 
-    _video_memory_address = 0; // reset the video memory address
+    _current_vram_address = 0; // reset the video memory address
 
     // set the vertical blank bit to 1, indicating the PPU is busy
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
@@ -277,8 +277,19 @@ uint8_t ppu::read(uint16_t address) {
             data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
-            _ppu_bus_ptr->set_address(_video_memory_address); 
-            data = _ppu_bus_ptr->read_data();       // we rely on setting the address via PPUADDR writes, it's possible to get junk data from this if you just go straight for the read
+            _ppu_bus_ptr->set_address(_current_vram_address); 
+            data = _buffered_read;
+
+            // ppu reads are behind by one cycle unless reading from palette memory  
+            if (_current_vram_address >= PALETTE_RAM_INDEX_START && _current_vram_address <= PALETTE_RAM_MIRROR_END)
+            {
+                data = _ppu_bus_ptr->read_data();  // read directly
+            }
+            else {    
+                data = _buffered_read;     // read out what was read last cycle
+                _buffered_read = _ppu_bus_ptr->read_data();   // buffer the latest data
+            }
+
             increment_video_memory_address();           
             break;
     }  
@@ -308,18 +319,18 @@ void ppu::write(uint16_t address, uint8_t data) {
             // this requires two writes to work and only works if the address latch is on
             if (_address_latch) {
                 if (_addr_second_write) {
-                    _video_memory_address = _ppu_addr_temp_register << 8;   // shift the upper 8 bits into position
-                    _video_memory_address |= data;                     // read the lower 8 bits on the second read
+                    _current_vram_address = _temp_vram_address << 8;   // shift the upper 8 bits into position
+                    _current_vram_address |= data;                     // read the lower 8 bits on the second read
                     _addr_second_write = false;         // reset back to default
                 }
                 else {
-                    _ppu_addr_temp_register = data;  // this reads the upper 8 bits
+                    _temp_vram_address = data;  // this reads the upper 8 bits
                     _addr_second_write = true;       // enable the second write
                 } 
             }
             break;              
         case PPUDATA:
-            _ppu_bus_ptr->set_address(_video_memory_address); 
+            _ppu_bus_ptr->set_address(_current_vram_address); 
             _ppu_bus_ptr->write_data(data);     
             increment_video_memory_address();
             break;            
@@ -327,7 +338,7 @@ void ppu::write(uint16_t address, uint8_t data) {
 }
 
 uint16_t ppu::get_video_memory_address(void) {
-    return _video_memory_address;
+    return _current_vram_address;
 }
 
 bool ppu::get_address_latch(void) {
@@ -349,9 +360,8 @@ void ppu::vertical_blank(void) {
 }
 
 void ppu::increment_video_memory_address(void) {
-    // PPUCTRL register is read, and bit 3 determines if we increment by 1 (going x) or 32 (incrementing our y)
-    _video_memory_address += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
-    _ppu_bus_ptr->set_address(_video_memory_address); 
+    // PPUCTRL register is read, and bit 3 determines if we increment by 1 (incrementing x) or 32 (incrementing our y)
+    _current_vram_address += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
 }
 
 uint16_t ppu::get_clock_pulses(void) {

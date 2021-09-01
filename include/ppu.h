@@ -168,7 +168,6 @@ private:
 	bus* _ppu_bus_ptr;
 	cpu* _cpu_ptr; 
 
-	uint16_t _video_memory_address; // this is a bit like the CPU's program counter
 
 	uint8_t _PPU_control_register; 
 	uint8_t _PPU_mask_register; 
@@ -176,7 +175,10 @@ private:
 	uint8_t _PPU_oam_addr_status_register;
 	uint8_t _PPU_oam_data_status_register;
 	uint8_t _PPU_data_register;
-	uint8_t _ppu_addr_temp_register;
+	uint8_t _buffered_read;	// PPU delays the read by one cycle unless reading from palette memory.
+
+	uint16_t _temp_vram_address;
+	uint16_t _current_vram_address; // this is a bit like the CPU's program counter
 
 	bool _address_latch, _addr_second_write, _scroll_second_write;
 
