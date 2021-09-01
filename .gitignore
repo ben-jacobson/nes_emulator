@@ -28,6 +28,7 @@ output/cpu_dummy_writes/
 output/cpu_exec_space/
 output/blargg_ppu_tests/
 output/scanline/
+output/cpu_timing_test6/
 
 # Precompiled Headers
 *.gch
