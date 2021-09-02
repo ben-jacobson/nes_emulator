@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
 			debug_rom_display.display_contents(); 	
 			debug_cpu_memory_peek.display_contents();
 			debug_ppu_memory_peek.display_contents();
-			debug_pattern_table.display_contents();	
+			//debug_pattern_table.display_contents();	
 			frame_counter.display_contents();
 
 			display_output.draw();				// draw the main screen
