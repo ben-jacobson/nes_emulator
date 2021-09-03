@@ -316,13 +316,15 @@ void ppu::write(uint16_t address, uint8_t data) {
             break;     
         case PPUADDR:
             if (_write_toggle == 0) {
-                _temp_vram_address = data;// & 0x3F;  // clip the top two bits off
-                _write_toggle = 1;
+                // as per PPU Scrolling behaviour, certain bits need to be clipped off for this to function accurately. see this guide: https://wiki.nesdev.com/w/index.php/PPU_scrolling
+                _temp_vram_address = data & 0x3F;  // clip the top two bits off
+                _temp_vram_address &= 0x7FF; // clip the top bit off
+                _write_toggle = 1;          
             } 
             else if (_write_toggle == 1) {
+                // this is supposed to shift the new 8 bits of data into the temp register first, then copy from temp to current vram address, this was more convenient.
                 _current_vram_address = _temp_vram_address << 8;   // shift the upper 8 bits into position
                 _current_vram_address |= data;                     // read the lower 8 bits on the second read
-                //_addr_second_write = false;         // reset back to default
                 _write_toggle = 0;
             }
             break;              
