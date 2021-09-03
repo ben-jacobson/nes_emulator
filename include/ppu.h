@@ -65,6 +65,20 @@ constexpr uint8_t R = 0;
 constexpr uint8_t G = 1;
 constexpr uint8_t B = 2;
 
+union loopy_register {
+	// this is a copy of loopys register, https://wiki.nesdev.com/w/index.php/PPU_scrolling
+	struct {
+
+		uint16_t coarse_x : 5;
+		uint16_t coarse_y : 5;
+		uint16_t nametable_x : 1;
+		uint16_t nametable_y : 1;
+		uint16_t fine_y : 3;
+		uint16_t unused : 1;
+	};
+	uint16_t reg = 0x0000;
+};
+
 class ppu : public bus_device
 {
 public:
@@ -176,22 +190,8 @@ private:
 	uint8_t _PPU_data_register;
 	uint8_t _buffered_read;	// PPU delays the read by one cycle unless reading from palette memory.
 
-	uint16_t _temp_vram_address, _current_vram_address; // this is a bit like the CPU's program counter
+	loopy_register _temp_vram_address, _current_vram_address; // this is a bit like the CPU's program counter
 	uint8_t _write_toggle, _fine_x_scroll;
-
-	union loopy_register {
-		// this is a copy of loopys register, https://wiki.nesdev.com/w/index.php/PPU_scrolling
-		struct {
-
-			uint16_t coarse_x : 5;
-			uint16_t coarse_y : 5;
-			uint16_t nametable_x : 1;
-			uint16_t nametable_y : 1;
-			uint16_t fine_y : 3;
-			uint16_t unused : 1;
-		};
-		uint16_t reg = 0x0000;
-	};
 
 	int _scanline_y;
 	uint16_t _clock_pulse_x;

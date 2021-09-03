@@ -202,7 +202,7 @@ void ppu::cycle(void) {
 
     // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
     /*if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
-        _current_vram_address = _temp_vram_address;
+        
     }*/
 
     if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
@@ -244,7 +244,8 @@ void ppu::reset(void) {
     _write_toggle = 0;
     _fine_x_scroll = 0;
 
-    _current_vram_address = 0; // reset the video memory address
+    _current_vram_address.reg = 0; // reset the video memory address and temp vram too
+    _temp_vram_address.reg = 0;
 
     // set the vertical blank bit to 1, indicating the PPU is busy
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
@@ -252,7 +253,7 @@ void ppu::reset(void) {
     _scanline_y = 0;
     _clock_pulse_x = 0;
 
-    _sprite_width = 8; // we'll default to 8x wide for safety, but updating PPUCTRL will overwrite this
+    _sprite_width = 8; // we'll default to 8x wide for safety, updating PPUCTRL will overwrite this
 
     _frame_count = 0;
     _frame_complete_flag = false;
@@ -286,11 +287,11 @@ uint8_t ppu::read(uint16_t address) {
             data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
-            _ppu_bus_ptr->set_address(_current_vram_address); 
+            _ppu_bus_ptr->set_address(_current_vram_address.reg); 
             data = _buffered_read;
 
             // ppu reads are behind by one cycle unless reading from palette memory  
-            if (_current_vram_address >= PALETTE_RAM_INDEX_START && _current_vram_address <= PALETTE_RAM_MIRROR_END)
+            if (_current_vram_address.reg >= PALETTE_RAM_INDEX_START && _current_vram_address.reg <= PALETTE_RAM_MIRROR_END)
             {
                 data = _ppu_bus_ptr->read_data();  // read directly
             }
@@ -312,8 +313,9 @@ void ppu::write(uint16_t address, uint8_t data) {
     switch (address) { 
         // not all of these ports have write access  
         case PPUCTRL:
-            _PPU_control_register = data & 0xFC;             // just the top 6 bits to be set here
-            _temp_vram_address = (data & 0x03) << 10;    // the bottom two bits placed into t register, moved up t: ...GH.. ........ <- d: ......GH
+            _PPU_control_register = data & 0xFC;             // Lop off the bottom two bits as they are not used in this register
+            _temp_vram_address.nametable_x = check_bit(data, 0);
+            _temp_vram_address.nametable_y = check_bit(data, 1);
             _sprite_width = (check_bit(_PPU_control_register, PPUCTRL_SPRITE_SIZE) == 0 ? 8 : 16); // update the sprite width
             break;
         case PPUMASK:
@@ -327,35 +329,34 @@ void ppu::write(uint16_t address, uint8_t data) {
             break;     
         case PPUSCROLL: 
             if (_write_toggle == 0) {
-                uint8_t trimmed_scroll_data = data >> 3; // t: ....... ...ABCDE <- d: ABCDE...
-                _temp_vram_address = trimmed_scroll_data;
-                _fine_x_scroll = (data & 0x07); // just the bottom 3 bits.  x:              FGH <- d: .....FGH
+                // on first write, set the course/fine x position
+                _temp_vram_address.coarse_x = (data >> 3);      // top 5 bits becomes course x
+                _fine_x_scroll = (data & 0x07);                 // bottom 3 bits become fine x
                 _write_toggle = 1;          
             }
             else if (_write_toggle == 1) {
-                // this doesn't make any sense to me. It's just how it works aparently..
-                uint16_t scroll_plane_0 = data << 12;                       // t: FGH.... ........ <- d: ABCDEFGH
-                uint16_t scroll_plane_1 = (data >> 2) << 5;                 // t: .....AB CDE..... <- d: ABCDEFGH
-                _temp_vram_address = scroll_plane_0 | scroll_plane_1;       // t: FGH..AB CDE..... <- d: ABCDEFGH
+                // second write set the course/fine y position
+                _temp_vram_address.coarse_y = (data >> 3);      // top 5 bits becomes course y
+                _temp_vram_address.fine_y = (data & 0x07);      // bottom 3 bits becomes fine y
                 _write_toggle = 0;
             }
             break;
         case PPUADDR:
             if (_write_toggle == 0) {
                 // as per PPU Scrolling behaviour, certain bits need to be clipped off for this to function accurately. see this guide: https://wiki.nesdev.com/w/index.php/PPU_scrolling
-                _temp_vram_address = data & 0x3F;  // clip the top two bits off
-                _temp_vram_address &= 0x7FF; // clip the top bit off
+                uint16_t clipped_data = (data & 0x3F) << 8; // clip the top two bits off and move into position
+                _temp_vram_address.reg = clipped_data | (_temp_vram_address.reg & 0x00FF);     // pretty much a copy of both
+                _temp_vram_address.unused = 0;              // our z bit is cleared. Unused so this does nothing.
                 _write_toggle = 1;          
             } 
             else if (_write_toggle == 1) {
-                // this is supposed to shift the new 8 bits of data into the temp register first, then copy from temp to current vram address, this was more convenient.
-                _current_vram_address = _temp_vram_address << 8;   // shift the upper 8 bits into position
-                _current_vram_address |= data;                     // read the lower 8 bits on the second read
+                _temp_vram_address.reg = (_temp_vram_address.reg & 0xFF00) | data;      // just the top 8 bits
+                _current_vram_address.reg = _temp_vram_address.reg;                     // copy tram over to vram
                 _write_toggle = 0;
             }
             break;              
         case PPUDATA:
-            _ppu_bus_ptr->set_address(_current_vram_address); // for safety we may want to chop off the top two bits of the address
+            _ppu_bus_ptr->set_address(_current_vram_address.reg); // for safety we may want to chop off the top two bits of the address
             _ppu_bus_ptr->write_data(data);     
             increment_video_memory_address();
             break;            
@@ -363,7 +364,7 @@ void ppu::write(uint16_t address, uint8_t data) {
 }
 
 uint16_t ppu::get_video_memory_address(void) {
-    return _current_vram_address;
+    return _current_vram_address.reg;
 }
 
 bool ppu::get_vertical_blank(void) {
@@ -382,7 +383,7 @@ void ppu::vertical_blank(void) {
 
 void ppu::increment_video_memory_address(void) {
     // PPUCTRL register is read, and bit 3 determines if we increment by 1 (incrementing x) or 32 (incrementing our y)
-    _current_vram_address += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
+    _current_vram_address.reg += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
 }
 
 uint16_t ppu::get_clock_pulses(void) {
