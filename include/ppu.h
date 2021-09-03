@@ -179,7 +179,19 @@ private:
 	uint16_t _temp_vram_address, _current_vram_address; // this is a bit like the CPU's program counter
 	uint8_t _write_toggle, _fine_x_scroll;
 
-	//bool _address_latch, _addr_second_write, _scroll_second_write;
+	union loopy_register {
+		// this is a copy of loopys register, https://wiki.nesdev.com/w/index.php/PPU_scrolling
+		struct {
+
+			uint16_t coarse_x : 5;
+			uint16_t coarse_y : 5;
+			uint16_t nametable_x : 1;
+			uint16_t nametable_y : 1;
+			uint16_t fine_y : 3;
+			uint16_t unused : 1;
+		};
+		uint16_t reg = 0x0000;
+	};
 
 	int _scanline_y;
 	uint16_t _clock_pulse_x;

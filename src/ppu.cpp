@@ -195,6 +195,16 @@ void ppu::cycle(void) {
 
     _clock_pulse_x++;     // clock out pixel by pixel to output buffer
 
+    // If rendering is enabled, the PPU increments the vertical position in v. The effective Y scroll coordinate is incremented
+    /*if (_clock_pulse_x == 256) {
+        // TODO!
+    }*/
+
+    // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
+    /*if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
+        _current_vram_address = _temp_vram_address;
+    }*/
+
     if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
         _clock_pulse_x = 0;
         _scanline_y++;
@@ -268,7 +278,7 @@ uint8_t ppu::read(uint16_t address) {
         // some ports are read only
         case PPUSTATUS:
             _write_toggle = 0;      // allow PPUADDRESS and PPUSCROLL to start their 2x write process
-            data = _PPU_status_register; 
+            data = (_PPU_status_register & 0xE0) | (_buffered_read & 0x1F); // this will only allow you to read the top 3 bits, the lower 5 bits are data that was read last time 
             _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
             break;
@@ -302,7 +312,8 @@ void ppu::write(uint16_t address, uint8_t data) {
     switch (address) { 
         // not all of these ports have write access  
         case PPUCTRL:
-            _PPU_control_register = data;
+            _PPU_control_register = data & 0xFC;             // just the top 6 bits to be set here
+            _temp_vram_address = (data & 0x03) << 10;    // the bottom two bits placed into t register, moved up t: ...GH.. ........ <- d: ......GH
             _sprite_width = (check_bit(_PPU_control_register, PPUCTRL_SPRITE_SIZE) == 0 ? 8 : 16); // update the sprite width
             break;
         case PPUMASK:
@@ -314,6 +325,21 @@ void ppu::write(uint16_t address, uint8_t data) {
         case OAMDATA:
             _PPU_oam_data_status_register = data;
             break;     
+        case PPUSCROLL: 
+            if (_write_toggle == 0) {
+                uint8_t trimmed_scroll_data = data >> 3; // t: ....... ...ABCDE <- d: ABCDE...
+                _temp_vram_address = trimmed_scroll_data;
+                _fine_x_scroll = (data & 0x07); // just the bottom 3 bits.  x:              FGH <- d: .....FGH
+                _write_toggle = 1;          
+            }
+            else if (_write_toggle == 1) {
+                // this doesn't make any sense to me. It's just how it works aparently..
+                uint16_t scroll_plane_0 = data << 12;                       // t: FGH.... ........ <- d: ABCDEFGH
+                uint16_t scroll_plane_1 = (data >> 2) << 5;                 // t: .....AB CDE..... <- d: ABCDEFGH
+                _temp_vram_address = scroll_plane_0 | scroll_plane_1;       // t: FGH..AB CDE..... <- d: ABCDEFGH
+                _write_toggle = 0;
+            }
+            break;
         case PPUADDR:
             if (_write_toggle == 0) {
                 // as per PPU Scrolling behaviour, certain bits need to be clipped off for this to function accurately. see this guide: https://wiki.nesdev.com/w/index.php/PPU_scrolling
@@ -329,7 +355,7 @@ void ppu::write(uint16_t address, uint8_t data) {
             }
             break;              
         case PPUDATA:
-            _ppu_bus_ptr->set_address(_current_vram_address); 
+            _ppu_bus_ptr->set_address(_current_vram_address); // for safety we may want to chop off the top two bits of the address
             _ppu_bus_ptr->write_data(data);     
             increment_video_memory_address();
             break;            
