@@ -81,7 +81,7 @@ public:
 
 	void vertical_blank(void);
 	uint16_t get_video_memory_address(void);
-	bool get_address_latch(void);
+	//bool get_address_latch(void);
 	bool get_vertical_blank(void);
 
 	uint16_t get_clock_pulses(void);
@@ -168,7 +168,6 @@ private:
 	bus* _ppu_bus_ptr;
 	cpu* _cpu_ptr; 
 
-
 	uint8_t _PPU_control_register; 
 	uint8_t _PPU_mask_register; 
 	uint8_t _PPU_status_register; 
@@ -177,10 +176,10 @@ private:
 	uint8_t _PPU_data_register;
 	uint8_t _buffered_read;	// PPU delays the read by one cycle unless reading from palette memory.
 
-	uint16_t _temp_vram_address;
-	uint16_t _current_vram_address; // this is a bit like the CPU's program counter
+	uint16_t _temp_vram_address, _current_vram_address; // this is a bit like the CPU's program counter
+	uint8_t _write_toggle, _fine_x_scroll;
 
-	bool _address_latch, _addr_second_write, _scroll_second_write;
+	//bool _address_latch, _addr_second_write, _scroll_second_write;
 
 	int _scanline_y;
 	uint16_t _clock_pulse_x;

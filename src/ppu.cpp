@@ -231,9 +231,8 @@ void ppu::reset(void) {
         _ppu_bus_ptr->write_data(0x3F);
     }
 
-    _address_latch = false; 
-    _addr_second_write = false; 
-    _scroll_second_write = false; 
+    _write_toggle = 0;
+    _fine_x_scroll = 0;
 
     _current_vram_address = 0; // reset the video memory address
 
@@ -268,7 +267,7 @@ uint8_t ppu::read(uint16_t address) {
     switch (address) { 
         // some ports are read only
         case PPUSTATUS:
-            _address_latch = true;  // allow PPUADDRESS and PPUSCROLL to start their 2x write process
+            _write_toggle = 0;      // allow PPUADDRESS and PPUSCROLL to start their 2x write process
             data = _PPU_status_register; 
             _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
@@ -316,17 +315,15 @@ void ppu::write(uint16_t address, uint8_t data) {
             _PPU_oam_data_status_register = data;
             break;     
         case PPUADDR:
-            // this requires two writes to work and only works if the address latch is on
-            if (_address_latch) {
-                if (_addr_second_write) {
-                    _current_vram_address = _temp_vram_address << 8;   // shift the upper 8 bits into position
-                    _current_vram_address |= data;                     // read the lower 8 bits on the second read
-                    _addr_second_write = false;         // reset back to default
-                }
-                else {
-                    _temp_vram_address = data;  // this reads the upper 8 bits
-                    _addr_second_write = true;       // enable the second write
-                } 
+            if (_write_toggle == 0) {
+                _temp_vram_address = data;// & 0x3F;  // clip the top two bits off
+                _write_toggle = 1;
+            } 
+            else if (_write_toggle == 1) {
+                _current_vram_address = _temp_vram_address << 8;   // shift the upper 8 bits into position
+                _current_vram_address |= data;                     // read the lower 8 bits on the second read
+                //_addr_second_write = false;         // reset back to default
+                _write_toggle = 0;
             }
             break;              
         case PPUDATA:
@@ -339,10 +336,6 @@ void ppu::write(uint16_t address, uint8_t data) {
 
 uint16_t ppu::get_video_memory_address(void) {
     return _current_vram_address;
-}
-
-bool ppu::get_address_latch(void) {
-    return _address_latch;
 }
 
 bool ppu::get_vertical_blank(void) {
