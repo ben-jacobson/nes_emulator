@@ -214,6 +214,14 @@ void ppu::increment_scroll_y(void) {
 }
 
 void ppu::cycle(void) {
+
+    if (_clock_pulse_x >= 280 && _clock_pulse_x < 305 && _scanline_y == -1 && (bg_rendering_enabled() || fg_rendering_enabled())) {
+        // transfer in our fine y and nametable y from temp at the -1 scanline
+        _current_vram_address.fine_y = _temp_vram_address.fine_y;
+        _current_vram_address.nametable_y = _temp_vram_address.nametable_y;
+        _current_vram_address.coarse_y = _temp_vram_address.coarse_y;
+    }
+
     cache_nametable_row();
     cache_pattern_row();
     cache_attribute_table_row();
