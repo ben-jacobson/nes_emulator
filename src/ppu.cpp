@@ -67,7 +67,23 @@ void ppu::cache_nametable_row(void) {
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_nametable_address = NAMETABLE_0_START; // failsafe
 
-        switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits of this register
+        /*switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits of this register
+            case 0:
+                base_nametable_address = NAMETABLE_0_START;
+                break; 
+            case 1:
+                base_nametable_address = NAMETABLE_1_START;
+                break; 
+            case 2:
+                base_nametable_address = NAMETABLE_2_START;
+                break; 
+            case 3:
+                base_nametable_address = NAMETABLE_3_START;
+                break; 
+        }*/
+        uint8_t name_table_select = (_current_vram_address.nametable_x << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
+
+        switch(name_table_select) {  // we only want to read the bottom 3 bits of this register
             case 0:
                 base_nametable_address = NAMETABLE_0_START;
                 break; 
@@ -84,7 +100,7 @@ void ppu::cache_nametable_row(void) {
 
         // boil down the scanline and clock to determined nametable x and y position
         _nametable_y = _scanline_y / SPRITE_HEIGHT;            
-        uint16_t nametable_index = base_nametable_address + (_nametable_y * NAMETABLE_WIDTH);   // we don't need the x offset since we are at x=0
+        uint16_t nametable_index = base_nametable_address + (_nametable_y * NAMETABLE_WIDTH) + _current_vram_address.coarse_x;  
 
         for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {  // todo - add 1 for allow room for scrolling
             _ppu_bus_ptr->set_address(nametable_index + i);  // todo - add in edge detection, and load in set of next tiles as needed
@@ -181,7 +197,7 @@ void ppu::increment_scroll_x(void) {
     if (bg_rendering_enabled() || fg_rendering_enabled()) {
         if (_current_vram_address.coarse_x == NAMETABLE_WIDTH - 1) {
             _current_vram_address.coarse_x = 0; // wrap around the name table address				
-            _current_vram_address.nametable_x = ~_current_vram_address.nametable_x; // Flip target nametable bit
+            _current_vram_address.nametable_x = ~_current_vram_address.nametable_x; // And flip the target nametable bits, being a 2x2 grid, we pretty much wrap from 0 -> 1 -> 0
         }
         else {
             _current_vram_address.coarse_x++;
@@ -214,10 +230,9 @@ void ppu::increment_scroll_y(void) {
 }
 
 void ppu::cycle(void) {
-
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        if (_clock_pulse_x % _sprite_width == _sprite_width) {  // at the end of each tile, increment the scroll x position
+        if (_clock_pulse_x % _sprite_width >= _sprite_width - 1) {  // at the end of each tile, increment the scroll x position
             increment_scroll_x();
         }
 
@@ -226,29 +241,32 @@ void ppu::cycle(void) {
             increment_scroll_y();
         }        
 
-        cache_nametable_row();
-        cache_pattern_row();
-        cache_attribute_table_row();  
-
-        bg_set_pixel();  
-
-        // Check that background rendering is enabled and insert in to raw pixel data
         uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
 
-        if (bg_rendering_enabled() && bg_left_eight_pixels_enabled() && pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
-            _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[_result_pixel][B];       
-            _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[_result_pixel][G];       
-            _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[_result_pixel][R];              
-            _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;   
+        // Check that background rendering is enabled and insert in to raw pixel data
+        if (pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
+            if (bg_rendering_enabled() && bg_left_eight_pixels_enabled()) {
+                // cache and draw the background elements
+                cache_nametable_row();
+                cache_pattern_row();
+                cache_attribute_table_row();  
+                bg_set_pixel();  
+
+                _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[_result_pixel][B];       
+                _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[_result_pixel][G];       
+                _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[_result_pixel][R];              
+                _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;   
+            }
+            if (fg_rendering_enabled()) {
+                // todo
+            }
         }
     }
-
-    _clock_pulse_x++;     // clock out pixel by pixel to output buffer
 
     // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
     if (_clock_pulse_x == 257 && (bg_rendering_enabled() || fg_rendering_enabled())) {
         _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
-        _current_vram_address.coarse_x = _temp_vram_address.coarse_x;        
+        _current_vram_address.coarse_x = _temp_vram_address.coarse_x;     
     }    
 
     if (_clock_pulse_x >= 280 && _clock_pulse_x < 305 && _scanline_y == -1 && (bg_rendering_enabled() || fg_rendering_enabled())) {
@@ -258,6 +276,8 @@ void ppu::cycle(void) {
         _current_vram_address.coarse_y = _temp_vram_address.coarse_y;
     }
 
+    _clock_pulse_x++;     // clock out pixel by pixel to output buffer
+
     if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
         _clock_pulse_x = 0;
         _scanline_y++;
@@ -266,7 +286,7 @@ void ppu::cycle(void) {
             _scanline_y = -1;
             _frame_count++; // indicate a completed frame (at least the visible portion)
             _frame_complete_flag = true;
-            cache_bg_palettes();    // cache new palettes at start of frame only
+            cache_bg_palettes();    // cache all new palettes at start of frame only
         }
     }
 
@@ -437,7 +457,6 @@ void ppu::vertical_blank(void) {
 void ppu::increment_video_memory_address(void) {
     // PPUCTRL register is read, and bit 3 determines if we increment by 1 (incrementing x) or 32 (incrementing our y)
     _current_vram_address.reg += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
-    _ppu_bus_ptr->set_address(_current_vram_address.reg); 
 }
 
 uint16_t ppu::get_clock_pulses(void) {
