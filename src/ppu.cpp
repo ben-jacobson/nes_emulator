@@ -13,23 +13,23 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
 
 void ppu::bg_set_pixel(void) {
     // update our nametable x and y 
-    _nametable_x = _clock_pulse_x / _sprite_width;
-    _nametable_y = _scanline_y / SPRITE_HEIGHT;        
+    uint16_t cache_x = _clock_pulse_x / _sprite_width;
+    uint16_t cache_y = _scanline_y / SPRITE_HEIGHT;        
 
     // boil down the scanline and clock to the x and y within the tile,
     uint8_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB as left most pixel
     uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
 
     // extract the bit from the pattern table, in plane 0 and 1, 
-    uint8_t plane_0_bit = (_pattern_row_plane_0_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
-    uint8_t plane_1_bit = (_pattern_row_plane_1_cache[_nametable_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+    uint8_t plane_0_bit = (_pattern_row_plane_0_cache[cache_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
+    uint8_t plane_1_bit = (_pattern_row_plane_1_cache[cache_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
 
     // get the pixel pattern and generate a colour index from it.
     uint8_t pattern_pixel = plane_0_bit | (plane_1_bit << 1);
 
     // calculate the x and y within the cached attribute table, basically split this into the 2x2 matrix inside the table
-    uint8_t attribute_palette_x = (_nametable_x / 2) % 2;                                                       
-    uint8_t attribute_palette_y = (_nametable_y / 2) % 2; 
+    uint8_t attribute_palette_x = (cache_x / 2) % 2;                                                       
+    uint8_t attribute_palette_y = (cache_y / 2) % 2; 
     uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x;          // should generate an index between 0 and 3. but in order 3-0 
     uint8_t attribute_bits = (_attribute_table_row_cache[_clock_pulse_x / 32] >> (attribute_palette_index * 2)) & 0x03;   // shift right to get the lowest 2 bits, clear the upper 6 bits
     _result_pixel = _background_palette_cache[((attribute_bits * 4) + pattern_pixel) % BACKGROUND_PALETTES];
@@ -229,7 +229,7 @@ void ppu::cycle(void) {
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
 
-        if (_clock_pulse_x % _sprite_width == _sprite_width) {  // at the end of the tile
+        if (_clock_pulse_x % _sprite_width == _sprite_width) {  // at the end of each tile, increment the scroll x position
             increment_scroll_x();
         }
 
