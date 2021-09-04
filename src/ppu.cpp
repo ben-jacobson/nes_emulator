@@ -66,21 +66,6 @@ void ppu::cache_nametable_row(void) {
 
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_nametable_address = NAMETABLE_0_START; // failsafe
-
-        /*switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits of this register
-            case 0:
-                base_nametable_address = NAMETABLE_0_START;
-                break; 
-            case 1:
-                base_nametable_address = NAMETABLE_1_START;
-                break; 
-            case 2:
-                base_nametable_address = NAMETABLE_2_START;
-                break; 
-            case 3:
-                base_nametable_address = NAMETABLE_3_START;
-                break; 
-        }*/
         uint8_t nametable_select = (_current_vram_address.nametable_y << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
 
         switch(nametable_select) {  // we only want to read the bottom 3 bits of this register
@@ -185,6 +170,7 @@ void ppu::cache_attribute_table_row(void) {
         // boil down the scanline and clock to determined attribute table x and y position
         //uint16_t attribute_table_x = _clock_pulse_x / 32;     // doesn't seem we need this, but good to have     
         uint16_t attribute_table_y = _scanline_y / 32;         
+        //uint16_t attribute_table_y = _current_vram_address.coarse_y;
 
         uint16_t attribute_table_index = base_attribute_table_address + (attribute_table_y * ATTRTABLE_WIDTH);   // we don't need the x offset since we are at x=0
 
@@ -233,42 +219,48 @@ void ppu::increment_scroll_y(void) {
 
 void ppu::cycle(void) {
     // draw everything within the rendering area
-    if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-        if (_clock_pulse_x % _sprite_width >= _sprite_width - 1) {  // at the end of each tile, increment the scroll x position
+    if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) { 
+
+        if (_clock_pulse_x % _sprite_width == _sprite_width - 1) {  // at the end of each tile, increment the scroll x position
             increment_scroll_x();
-        }
+        }             
 
         // If rendering is enabled, the PPU increments the vertical position in v. The effective Y scroll coordinate is incremented
-        if (_clock_pulse_x == 256) {     
+        if (_clock_pulse_x == FRAME_WIDTH) {     
             increment_scroll_y();
-        }        
+        }             
 
         uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
 
         // Check that background rendering is enabled and insert in to raw pixel data
         if (pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
-            if (bg_rendering_enabled() && bg_left_eight_pixels_enabled()) {
-                // cache and draw the background elements
+            if (bg_rendering_enabled() && bg_left_eight_pixels_enabled()) {   
+                // cache the background elements for the row
                 cache_nametable_row();
                 cache_pattern_row();
-                cache_attribute_table_row();  
-                bg_set_pixel();  
+                cache_attribute_table_row();                               
+                bg_set_pixel();                
 
                 _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[_result_pixel][B];       
                 _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[_result_pixel][G];       
                 _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[_result_pixel][R];              
-                _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;   
+                _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;               
             }
             if (fg_rendering_enabled()) {
                 // todo
             }
         }
-    }
+    }    
 
     // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
     if (_clock_pulse_x == 257 && (bg_rendering_enabled() || fg_rendering_enabled())) {
         _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
-        _current_vram_address.coarse_x = _temp_vram_address.coarse_x;     
+
+        if (_current_vram_address.coarse_x != _temp_vram_address.coarse_x) {
+            std::cout << "error: vram_course_x: " << _current_vram_address.coarse_x << " differs from tram_course_x: " << _temp_vram_address.coarse_x << std::endl;
+        }
+
+        _current_vram_address.coarse_x = _temp_vram_address.coarse_x;                        
     }    
 
     if (_clock_pulse_x >= 280 && _clock_pulse_x < 305 && _scanline_y == -1 && (bg_rendering_enabled() || fg_rendering_enabled())) {
@@ -276,7 +268,7 @@ void ppu::cycle(void) {
         _current_vram_address.fine_y = _temp_vram_address.fine_y;
         _current_vram_address.nametable_y = _temp_vram_address.nametable_y;
         _current_vram_address.coarse_y = _temp_vram_address.coarse_y;
-    }
+    }        
 
     _clock_pulse_x++;     // clock out pixel by pixel to output buffer
 
