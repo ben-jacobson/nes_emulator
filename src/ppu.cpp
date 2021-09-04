@@ -215,23 +215,20 @@ void ppu::increment_scroll_y(void) {
 
 void ppu::cycle(void) {
 
-    if (_clock_pulse_x >= 280 && _clock_pulse_x < 305 && _scanline_y == -1 && (bg_rendering_enabled() || fg_rendering_enabled())) {
-        // transfer in our fine y and nametable y from temp at the -1 scanline
-        _current_vram_address.fine_y = _temp_vram_address.fine_y;
-        _current_vram_address.nametable_y = _temp_vram_address.nametable_y;
-        _current_vram_address.coarse_y = _temp_vram_address.coarse_y;
-    }
-
-    cache_nametable_row();
-    cache_pattern_row();
-    cache_attribute_table_row();
-
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) {
-
         if (_clock_pulse_x % _sprite_width == _sprite_width) {  // at the end of each tile, increment the scroll x position
             increment_scroll_x();
         }
+
+        // If rendering is enabled, the PPU increments the vertical position in v. The effective Y scroll coordinate is incremented
+        if (_clock_pulse_x == 256) {     
+            increment_scroll_y();
+        }        
+
+        cache_nametable_row();
+        cache_pattern_row();
+        cache_attribute_table_row();  
 
         bg_set_pixel();  
 
@@ -248,15 +245,17 @@ void ppu::cycle(void) {
 
     _clock_pulse_x++;     // clock out pixel by pixel to output buffer
 
-    // If rendering is enabled, the PPU increments the vertical position in v. The effective Y scroll coordinate is incremented
-    if (_clock_pulse_x == 256) {     
-        increment_scroll_y();
-    }
-
     // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
     if (_clock_pulse_x == 257 && (bg_rendering_enabled() || fg_rendering_enabled())) {
         _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
         _current_vram_address.coarse_x = _temp_vram_address.coarse_x;        
+    }    
+
+    if (_clock_pulse_x >= 280 && _clock_pulse_x < 305 && _scanline_y == -1 && (bg_rendering_enabled() || fg_rendering_enabled())) {
+        // transfer in our fine y and nametable y from temp at the -1 scanline
+        _current_vram_address.fine_y = _temp_vram_address.fine_y;
+        _current_vram_address.nametable_y = _temp_vram_address.nametable_y;
+        _current_vram_address.coarse_y = _temp_vram_address.coarse_y;
     }
 
     if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
@@ -341,8 +340,8 @@ uint8_t ppu::read(uint16_t address) {
             data = _PPU_oam_data_status_register;
             break;
         case PPUDATA:
-            _ppu_bus_ptr->set_address(_current_vram_address.reg); 
             data = _buffered_read;
+            _ppu_bus_ptr->set_address(_current_vram_address.reg); 
 
             // ppu reads are behind by one cycle unless reading from palette memory  
             if (_current_vram_address.reg >= PALETTE_RAM_INDEX_START && _current_vram_address.reg <= PALETTE_RAM_MIRROR_END)
@@ -351,7 +350,7 @@ uint8_t ppu::read(uint16_t address) {
             }
             else {    
                 data = _buffered_read;     // read out what was read last cycle
-                _buffered_read = _ppu_bus_ptr->read_data();   // buffer the latest data
+                _buffered_read = _ppu_bus_ptr->read_data();   // buffer whatever was read last
             }
 
             increment_video_memory_address();           
@@ -438,6 +437,7 @@ void ppu::vertical_blank(void) {
 void ppu::increment_video_memory_address(void) {
     // PPUCTRL register is read, and bit 3 determines if we increment by 1 (incrementing x) or 32 (incrementing our y)
     _current_vram_address.reg += (check_bit(_PPU_control_register, PPUCTRL_VRAM_INCREMENT) == 0 ? 1 : 32);
+    _ppu_bus_ptr->set_address(_current_vram_address.reg); 
 }
 
 uint16_t ppu::get_clock_pulses(void) {
