@@ -155,14 +155,14 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0x0000; // 0xC241; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0x0000; // 0x0000 will disable this behaviour
 	bool frame_complete = false; 
 	bool instruction_complete = false; 
-	bool run_mode = false; 		// can be changed to false to pause on initial frame if needs be
+	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
 
 	frame_counter.get_frame_start_time();
 
-	//instruction_trace_log.enable_file_logging();
+	//instruction_trace_log.enable_file_logging();		// only enable this for debugging, it will slow emulation down to ~10fps
 
 	while (!quit) { // main application running loop
 

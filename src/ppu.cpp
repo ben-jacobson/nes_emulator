@@ -220,7 +220,6 @@ void ppu::increment_scroll_y(void) {
 void ppu::cycle(void) {
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) { 
-
         if (_clock_pulse_x % _sprite_width == _sprite_width - 1) {  // at the end of each tile, increment the scroll x position
             increment_scroll_x();
         }             
