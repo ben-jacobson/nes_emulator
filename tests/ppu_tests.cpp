@@ -90,12 +90,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - reading PPU status resets addres
     uint16_t result_addr = test_ppu_bus.read_address();
     CHECK(result_addr != 0x3F00);   // we have not yet reset the address latch
 
-    bool address_latch = test_ppu.get_address_latch();
-    CHECK(address_latch == false);
     test_bus.set_address(PPUSTATUS);
     test_bus.read_data(); // doesn't matter what we read, we just want to reset the address latch
-    address_latch = test_ppu.get_address_latch();
-    CHECK(address_latch == true);
 
     // The first read should fail as we have not yet reset the address latch, reset the latch and try again
     test_ppu_bus.set_address(0x0000); // reset in case a previous test interferes
@@ -161,8 +157,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - Test set address port, write and
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ppu - read or write increments the video memory address", "[ppu]") {
     test_ppu.reset();
-    uint16_t video_address = test_ppu.get_video_memory_address();
-    CHECK(video_address == 0);
+    uint16_t video_address_at_start = test_ppu.get_video_memory_address();
+    CHECK(video_address_at_start == 0);
 
     test_bus.set_address(PPUCTRL);
     test_bus.write_data((1 << PPUCTRL_VRAM_INCREMENT)); // set the VRAM increment to 32
@@ -172,11 +168,12 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - read or write increments the vid
     test_bus.set_address(PPUADDR); 
     test_bus.write_data(0x00);
 
+    video_address_at_start = test_ppu.get_video_memory_address();
     test_bus.set_address(PPUDATA);
-    test_bus.read_data();
+    test_bus.read_data(); // the ppu has a delayed read, so will need to read twice at this address.
 
-    video_address = test_ppu.get_video_memory_address();
-    CHECK(video_address == 32);
+    uint16_t video_address_at_end = test_ppu.get_video_memory_address();
+    CHECK(video_address_at_end == video_address_at_start + 32);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "ppu - test status reads clears vertical blank", "[ppu]") {

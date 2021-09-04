@@ -257,9 +257,8 @@ void ppu::cycle(void) {
         _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
 
         if (_current_vram_address.coarse_x != _temp_vram_address.coarse_x) {
-            std::cout << "error: vram_course_x: " << _current_vram_address.coarse_x << " differs from tram_course_x: " << _temp_vram_address.coarse_x << std::endl;
+            std::cout << "At instruction: " << _cpu_ptr->get_program_counter() <<  ". error: vram_course_x: " << _current_vram_address.coarse_x << " differs from tram_course_x: " << _temp_vram_address.coarse_x << std::endl;
         }
-
         _current_vram_address.coarse_x = _temp_vram_address.coarse_x;                        
     }    
 

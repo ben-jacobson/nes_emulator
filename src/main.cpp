@@ -155,10 +155,10 @@ int main(int argc, char *argv[])
 
 	bool quit = false; 
 
-	uint16_t halt_at_pc = 0x0000; //0xC5D3; // 0x0000 will disable this behaviour
+	uint16_t halt_at_pc = 0x0000; // 0xC241; // 0x0000 will disable this behaviour
 	bool frame_complete = false; 
 	bool instruction_complete = false; 
-	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
+	bool run_mode = false; 		// can be changed to false to pause on initial frame if needs be
 
 	frame_counter.get_frame_start_time();
 
