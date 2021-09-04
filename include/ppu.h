@@ -213,11 +213,15 @@ private:
 	std::array <std::array<uint8_t, SPRITE_HEIGHT>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
 
 	void increment_video_memory_address(void);
+	void increment_scroll_x(void);
+	void increment_scroll_y(void);
 
 	// ppu helper functions
 	void bg_set_pixel(void);
-	bool bg_rendering_enabled(void);
 	bool bg_left_eight_pixels_enabled(void);
+
+	bool bg_rendering_enabled(void);
+	bool fg_rendering_enabled(void);
 
 	void cache_nametable_row(void);
     void cache_pattern_row(void);
