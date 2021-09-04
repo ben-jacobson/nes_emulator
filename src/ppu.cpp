@@ -413,7 +413,7 @@ void ppu::write(uint16_t address, uint8_t data) {
             _ppu_bus_ptr->set_address(_current_vram_address.reg); // for safety we may want to chop off the top two bits of the address
             _ppu_bus_ptr->write_data(data);     
             increment_video_memory_address();
-            break;            
+            break;  	          
     }  
 }
 
