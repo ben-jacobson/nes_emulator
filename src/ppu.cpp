@@ -196,14 +196,33 @@ void ppu::cycle(void) {
     _clock_pulse_x++;     // clock out pixel by pixel to output buffer
 
     // If rendering is enabled, the PPU increments the vertical position in v. The effective Y scroll coordinate is incremented
-    /*if (_clock_pulse_x == 256) {
-        // TODO!
-    }*/
+    if (_clock_pulse_x == 256 && bg_rendering_enabled()) {     
+        if (_current_vram_address.fine_y < SPRITE_HEIGHT - 1) {
+            _current_vram_address.fine_y++;
+        }   
+        else {
+            // we have gone beyond SPRITE_HEIGHT
+            _current_vram_address.fine_y = 0;
+
+            // do we need to swap the vertical name table addresses?
+				if (_current_vram_address.coarse_y == NAMETABLE_HEIGHT - 1) {   // are we on the last row? 
+					_current_vram_address.coarse_y = 0;
+                    _current_vram_address.nametable_y = ~_current_vram_address.nametable_y; // And flip the target nametable bits, being a 2x2 grid, we pretty much wrap from 0 -> 1 -> 0 
+				}
+				else if (_current_vram_address.coarse_y == NAMETABLE_HEIGHT + 1) {// check to make sure we haven't gone beyond the nametable region and entered into attribute memory territory
+					_current_vram_address.coarse_y = 0;
+				}
+				else {  
+					_current_vram_address.coarse_y++; // only if safe to do so
+				}
+        }
+    }
 
     // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
-    /*if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
-        
-    }*/
+    if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
+        _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
+        _current_vram_address.coarse_x = _temp_vram_address.coarse_x;        
+    }
 
     if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
         _clock_pulse_x = 0;
