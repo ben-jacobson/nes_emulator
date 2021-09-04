@@ -42,6 +42,10 @@ void fps_counter::display_contents(void) {
     _frame_count++; // continually increment
     _frame_count %= MAX_FRAMES_TO_AVERAGE;  // ensure we don't exceed the array size
     
+    // if the pgm counter is halted, this function can break our fps counter with a divide by zero
+    if (_average_frame_time == 0)
+        _average_frame_time = 1;
+
     // update the display
     std::string fps = std::to_string(1000 / _average_frame_time) + "fps";
     _text_surface->set_colour({64, 64, 64, 255});    // white
