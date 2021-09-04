@@ -217,7 +217,7 @@ void ppu::increment_scroll_y(void) {
     }
 }
 
-void ppu::cycle(void) {
+/*void ppu::cycle(void) {
     // draw everything within the rendering area
     if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) { 
         if (_clock_pulse_x % _sprite_width == _sprite_width - 1) {  // at the end of each tile, increment the scroll x position
@@ -291,6 +291,30 @@ void ppu::cycle(void) {
     if (_scanline_y == 261 && _clock_pulse_x == 1) {
         // clear the VBlank bit, signifying that we are busy
         _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
+    }
+}*/ 
+
+void ppu::cycle(void) {
+    // A massive thank you to OLC/JavidX for providing some excellent documentation on this. 
+    // Having written this from scratch first, it proved that the documentation available can get a bit confusing, his code really helped to clear up a lot of confusion
+
+	if (_scanline_y >= -1 && _scanline_y < FRAME_HEIGHT) {
+
+    }
+
+    // increment our clock
+    _clock_pulse_x++;
+
+    if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
+        _clock_pulse_x = 0;
+
+        _scanline_y++;
+
+        if (_scanline_y >= SCANLINES_PER_FRAME - 1) {
+            _scanline_y = -1;
+            _frame_count++; // indicate a completed frame (at least the visible portion)
+            _frame_complete_flag = true;
+        }
     }
 }
 
