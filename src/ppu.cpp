@@ -246,7 +246,7 @@ void ppu::cycle(void) {
     }
 
     // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
-    if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
+    if (_clock_pulse_x == 257 && (bg_rendering_enabled() || fg_rendering_enabled())) {
         _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
         _current_vram_address.coarse_x = _temp_vram_address.coarse_x;        
     }
