@@ -81,9 +81,9 @@ void ppu::cache_nametable_row(void) {
                 base_nametable_address = NAMETABLE_3_START;
                 break; 
         }*/
-        uint8_t name_table_select = (_current_vram_address.nametable_x << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
+        uint8_t nametable_select = (_current_vram_address.nametable_y << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
 
-        switch(name_table_select) {  // we only want to read the bottom 3 bits of this register
+        switch(nametable_select) {  // we only want to read the bottom 3 bits of this register
             case 0:
                 base_nametable_address = NAMETABLE_0_START;
                 break; 
@@ -116,7 +116,8 @@ void ppu::cache_pattern_row(void) {
     */
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         // update our nametable x as needed
-        _nametable_x = _clock_pulse_x / _sprite_width;
+        //_nametable_x = _clock_pulse_x / _sprite_width;
+        _nametable_x = _current_vram_address.coarse_x;
 
         uint16_t pattern_offset = 0; 
 
@@ -164,8 +165,9 @@ void ppu::cache_attribute_table_row(void) {
 
     if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_attribute_table_address;
+        uint8_t nametable_select = (_current_vram_address.nametable_y << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
 
-        switch(_PPU_control_register & 0x03) {  // we only want to read the bottom 3 bits
+        switch(nametable_select) {  // we only want to read the bottom 3 bits of this register
             case 0:
                 base_attribute_table_address = NT_0_ATTRIBUTE_TABLE;
                 break; 
