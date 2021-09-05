@@ -217,100 +217,334 @@ void ppu::increment_scroll_y(void) {
     }
 }
 
-/*void ppu::cycle(void) {
-    // draw everything within the rendering area
-    if (_clock_pulse_x <= FRAME_WIDTH && _scanline_y >= 0 && _scanline_y <= FRAME_HEIGHT) { 
-        if (_clock_pulse_x % _sprite_width == _sprite_width - 1) {  // at the end of each tile, increment the scroll x position
-            increment_scroll_x();
-        }             
-
-        // If rendering is enabled, the PPU increments the vertical position in v. The effective Y scroll coordinate is incremented
-        if (_clock_pulse_x == FRAME_WIDTH) {     
-            increment_scroll_y();
-        }             
-
-        uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + (_clock_pulse_x * 4);        
-
-        // Check that background rendering is enabled and insert in to raw pixel data
-        if (pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
-            if (bg_rendering_enabled() && bg_left_eight_pixels_enabled()) {   
-                // cache the background elements for the row
-                cache_nametable_row();
-                cache_pattern_row();
-                cache_attribute_table_row();                               
-                bg_set_pixel();                
-
-                _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[_result_pixel][B];       
-                _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[_result_pixel][G];       
-                _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[_result_pixel][R];              
-                _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;               
-            }
-            if (fg_rendering_enabled()) {
-                // todo
-            }
-        }
-    }    
-
-    // If rendering is enabled, the PPU copies all bits related to horizontal position from t to v:
-    if (_clock_pulse_x == 257 && (bg_rendering_enabled() || fg_rendering_enabled())) {
-        _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
-
-        if (_current_vram_address.coarse_x != _temp_vram_address.coarse_x) {
-            std::cout << "At instruction: " << _cpu_ptr->get_program_counter() <<  ". error: vram_course_x: " << _current_vram_address.coarse_x << " differs from tram_course_x: " << _temp_vram_address.coarse_x << std::endl;
-        }
-        _current_vram_address.coarse_x = _temp_vram_address.coarse_x;                        
-    }    
-
-    if (_clock_pulse_x >= 280 && _clock_pulse_x < 305 && _scanline_y == -1 && (bg_rendering_enabled() || fg_rendering_enabled())) {
-        // transfer in our fine y and nametable y from temp at the -1 scanline
-        _current_vram_address.fine_y = _temp_vram_address.fine_y;
-        _current_vram_address.nametable_y = _temp_vram_address.nametable_y;
-        _current_vram_address.coarse_y = _temp_vram_address.coarse_y;
-    }        
-
-    _clock_pulse_x++;     // clock out pixel by pixel to output buffer
-
-    if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
-        _clock_pulse_x = 0;
-        _scanline_y++;
+void ppu::bg_load_shifters(void) {
+    // Prime the "in-effect" background tile shifters ready for outputting next
+    // 8 pixels in scanline.
+    if (bg_rendering_enabled()) {
+        // Each PPU update we calculate one pixel. These shifters shift 1 bit along
+        // feeding the pixel compositor with the binary information it needs. Its
+        // 16 bits wide, because the top 8 bits are the current 8 pixels being drawn
+        // and the bottom 8 bits are the next 8 pixels to be drawn. Naturally this means
+        // the required bit is always the MSB of the shifter. However, "fine x" scrolling
+        // plays a part in this too, whcih is seen later, so in fact we can choose
+        // any one of the top 8 bits.
+        _bg_shifter_pattern_lo = (_bg_shifter_pattern_lo & 0xFF00) | _bg_next_tile_lsb;
+        _bg_shifter_pattern_hi = (_bg_shifter_pattern_hi & 0xFF00) | _bg_next_tile_msb;
         
-        if (_scanline_y >= SCANLINES_PER_FRAME) {
-            _scanline_y = -1;
-            _frame_count++; // indicate a completed frame (at least the visible portion)
-            _frame_complete_flag = true;
-            cache_bg_palettes();    // cache all new palettes at start of frame only
+        // Attribute bits do not change per pixel, rather they change every 8 pixels
+        // but are synchronised with the pattern shifters for convenience, so here
+        // we take the bottom 2 bits of the attribute word which represent which
+        // palette is being used for the current 8 pixels and the next 8 pixels, and
+        // "inflate" them to 8 bit words.
+        _bg_shifter_attrib_lo  = (_bg_shifter_attrib_lo & 0xFF00) | ((_bg_next_tile_attrib & 0b01) ? 0xFF : 0x00);
+        _bg_shifter_attrib_hi  = (_bg_shifter_attrib_hi & 0xFF00) | ((_bg_next_tile_attrib & 0b10) ? 0xFF : 0x00);
+    }
+}
+
+void ppu::bg_update_shifters(void) {
+    // Every cycle the shifters storing pattern and attribute information shift
+    // their contents by 1 bit. This is because every cycle, the output progresses
+    // by 1 pixel. This means relatively, the state of the shifter is in sync
+    // with the pixels being drawn for that 8 pixel section of the scanline.    
+    if (bg_rendering_enabled()) {
+        _bg_shifter_pattern_lo <<= 1;          // Shifting background tile pattern row
+        _bg_shifter_pattern_hi <<= 1;
+        _bg_shifter_attrib_lo <<= 1;                     // Shifting palette attributes by 1
+        _bg_shifter_attrib_hi <<= 1;
+    }
+}
+
+void ppu::cycle(void) {   
+    // A massive thank you to JavidX / OLC for working this out, we've used his code as the base for ours, with modification of course!
+
+    // As we progress through scanlines and cycles, the PPU is effectively
+    // a state machine going through the motions of fetching background
+    // information and sprite information, compositing them into a pixel
+    // to be output.
+
+    // The lambda functions (functions inside functions) contain the various
+    // actions to be performed depending upon the output of the state machine
+    // for a given scanline/cycle combination
+
+    // All but 1 of the secanlines is visible to the user. The pre-render scanline
+    // at -1, is used to configure the "shifters" for the first visible scanline, 0.
+    if (_scanline_y >= -1 && _scanline_y < 240)
+    {      
+        if (_scanline_y == 0 && _clock_pulse_x == 0)
+        {
+            // "Odd Frame" cycle skip
+            _clock_pulse_x = 1;
+        }
+
+        if (_scanline_y == -1 && _clock_pulse_x == 1)
+        {
+            _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
+        }
+
+
+        if ((_clock_pulse_x >= 2 && _clock_pulse_x < 258) || (_clock_pulse_x >= 321 && _clock_pulse_x < 338))
+        {
+            bg_update_shifters();
+           
+            // In these cycles we are collecting and working with visible data
+            // The "shifters" have been preloaded by the end of the previous
+            // scanline with the data for the start of this scanline. Once we
+            // leave the visible region, we go dormant until the shifters are
+            // preloaded for the next scanline.
+
+            // Fortunately, for background rendering, we go through a fairly
+            // repeatable sequence of events, every 2 clock cycles.
+            switch ((_clock_pulse_x - 1) % 8)
+            {
+            case 0:
+                // Load the current background tile pattern and attributes into the "shifter"
+                bg_load_shifters();
+
+                // Fetch the next background tile ID
+                // "(_current_vram_address.reg & 0x0FFF)" : Mask to 12 bits that are relevant
+                // "| 0x2000"                 : Offset into nametable space on PPU address bus
+                _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));
+                _bg_next_tile_id = _ppu_bus_ptr->read_data();
+
+                // Explanation:
+                // The bottom 12 bits of the loopy register provide an index into
+                // the 4 nametables, regardless of nametable mirroring configuration.
+                // nametable_y(1) nametable_x(1) coarse_y(5) coarse_x(5)
+                //
+                // Consider a single nametable is a 32x32 array, and we have four of them
+                //   0                1
+                // 0 +----------------+----------------+
+                //   |                |                |
+                //   |                |                |
+                //   |    (32x32)     |    (32x32)     |
+                //   |                |                |
+                //   |                |                |
+                // 1 +----------------+----------------+
+                //   |                |                |
+                //   |                |                |
+                //   |    (32x32)     |    (32x32)     |
+                //   |                |                |
+                //   |                |                |
+                //   +----------------+----------------+
+                //
+                // This means there are 4096 potential locations in this array, which
+                // just so happens to be 2^12!
+                break;
+            case 2:
+                // Fetch the next background tile attribute. OK, so this one is a bit
+                // more involved :P
+
+                // Recall that each nametable has two rows of cells that are not tile
+                // information, instead they represent the attribute information that
+                // indicates which palettes are applied to which area on the screen.
+                // Importantly (and frustratingly) there is not a 1 to 1 correspondance
+                // between background tile and palette. Two rows of tile data holds
+                // 64 attributes. Therfore we can assume that the attributes affect
+                // 8x8 zones on the screen for that nametable. Given a working resolution
+                // of 256x240, we can further assume that each zone is 32x32 pixels
+                // in screen space, or 4x4 tiles. Four system palettes are allocated
+                // to background rendering, so a palette can be specified using just
+                // 2 bits. The attribute byte therefore can specify 4 distinct palettes.
+                // Therefore we can even further assume that a single palette is
+                // applied to a 2x2 tile combination of the 4x4 tile zone. The very fact
+                // that background tiles "share" a palette locally is the reason why
+                // in some games you see distortion in the colours at screen edges.
+
+                // As before when choosing the tile ID, we can use the bottom 12 bits of
+                // the loopy register, but we need to make the implementation "coarser"
+                // because instead of a specific tile, we want the attribute byte for a
+                // group of 4x4 tiles, or in other words, we divide our 32x32 address
+                // by 4 to give us an equivalent 8x8 address, and we offset this address
+                // into the attribute section of the target nametable.
+
+                // Reconstruct the 12 bit loopy address into an offset into the
+                // attribute memory
+
+                // "(_current_vram_address.coarse_x >> 2)"        : integer divide coarse x by 4,
+                //                                      from 5 bits to 3 bits
+                // "((_current_vram_address.coarse_y >> 2) << 3)" : integer divide coarse y by 4,
+                //                                      from 5 bits to 3 bits,
+                //                                      shift to make room for coarse x
+
+                // Result so far: YX00 00yy yxxx
+
+                // All attribute memory begins at 0x03C0 within a nametable, so OR with
+                // result to select target nametable, and attribute byte offset. Finally
+                // OR with 0x2000 to offset into nametable address space on PPU bus.    
+                _ppu_bus_ptr->set_address(0x23C0 | (_current_vram_address.nametable_y << 11)
+                                                     | (_current_vram_address.nametable_x << 10)
+                                                     | ((_current_vram_address.coarse_y >> 2) << 3)
+                                                     | (_current_vram_address.coarse_x >> 2));
+
+                _bg_next_tile_attrib = _ppu_bus_ptr->read_data();
+                // Right we've read the correct attribute byte for a specified address,
+                // but the byte itself is broken down further into the 2x2 tile groups
+                // in the 4x4 attribute zone.
+
+                // The attribute byte is assembled thus: BR(76) BL(54) TR(32) TL(10)
+                //
+                // +----+----+              +----+----+
+                // | TL | TR |              | ID | ID |
+                // +----+----+ where TL =   +----+----+
+                // | BL | BR |              | ID | ID |
+                // +----+----+              +----+----+
+                //
+                // Since we know we can access a tile directly from the 12 bit address, we
+                // can analyse the bottom bits of the coarse coordinates to provide us with
+                // the correct offset into the 8-bit word, to yield the 2 bits we are
+                // actually interested in which specifies the palette for the 2x2 group of
+                // tiles. We know if "coarse y % 4" < 2 we are in the top half else bottom half.
+                // Likewise if "coarse x % 4" < 2 we are in the left half else right half.
+                // Ultimately we want the bottom two bits of our attribute word to be the
+                // palette selected. So shift as required...                
+                if (_current_vram_address.coarse_y & 0x02) _bg_next_tile_attrib >>= 4;
+                if (_current_vram_address.coarse_x & 0x02) _bg_next_tile_attrib >>= 2;
+                _bg_next_tile_attrib &= 0x03;
+                break;
+
+                // Compared to the last two, the next two are the easy ones... :P
+
+            case 4:
+                // Fetch the next background tile LSB bit plane from the pattern memory
+                // The Tile ID has been read from the nametable. We will use this id to
+                // index into the pattern memory to find the correct sprite (assuming
+                // the sprites lie on 8x8 pixel boundaries in that memory, which they do
+                // even though 8x16 sprites exist, as background tiles are always 8x8).
+                //
+                // Since the sprites are effectively 1 bit deep, but 8 pixels wide, we
+                // can represent a whole sprite row as a single byte, so offsetting
+                // into the pattern memory is easy. In total there is 8KB so we need a
+                // 13 bit address.
+
+                // "(control.pattern_background << 12)"  : the pattern memory selector
+                //                                         from control register, either 0K
+                //                                         or 4K offset
+                // "((uint16_t)bg_next_tile_id << 4)"    : the tile id multiplied by 16, as
+                //                                         2 lots of 8 rows of 8 bit pixels
+                // "(_current_vram_address.fine_y)"                  : Offset into which row based on
+                //                                         vertical scroll offset
+                // "+ 0"                                 : Mental clarity for plane offset
+                // Note: No PPU address bus offset required as it starts at 0x0000
+                _ppu_bus_ptr->set_address((check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR) << 12)
+                                           + ((uint16_t)_bg_next_tile_id << 4)
+                                           + (_current_vram_address.fine_y) + 0);
+                _bg_next_tile_lsb = _ppu_bus_ptr->read_data();
+                break;
+            case 6:
+                // Fetch the next background tile MSB bit plane from the pattern memory
+                // This is the same as above, but has a +8 offset to select the next bit plane
+                _ppu_bus_ptr->set_address((check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR) << 12)
+                                           + ((uint16_t)_bg_next_tile_id << 4)
+                                           + (_current_vram_address.fine_y) + 8);
+                _bg_next_tile_msb = _ppu_bus_ptr->read_data();
+                break;
+            case 7:
+                // Increment the background tile "pointer" to the next tile horizontally
+                // in the nametable memory. Note this may cross nametable boundaries which
+                // is a little complex, but essential to implement scrolling
+                increment_scroll_x();
+                break;
+            }
+        }
+
+        // End of a visible scanline, so increment downwards...
+        if (_clock_pulse_x == 256) {
+            increment_scroll_y();
+        }
+
+        //...and reset the x position, transferring the temp into vram
+        if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
+            bg_load_shifters();
+            _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
+            _current_vram_address.coarse_x    = _temp_vram_address.coarse_x;
+        }
+
+        // Superfluous reads of tile id at end of scanline
+        if (_clock_pulse_x == 338 || _clock_pulse_x == 340) {
+            _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));
+            _bg_next_tile_id = _ppu_bus_ptr->read_data();
+        }
+
+        if (_scanline_y == -1 && _clock_pulse_x >= 280 && _clock_pulse_x < 305 && bg_rendering_enabled()) {
+            // End of vertical blank period so reset the Y address ready for rendering
+            _current_vram_address.fine_y      = _temp_vram_address.fine_y;
+            _current_vram_address.nametable_y = _temp_vram_address.nametable_y;
+            _current_vram_address.coarse_y    = _temp_vram_address.coarse_y;
         }
     }
 
-    // x:1 y:241 is when vertical blank is set
-    if (_scanline_y == 241 && _clock_pulse_x == 1) {
-        vertical_blank();
+    if (_scanline_y == 240) {
+        // Post Render Scanline - Do Nothing!
     }
 
-    // x:1 y:261 is when vertical blank is cleared
-    if (_scanline_y == 261 && _clock_pulse_x == 1) {
-        // clear the VBlank bit, signifying that we are busy
-        _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
-    }
-}*/ 
-
-void ppu::cycle(void) {
-    // A massive thank you to OLC/JavidX for providing some excellent documentation on this. 
-    // Having written this from scratch first, it proved that the documentation available can get a bit confusing, his code really helped to clear up a lot of confusion
-
-	if (_scanline_y >= -1 && _scanline_y < FRAME_HEIGHT) {
-
+    if (_scanline_y >= 241 && _scanline_y < 261) {
+        if (_scanline_y == 241 && _clock_pulse_x == 1) {
+            vertical_blank();
+        }
     }
 
-    // increment our clock
+
+
+    // Composition - We now have background pixel information for this cycle
+    // At this point we are only interested in background
+
+    uint8_t bg_pixel = 0x00;   // The 2-bit pixel to be rendered
+    uint8_t bg_palette = 0x00; // The 3-bit index of the palette the pixel indexes
+
+    // We only render backgrounds if the PPU is enabled to do so. Note if
+    // background rendering is disabled, the pixel and palette combine
+    // to form 0x00. This will fall through the colour tables to yield
+    // the current background colour in effect
+    if (bg_rendering_enabled())
+    {
+        // Handle Pixel Selection by selecting the relevant bit
+        // depending upon fine x scolling. This has the effect of
+        // offsetting ALL background rendering by a set number
+        // of pixels, permitting smooth scrolling
+        uint16_t bit_mux = 0x8000 >> _fine_x_scroll;
+
+        // Select Plane pixels by extracting from the shifter
+        // at the required location.
+        uint8_t p0_pixel = (_bg_shifter_pattern_lo & bit_mux) > 0;
+        uint8_t p1_pixel = (_bg_shifter_pattern_hi & bit_mux) > 0;
+
+        // Combine to form pixel index
+        bg_pixel = (p1_pixel << 1) | p0_pixel;
+
+        // Get palette
+        uint8_t bg_pal0 = (_bg_shifter_attrib_lo & bit_mux) > 0;
+        uint8_t bg_pal1 = (_bg_shifter_attrib_hi & bit_mux) > 0;
+        bg_palette = (bg_pal1 << 1) | bg_pal0;
+    }
+
+
+    // Now we have a final pixel colour, and a palette for this cycle
+    // of the current scanline. Let's at long last, draw that ^&%*er :P
+
+    // sprScreen.SetPixel(_clock_pulse_x - 1, _scanline_y, GetColourFromPaletteRam(bg_palette, bg_pixel));
+
+    // feed _result_pixel with the ID of the palette.
+    _ppu_bus_ptr->set_address((0x3F00 + (bg_palette << 2) + bg_pixel));
+    _result_pixel = _ppu_bus_ptr->read_data() & 0x3F;
+
+    uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + ((_clock_pulse_x - 1) * 4);
+    
+    if (pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
+        _raw_pixel_data[pixel_index + 0] = NTSC_PALETTE[_result_pixel][B];      
+        _raw_pixel_data[pixel_index + 1] = NTSC_PALETTE[_result_pixel][G];      
+        _raw_pixel_data[pixel_index + 2] = NTSC_PALETTE[_result_pixel][R];              
+        _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;      
+    }
+
+    // pulse the clock
     _clock_pulse_x++;
 
-    if (_clock_pulse_x >= PIXELS_PER_SCANLINE) {
+    if (_clock_pulse_x >= 341)
+    {
         _clock_pulse_x = 0;
-
         _scanline_y++;
-
-        if (_scanline_y >= SCANLINES_PER_FRAME - 1) {
+        if (_scanline_y >= 261)
+        {
             _scanline_y = -1;
             _frame_count++; // indicate a completed frame (at least the visible portion)
             _frame_complete_flag = true;
@@ -464,9 +698,9 @@ void ppu::vertical_blank(void) {
     // set the vertical blank bit in the Status register, indicating to the rest of the system that we are okay to start writing pixel data
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);
 
-    // trigger the NMI if that PPUCTRL register was set
+    // trigger the NMI on Vblank if that PPUCTRL register was set
     if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
-        trigger_cpu_NMI(); // temporarily disabling as this is causing an odd bug while the rest of the implementation isn't switched on. We'll come back to this when the rest of the code is fully implemented
+        trigger_cpu_NMI(); 
     }
 }
 

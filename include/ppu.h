@@ -216,6 +216,9 @@ private:
 	void increment_scroll_x(void);
 	void increment_scroll_y(void);
 
+	void bg_load_shifters(void);
+	void bg_update_shifters(void);
+
 	// ppu helper functions
 	void bg_set_pixel(void);
 	bool bg_left_eight_pixels_enabled(void);
@@ -228,17 +231,6 @@ private:
 	void cache_attribute_table_row(void);
 	void cache_bg_palettes(void);
 
-
-	/// TEMP
-
-		// Background rendering
-	uint8_t bg_next_tile_id     = 0x00;
-	uint8_t bg_next_tile_attrib = 0x00;
-	uint8_t bg_next_tile_lsb    = 0x00;
-	uint8_t bg_next_tile_msb    = 0x00;
-	uint16_t bg_shifter_pattern_lo = 0x0000;
-	uint16_t bg_shifter_pattern_hi = 0x0000;
-	uint16_t bg_shifter_attrib_lo  = 0x0000;
-	uint16_t bg_shifter_attrib_hi  = 0x0000;
-
+	uint8_t _bg_next_tile_id,_bg_next_tile_attrib, _bg_next_tile_lsb, _bg_next_tile_msb;
+	uint16_t _bg_shifter_pattern_lo, _bg_shifter_pattern_hi, _bg_shifter_attrib_lo, _bg_shifter_attrib_hi;
 };
