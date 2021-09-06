@@ -445,6 +445,11 @@ void ppu::cycle(void) {
             _current_vram_address.coarse_x    = _temp_vram_address.coarse_x;
         }
 
+        if (_clock_pulse_x >= 257 && _clock_pulse_x <= 320) { // (the sprite tile loading interval)
+            // OAM addr is set to 0 during each of ticks 257-320 
+            _oam_addr = 0; 
+        }
+
         // Superfluous reads of tile id at end of scanline
         if (_clock_pulse_x == 338 || _clock_pulse_x == 340) {
             _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));
@@ -536,7 +541,8 @@ void ppu::reset(void) {
     //reset statuses back to starting position
     _PPU_control_register = 0;
     _PPU_status_register = 0;
-    _PPU_oam_data_status_register = 0;
+    _oam_addr = 0;
+    for (auto& data : _oam_data) data = 0;        // clear OAM data 
 
     // set the palette to all black (0x3F, the final entry in the palette) If you do this before registering bus devices, this will do nothing
     for(uint8_t i = 0; i < PALETTE_RAM_SIZE; i++) {
@@ -587,7 +593,7 @@ uint8_t ppu::read(uint16_t address) {
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
             break;
         case OAMDATA:
-            data = _PPU_oam_data_status_register;
+            data = _oam_data[_oam_addr];
             break;
         case PPUDATA:
             data = _buffered_read;
@@ -625,10 +631,11 @@ void ppu::write(uint16_t address, uint8_t data) {
             _PPU_mask_register = data;
             break;            
         case OAMADDR:
-            _PPU_oam_addr_status_register = data;
+            _oam_addr = data;
             break;            
         case OAMDATA:
-            _PPU_oam_data_status_register = data;
+            _oam_data[_oam_addr] = data;
+            _oam_addr++;
             break;     
         case PPUSCROLL: 
             if (_write_toggle == 0) {

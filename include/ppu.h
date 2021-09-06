@@ -185,13 +185,16 @@ private:
 	uint8_t _PPU_control_register; 
 	uint8_t _PPU_mask_register; 
 	uint8_t _PPU_status_register; 
-	uint8_t _PPU_oam_addr_status_register;
-	uint8_t _PPU_oam_data_status_register;
-	uint8_t _PPU_data_register;
+	// uint8_t _PPU_data_register;
 	uint8_t _buffered_read;	// PPU delays the read by one cycle unless reading from palette memory.
 
 	loopy_register _temp_vram_address, _current_vram_address; // this is a bit like the CPU's program counter
 	uint8_t _write_toggle, _fine_x_scroll;
+
+	// Object Attribute Memory
+	uint8_t _oam_addr;	// we only need an 8 bit addres for this, seeing as the oam memory only ranges from 0-255
+	std::array <uint8_t, 256> _oam_data;
+
 
 	int _scanline_y;
 	uint16_t _clock_pulse_x;
