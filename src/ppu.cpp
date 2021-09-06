@@ -580,8 +580,11 @@ void ppu::trigger_cpu_NMI(void) {
 }
 
 uint8_t ppu::read(uint16_t address) {
-    // the PPU ports are mirrored every 8 bytes
-    address &= PPU_ADDRESS_SPACE_END;  
+    // the PPU ports are mirrored every 8 bytes, except for the OAMDMA
+    if (address != OAMDMA) {
+        address &= PPU_ADDRESS_SPACE_END;  
+    }
+
     uint8_t data = 0; 
 
     switch (address) { 
@@ -611,13 +614,18 @@ uint8_t ppu::read(uint16_t address) {
 
             increment_video_memory_address();           
             break;
+        case OAMDMA:
+            std::cout << "OAMDMA read detect" << std::endl;
+            break;              
     }  
     return data;
 }
 
 void ppu::write(uint16_t address, uint8_t data) {
-    // the PPU ports are mirrored every 8 bytes
-    address &= PPU_ADDRESS_SPACE_END;  
+    // the PPU ports are mirrored every 8 bytes, except for the OAMDMA
+    if (address != OAMDMA) {
+        address &= PPU_ADDRESS_SPACE_END;  
+    }
 
     switch (address) { 
         // not all of these ports have write access  
@@ -669,7 +677,10 @@ void ppu::write(uint16_t address, uint8_t data) {
             _ppu_bus_ptr->set_address(_current_vram_address.reg); // for safety we may want to chop off the top two bits of the address
             _ppu_bus_ptr->write_data(data);     
             increment_video_memory_address();
-            break;  	          
+            break;  	
+        case OAMDMA:
+            std::cout << "OAMDMA write detect" << std::endl;
+            break;          
     }  
 }
 

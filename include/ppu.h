@@ -18,7 +18,7 @@ constexpr uint16_t OAMDATA 		= 0x2004;
 constexpr uint16_t PPUSCROLL 	= 0x2005;
 constexpr uint16_t PPUADDR 		= 0x2006;
 constexpr uint16_t PPUDATA 		= 0x2007;
-//constexpr uint16_t OAMDMA 		= 0x4014;		// this will need to be implemented elsewhere, maybe the APU/IO?? unsure. will come back to this later
+constexpr uint16_t OAMDMA 		= 0x4014;
 
 // PPUCTRL flag bits
 constexpr uint8_t PPUCTRL_NAME_TABLE_ADDRESS_LO 	= 0;

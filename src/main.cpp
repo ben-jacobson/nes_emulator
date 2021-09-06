@@ -40,13 +40,13 @@ int main(int argc, char *argv[])
 	bus nes_cpu_bus;
 	ram nes_ram(RAM_SIZE_BYTES, RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END);
 	cartridge nes_cart(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END);
-	apu_io nes_apu_io(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END);
+	apu_io nes_apu_io(IO_ADDRESS_SPACE_START, IO_ADDRESS_SPACE_END);
 	cpu nes_cpu(&nes_cpu_bus);  
 	
 	// register the devices that live on the bus TODO - Remove the need for mapping addresses, just pass a bus_device pointer and have the function figure the rest out. 
 	nes_cpu_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, nes_ram._read_function_ptr, nes_ram._write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, nes_cart._read_function_ptr);	
-	nes_cpu_bus.register_new_bus_device(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END, nes_apu_io._read_function_ptr, nes_apu_io._write_function_ptr);
+	nes_cpu_bus.register_new_bus_device(IO_ADDRESS_SPACE_START, IO_ADDRESS_SPACE_END, nes_apu_io._read_function_ptr, nes_apu_io._write_function_ptr);
 
 	// initialize our PPU bus, pattern tables and name tables
 	bus nes_ppu_bus;
@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
 	ram nametable_2_memory(NAMETABLE_SIZE, NAMETABLE_2_START, NAMETABLE_2_END);
 	ram nametable_3_memory(NAMETABLE_SIZE, NAMETABLE_3_START, NAMETABLE_3_END);
 
-	nes_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, nes_cart._ppu_read_function_ptr, nes_cart._ppu_write_function_ptr);
 	nes_cpu_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr); // register the PPU to the CPU bus
+	nes_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, nes_cart._ppu_read_function_ptr, nes_cart._ppu_write_function_ptr);
 	nes_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, nes_palette_ram._read_function_ptr, nes_palette_ram._write_function_ptr);
 
 	// register our nametables
@@ -68,6 +68,9 @@ int main(int argc, char *argv[])
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_1_START, NAMETABLE_1_END, nametable_1_memory._read_function_ptr, nametable_1_memory._write_function_ptr);
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, nametable_2_memory._read_function_ptr, nametable_2_memory._write_function_ptr);
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, nametable_3_memory._read_function_ptr, nametable_3_memory._write_function_ptr);
+
+	// we have a special case use case for the OAMDMA, this needs to be accessible by the CPU in one memory location alone
+	nes_cpu_bus.register_new_bus_device(OAMDMA, OAMDMA + 1, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr);
 
 	// Check to see if we can load a ROM from argc
 	if (argc < 2) {

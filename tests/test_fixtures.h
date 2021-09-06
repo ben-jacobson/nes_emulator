@@ -43,6 +43,9 @@ public:
         test_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, test_nametable_2_memory._read_function_ptr, test_nametable_2_memory._write_function_ptr);
         test_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, test_nametable_3_memory._read_function_ptr, test_nametable_3_memory._write_function_ptr);
 
+        // we have a special case use case for the OAMDMA, this needs to be accessible by the CPU in one memory location alone
+        test_bus.register_new_bus_device(OAMDMA, OAMDMA, test_ppu._read_function_ptr, test_ppu._write_function_ptr);
+
         test_ppu.reset();
 
         // for testing instructions and hack in the reset vector to be our 0x8000 address and reset the CPU

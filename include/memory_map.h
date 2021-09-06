@@ -12,8 +12,10 @@ constexpr uint16_t RAM_SIZE_BYTES               = 0x0800;       // 2048 or 2Kb f
 // Ram runs between 0x0000 and 0x07FF, with three mirrors, first 0x0800-0x0FFF, second 0x1000-0x17FF, and third 0x1800-0x1FFF
 
 // APU and I/O registers
-constexpr uint16_t APUIO_ADDRESS_SPACE_START    = 0x4000;
-constexpr uint16_t APUIO_ADDRESS_SPACE_END      = 0x4017;
+constexpr uint16_t APU_ADDRESS_SPACE_START      = 0x4000;
+constexpr uint16_t APU_ADDRESS_SPACE_END        = 0x4013; // we've split the APU and IO into their own mappings, so as to not conflict with the PPU DMA address 0x4014
+constexpr uint16_t IO_ADDRESS_SPACE_START       = 0x4015;
+constexpr uint16_t IO_ADDRESS_SPACE_END         = 0x4017;
 
 // Some additional APU and IO, however these are disabled
 constexpr uint16_t APU_DISABLED_SPACE_START     = 0x4018;
