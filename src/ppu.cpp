@@ -256,20 +256,9 @@ void ppu::bg_update_shifters(void) {
 
 void ppu::cycle(void) {   
     // A massive thank you to JavidX / OLC for working this out, we've used his code as the base for ours, with modification of course!
+    // Most of the comments explaining this code is his work. 
 
-    // As we progress through scanlines and cycles, the PPU is effectively
-    // a state machine going through the motions of fetching background
-    // information and sprite information, compositing them into a pixel
-    // to be output.
-
-    // The lambda functions (functions inside functions) contain the various
-    // actions to be performed depending upon the output of the state machine
-    // for a given scanline/cycle combination
-
-    // All but 1 of the secanlines is visible to the user. The pre-render scanline
-    // at -1, is used to configure the "shifters" for the first visible scanline, 0.
-    if (_scanline_y >= -1 && _scanline_y < 240)
-    {      
+    if (_scanline_y >= -1 && _scanline_y < 240) {      
         if (_scanline_y == 0 && _clock_pulse_x == 0) {
             _clock_pulse_x = 1; // Skip this cycle on the odd frame
         }
@@ -287,17 +276,18 @@ void ppu::cycle(void) {
             // leave the visible region, we go dormant until the shifters are
             // preloaded for the next scanline.
 
+            uint16_t pattern_memory_selector; 
+            uint16_t bg_next_tile_id_multiplied; 
+            uint8_t offset;
+
             // Fortunately, for background rendering, we go through a fairly
             // repeatable sequence of events, every 2 clock cycles.
             switch ((_clock_pulse_x - 1) % 8) {
                 case 0:
-                    // Load the current background tile pattern and attributes into the "shifter"
-                    bg_load_shifters();
+                    bg_load_shifters(); // load the bg tile into the shifter
 
                     // Fetch the next background tile ID
-                    // "(_current_vram_address.reg & 0x0FFF)" : Mask to 12 bits that are relevant
-                    // "| 0x2000"                 : Offset into nametable space on PPU address bus
-                    _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));       // cut down to 12 bits that are relevant
+                    _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));       // cut down to 12 bits that are relevant, offset by the selected nametable id
                     _bg_next_tile_id = _ppu_bus_ptr->read_data();
 
                     // Explanation:
@@ -362,7 +352,7 @@ void ppu::cycle(void) {
                     // All attribute memory begins at 0x03C0 within a nametable, so OR with
                     // result to select target nametable, and attribute byte offset. Finally
                     // OR with 0x2000 to offset into nametable address space on PPU bus.    
-                    _ppu_bus_ptr->set_address(0x23C0 | (_current_vram_address.nametable_y << 11)
+                    _ppu_bus_ptr->set_address(0x23C0    | (_current_vram_address.nametable_y << 11)
                                                         | (_current_vram_address.nametable_x << 10)
                                                         | ((_current_vram_address.coarse_y >> 2) << 3)
                                                         | (_current_vram_address.coarse_x >> 2));
@@ -417,13 +407,21 @@ void ppu::cycle(void) {
                     //                                         vertical scroll offset
                     // "+ 0"                                 : Mental clarity for plane offset
                     // Note: No PPU address bus offset required as it starts at 0x0000
-                    _ppu_bus_ptr->set_address((check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR) << 12) + (_bg_next_tile_id << 4) + _current_vram_address.fine_y + 0); // plus zero for no offset
+                    pattern_memory_selector = check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR) << 12;
+                    bg_next_tile_id_multiplied = _bg_next_tile_id << 4;
+                    offset = 0; // plus zero for no offset
+
+                    _ppu_bus_ptr->set_address(pattern_memory_selector + bg_next_tile_id_multiplied + _current_vram_address.fine_y + offset);
                     _bg_next_tile_lsb = _ppu_bus_ptr->read_data();
                     break;
                 case 6:
                     // Fetch the next background tile MSB bit plane from the pattern memory
                     // This is the same as above, but has a +8 offset to select the next bit plane
-                    _ppu_bus_ptr->set_address((check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR) << 12) + ((uint16_t)_bg_next_tile_id << 4) + (_current_vram_address.fine_y) + 8);
+                    pattern_memory_selector = check_bit(_PPU_control_register, PPUCTRL_BG_PATTERN_TABLE_ADDR) << 12;
+                    bg_next_tile_id_multiplied = _bg_next_tile_id << 4;
+                    offset = 8;
+
+                    _ppu_bus_ptr->set_address(pattern_memory_selector + bg_next_tile_id_multiplied + _current_vram_address.fine_y + offset);
                     _bg_next_tile_msb = _ppu_bus_ptr->read_data();
                     break;
                 case 7:
@@ -503,7 +501,6 @@ void ppu::cycle(void) {
         bg_palette = (bg_pal1 << 1) | bg_pal0;
     }
 
-
     // Now we have a final pixel colour, and a palette for this cycle
     // of the current scanline. Let's at long last, draw that ^&%*er :P
     // feed _result_pixel with the ID of the palette.
@@ -529,8 +526,8 @@ void ppu::cycle(void) {
 
         if (_scanline_y >= 261) {
             _scanline_y = -1;
-            _frame_count++; // indicate a completed frame (at least the visible portion)
-            _frame_complete_flag = true;
+            _frame_count++; 
+            _frame_complete_flag = true;        // indicate a completed frame (at least the visible portion)
         }
     }
 }
