@@ -53,6 +53,7 @@ public:
 	~cpu();
 
     uint32_t _cycle_count;
+    bool _suspended;
 
     // opcode decoder struct
     opcode* _opcode_decoder_lookup;
@@ -62,7 +63,8 @@ public:
     void reset(void);   // reset CPU back to original state. 
     bool IRQ(void);     // Interrupt request
     bool NMI(void);     // non maskable interrupt
-    //void fetch_opcode(void);    
+    void DMA_suspend(void);     // for use by the PPU to temporarily halt the CPU
+    void DMA_continue(void);
 
     uint32_t debug_get_cycle_count(void);
     void debug_set_x_register(uint8_t data);

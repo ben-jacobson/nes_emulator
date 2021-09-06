@@ -522,8 +522,9 @@ void ppu::cycle(void) {
         _raw_pixel_data[pixel_index + 3] = SDL_ALPHA_OPAQUE;      
     }
 
-    // pulse the clock
+    // pulse the clocks
     _clock_pulse_x++;
+    _ppu_system_clock++;
 
     if (_clock_pulse_x >= 341) {
         _clock_pulse_x = 0;
@@ -535,6 +536,31 @@ void ppu::cycle(void) {
             _frame_complete_flag = true;        // indicate a completed frame (at least the visible portion)
         }
     }
+
+    // lastly, manage the DMA event if that's what's happening at the time
+    handle_dma();
+}
+
+void ppu::handle_dma(void) {
+    if (_dma_requested) {
+        // we need to wait for an odd clock cycle to commence the DMA
+        if (_ppu_system_clock % 2 == 1) {
+            _dma_transfer_status = true;
+            _dma_page = data;
+            _dma_addr = 0;
+            _cpu_ptr->DMA_suspend();     
+            _dma_requested = false; // reset this
+        }
+    }
+
+    if (_dma_status_flag) {
+        // on to handling the DMA request
+
+        // on odd clock cycles, read data
+        // on even clock cycles, write data
+
+        // then when finished, continue the cpu execution
+    }
 }
 
 void ppu::reset(void) {
@@ -542,6 +568,7 @@ void ppu::reset(void) {
     _PPU_control_register = 0;
     _PPU_status_register = 0;
     _oam_addr = 0;
+    
     for (auto& data : _oam_data) data = 0;        // clear OAM data 
 
     // set the palette to all black (0x3F, the final entry in the palette) If you do this before registering bus devices, this will do nothing
@@ -573,6 +600,8 @@ void ppu::reset(void) {
 	_nametable_x = 0; 
     _nametable_y = 0; 
     _result_pixel = 0;
+
+    _dma_transfer_status = false; 
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -613,10 +642,7 @@ uint8_t ppu::read(uint16_t address) {
             }
 
             increment_video_memory_address();           
-            break;
-        case OAMDMA:
-            std::cout << "OAMDMA read detect" << std::endl;
-            break;              
+            break;           
     }  
     return data;
 }
@@ -679,7 +705,8 @@ void ppu::write(uint16_t address, uint8_t data) {
             increment_video_memory_address();
             break;  	
         case OAMDMA:
-            std::cout << "OAMDMA write detect" << std::endl;
+            // trigger the DMA event
+            _dma_requested = true;
             break;          
     }  
 }

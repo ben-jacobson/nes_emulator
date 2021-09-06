@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	nes_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, nametable_3_memory._read_function_ptr, nametable_3_memory._write_function_ptr);
 
 	// we have a special case use case for the OAMDMA, this needs to be accessible by the CPU in one memory location alone
-	nes_cpu_bus.register_new_bus_device(OAMDMA, OAMDMA + 1, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr);
+	nes_cpu_bus.register_new_bus_device(OAMDMA, OAMDMA, nes_ppu._read_function_ptr, nes_ppu._write_function_ptr);
 
 	// Check to see if we can load a ROM from argc
 	if (argc < 2) {

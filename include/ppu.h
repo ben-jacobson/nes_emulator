@@ -79,6 +79,16 @@ union loopy_register {
 	uint16_t reg = 0x0000;
 };
 
+struct oam_entry {
+	// note the unusual order, this needs to match the order in which the OAM read and write need to see this. We won't always be accessing this as a structure, 
+	// we'll more likely be accessing this using a pointer and an index, and incrementing through 8 bit memory addresses, so the order in which these are defined
+	// is important
+	uint8_t y; 			// y pos of sprite
+	uint8_t id; 		// tile ID
+	uint8_t attr; 		// various flags defining how this should be rendered
+	uint8_t x; 			// x pos of sprite	
+};
+
 class ppu : public bus_device
 {
 public:
@@ -191,19 +201,22 @@ private:
 	loopy_register _temp_vram_address, _current_vram_address; // this is a bit like the CPU's program counter
 	uint8_t _write_toggle, _fine_x_scroll;
 
-	// Object Attribute Memory
+	// Object Attribute Memory items
 	uint8_t _oam_addr;	// we only need an 8 bit addres for this, seeing as the oam memory only ranges from 0-255
-	std::array <uint8_t, 256> _oam_data;
+	oam_entry _oam_data[64]; // our total OAM data store is 256 bytes, the structure has 4 bytes in it, 64 * 4 = 256
+	uint8_t* _ptr_oam_data = (uint8_t*)_oam_data;		// using a pointer, we can access this serially, rather than needing to use the structure addresses. 
+	uint8_t _dma_page, _dma_addr, _dma_data; 	// and we can't have OAM without some DMA!
+	bool _dma_transfer_status, _dma_requested;
 
-
+	// ppu clock and scanline
 	int _scanline_y;
 	uint16_t _clock_pulse_x;
-
-	uint8_t _colour_depth; 
-	uint8_t _sprite_width; 
-
 	uint32_t _frame_count; 
 	bool _frame_complete_flag;
+
+	// details about the colour depth
+	uint8_t _colour_depth; 
+	uint8_t _sprite_width; 
 	
 	// variables and array caches for the PPU helper functions
 	uint8_t _result_pixel;

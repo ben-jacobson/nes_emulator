@@ -21,22 +21,32 @@ cpu::~cpu() {
 }
 
 void cpu::cycle(void) {
-    if (_instr_cycles == 0) {
-        // The program counter will point to an address where there is some data stored.
-        _bus_ptr->set_address(_program_counter);
+    if (!_suspended) {
+        if (_instr_cycles == 0) {
+            // The program counter will point to an address where there is some data stored.
+            _bus_ptr->set_address(_program_counter);
 
-        // read the data at program counter (8 bits)
-        _instr_opcode = _bus_ptr->read_data();
-        
-        // Decode the data retrieved at PGMCounter, then run this through our decoded addres mode
-        _instr_cycles = _opcode_decoder_lookup[_instr_opcode].cycles_needed; 
-        _program_counter++; // the address mode function will need to read from the PC location after the opcode
-        _instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
-        _instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
-        _accumulator_addressing_mode = false; // this flag is used to morph instruction behaviour of accumulator addressing mode. 
+            // read the data at program counter (8 bits)
+            _instr_opcode = _bus_ptr->read_data();
+            
+            // Decode the data retrieved at PGMCounter, then run this through our decoded addres mode
+            _instr_cycles = _opcode_decoder_lookup[_instr_opcode].cycles_needed; 
+            _program_counter++; // the address mode function will need to read from the PC location after the opcode
+            _instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
+            _instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
+            _accumulator_addressing_mode = false; // this flag is used to morph instruction behaviour of accumulator addressing mode. 
+        }
+        _instr_cycles--;
+        _cycle_count++;
     }
-    _instr_cycles--;
-    _cycle_count++;
+}
+
+void cpu::DMA_suspend(void) {
+    _suspended = true; 
+}
+
+void cpu::DMA_continue(void) {
+    _suspended = false; 
 }
 
 bool cpu::finished_instruction(void) {
@@ -75,8 +85,9 @@ void cpu::reset(void) {
 
     // On the 6502 hardware, during reset time, writing to or from the CPU is prohibited, at this point our emulation doesn't do anything to prevent this, but we may need to in future
     // System initialization usually takes a number of clock cycles, unsure if this is relevant to our high level emulator but we'll implement it anyway
-
+    _suspended = false; 
     _instr_cycles = RESET_CYCLES;
+
     // Set program counter from memory loaded into vector 0xFFFC and 0xFFFD, which is start location for program control
     _bus_ptr->set_address(RESET_VECTOR_HIGH);  
     _program_counter = _bus_ptr->read_data();
