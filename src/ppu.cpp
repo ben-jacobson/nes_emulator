@@ -545,6 +545,7 @@ void ppu::handle_dma(void) {
     if (_dma_requested) {
         // we need to wait for an odd clock cycle to commence the DMA
         if (_ppu_system_clock % 2 == 1) {
+            _ppu_clock_at_start_of_dma = _ppu_system_clock;
             _dma_transfer_status = true;
             _dma_addr = 0;
             _cpu_ptr->DMA_suspend();     
@@ -552,13 +553,26 @@ void ppu::handle_dma(void) {
         }
     }
 
+    // on to handling the DMA request
     if (_dma_transfer_status) {
-        // on to handling the DMA request
 
         // on odd clock cycles, read data
+        if (_ppu_system_clock % 2 == 0) {
+            uint16_t dma_address = (_dma_page << 8) + _dma_addr;  // form a 16 bit address from the page and addr offset
+            _ppu_bus_ptr->set_address(dma_address);
+            _dma_data = _ppu_bus_ptr->read_data();
+        }
+
         // on even clock cycles, write data
+        else { 
+            _ptr_oam_data[_dma_addr] = _dma_data; // write the data
+            _dma_addr++;    // and increment the dma addr
+        }
 
         // then when finished, continue the cpu execution
+        if (_ppu_system_clock - _ppu_clock_at_start_of_dma >= 512) {
+            _cpu_ptr->DMA_continue();     
+        } 
     }
 }
 
@@ -568,6 +582,7 @@ void ppu::reset(void) {
     _PPU_status_register = 0;
     _oam_addr = 0;
     
+    // clear our oam data back to zero
     for (uint8_t i = 0; i < 255; i++) {
         _ptr_oam_data[i] = 0;
     }

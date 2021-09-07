@@ -210,7 +210,7 @@ private:
 	bool _dma_transfer_status, _dma_requested;
 
 	// ppu clock and scanline
-	uint32_t _ppu_system_clock;
+	uint32_t _ppu_system_clock, _ppu_clock_at_start_of_dma;
 	int _scanline_y;
 	uint16_t _clock_pulse_x;
 	uint32_t _frame_count; 
