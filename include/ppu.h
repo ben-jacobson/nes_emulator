@@ -98,6 +98,7 @@ public:
     void cycle(void);   // main PPU clocking
     void reset(void);   // reset PPU back to original state. 
 	void trigger_cpu_NMI(void);
+	void handle_dma(void);
 
 	// being a bus device, we need to define these, they refer to read and write activity on the main cpu bus
 	uint8_t read(uint16_t address) override;
@@ -204,11 +205,12 @@ private:
 	// Object Attribute Memory items
 	uint8_t _oam_addr;	// we only need an 8 bit addres for this, seeing as the oam memory only ranges from 0-255
 	oam_entry _oam_data[64]; // our total OAM data store is 256 bytes, the structure has 4 bytes in it, 64 * 4 = 256
-	uint8_t* _ptr_oam_data = (uint8_t*)_oam_data;		// using a pointer, we can access this serially, rather than needing to use the structure addresses. 
+	uint8_t* _ptr_oam_data = (uint8_t* )_oam_data;		// using a pointer, we can access this serially, rather than needing to use the structure addresses. 
 	uint8_t _dma_page, _dma_addr, _dma_data; 	// and we can't have OAM without some DMA!
 	bool _dma_transfer_status, _dma_requested;
 
 	// ppu clock and scanline
+	uint32_t _ppu_system_clock;
 	int _scanline_y;
 	uint16_t _clock_pulse_x;
 	uint32_t _frame_count; 

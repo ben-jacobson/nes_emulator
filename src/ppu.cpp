@@ -546,14 +546,13 @@ void ppu::handle_dma(void) {
         // we need to wait for an odd clock cycle to commence the DMA
         if (_ppu_system_clock % 2 == 1) {
             _dma_transfer_status = true;
-            _dma_page = data;
             _dma_addr = 0;
             _cpu_ptr->DMA_suspend();     
             _dma_requested = false; // reset this
         }
     }
 
-    if (_dma_status_flag) {
+    if (_dma_transfer_status) {
         // on to handling the DMA request
 
         // on odd clock cycles, read data
@@ -569,7 +568,9 @@ void ppu::reset(void) {
     _PPU_status_register = 0;
     _oam_addr = 0;
     
-    for (auto& data : _oam_data) data = 0;        // clear OAM data 
+    for (uint8_t i = 0; i < 255; i++) {
+        _ptr_oam_data[i] = 0;
+    }
 
     // set the palette to all black (0x3F, the final entry in the palette) If you do this before registering bus devices, this will do nothing
     for(uint8_t i = 0; i < PALETTE_RAM_SIZE; i++) {
@@ -624,8 +625,8 @@ uint8_t ppu::read(uint16_t address) {
             _PPU_status_register &= ~(1 << PPUSTATUS_VERTICAL_BLANK); // clear the vertical blank after the status reads
             // TODO: Race Condition Warning: Reading PPUSTATUS within two cycles of the start of vertical blank will return 0 in bit 7 but clear the latch anyway, causing NMI to not occur that frame. See NMI and PPU_frame_timing for details.
             break;
-        case OAMDATA:
-            data = _oam_data[_oam_addr];
+        case OAMDATA:            
+            data = _ptr_oam_data[_oam_addr];
             break;
         case PPUDATA:
             data = _buffered_read;
@@ -668,7 +669,7 @@ void ppu::write(uint16_t address, uint8_t data) {
             _oam_addr = data;
             break;            
         case OAMDATA:
-            _oam_data[_oam_addr] = data;
+            _ptr_oam_data[_oam_addr] = data;
             _oam_addr++;
             break;     
         case PPUSCROLL: 
@@ -706,6 +707,7 @@ void ppu::write(uint16_t address, uint8_t data) {
             break;  	
         case OAMDMA:
             // trigger the DMA event
+            _dma_page = data;
             _dma_requested = true;
             break;          
     }  
