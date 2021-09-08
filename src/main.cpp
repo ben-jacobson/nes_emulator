@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
 			frame_counter.display_contents();
 
 			//uint8_t test_id = 0x00;
-			//std::cout << "OAM 0: x: " << (uint16_t)nes_ppu.debug_read_oam(test_id).x << ", y: " << (uint16_t)nes_ppu.debug_read_oam(test_id).y << ", 0x" << std::hex << (uint16_t)nes_ppu.debug_read_oam(test_id).id << std::dec << std::endl;
+			//std::cout << "OAM 0: x: " << (uint16_t)nes_ppu.debug_read_oam(test_id).x << ", y: " << (uint16_t)nes_ppu.debug_read_oam(test_id).y << ", ID: 0x" << std::hex << (uint16_t)nes_ppu.debug_read_oam(test_id).id << std::dec << std::endl;
 
 			display_output.draw();				// draw the main screen
 		
