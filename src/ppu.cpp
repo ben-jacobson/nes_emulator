@@ -542,38 +542,39 @@ void ppu::cycle(void) {
 }
 
 void ppu::handle_dma(void) {
-    if (_dma_requested) {
-        // we need to wait for an odd clock cycle to commence the DMA
-        if (_ppu_system_clock % 2 == 1) {
-            _ppu_clock_at_start_of_dma = _ppu_system_clock;
-            _dma_transfer_status = true;
-            _dma_addr = 0;
-            _cpu_ptr->DMA_suspend();     
-            _dma_requested = false; // reset this
-        }
-    }
-
     // on to handling the DMA request
     if (_dma_transfer_status) {
-
-        // on odd clock cycles, read data
+        // on even clock cycles, read data
         if (_ppu_system_clock % 2 == 0) {
-            uint16_t dma_address = (_dma_page << 8) + _dma_addr;  // form a 16 bit address from the page and addr offset
-            _ppu_bus_ptr->set_address(dma_address);
-            _dma_data = _ppu_bus_ptr->read_data();
+            uint16_t dma_abs_address = (_dma_page << 8) + _dma_addr;  // form a 16 bit address from the page and addr offset
+            _ppu_bus_ptr->set_address(dma_abs_address);
+            _dma_data = _ppu_bus_ptr->read_data();            
         }
 
-        // on even clock cycles, write data
-        else { 
+        // then on odd clock cycles, write data
+        if (_ppu_system_clock % 2 == 1) {
             _ptr_oam_data[_dma_addr] = _dma_data; // write the data
-            _dma_addr++;    // and increment the dma addr
+            _dma_addr++;    // and increment the dma addr            
         }
 
         // then when finished, continue the cpu execution
-        if (_ppu_system_clock - _ppu_clock_at_start_of_dma >= 512) {
-            _cpu_ptr->DMA_continue();     
+        if (_ppu_system_clock - _ppu_clock_at_start_of_dma >= 512) {    // once we've completed enough cycles to fill the 255 buffer, we can finish up.
+            _cpu_ptr->DMA_continue();
+            _dma_transfer_status = false;      
         } 
     }
+
+    if (_dma_requested) {
+        // we need to wait for an odd clock cycle to commence the DMA
+        if (_ppu_system_clock % 2 == 1) {
+            _ppu_clock_at_start_of_dma = _ppu_system_clock;     // for measuring how many cycles to wait for
+            _dma_transfer_status = true;
+            _dma_addr = 0;
+            // the _dma_page is set within the write method, be sure not to overwrite it
+            _cpu_ptr->DMA_suspend();        // suspend the CPU
+            _dma_requested = false; // reset the DMA request bool so that we can move on
+        }
+    }    
 }
 
 void ppu::reset(void) {
@@ -586,6 +587,12 @@ void ppu::reset(void) {
     for (uint8_t i = 0; i < 255; i++) {
         _ptr_oam_data[i] = 0;
     }
+
+	_dma_page = 0; 
+    _dma_addr = 0; 
+    _dma_data = 0;
+	_dma_transfer_status = false; 
+    _dma_requested = false;
 
     // set the palette to all black (0x3F, the final entry in the palette) If you do this before registering bus devices, this will do nothing
     for(uint8_t i = 0; i < PALETTE_RAM_SIZE; i++) {
@@ -601,6 +608,9 @@ void ppu::reset(void) {
 
     // set the vertical blank bit to 1, indicating the PPU is busy
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);    
+
+    _ppu_system_clock = 0;
+    _ppu_clock_at_start_of_dma = 0;
 
     _scanline_y = 0;
     _clock_pulse_x = 0;
@@ -773,4 +783,8 @@ bool ppu::get_frame_complete_flag(void) {
 
 void ppu::clear_frame_complete_flag(void) {
     _frame_complete_flag = false;     // reset so that the renderer can set it
+}
+
+oam_entry ppu::debug_read_oam(uint8_t relative_address) {
+    return _oam_data[relative_address];
 }

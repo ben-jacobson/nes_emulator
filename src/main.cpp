@@ -332,6 +332,9 @@ int main(int argc, char *argv[])
 			//debug_pattern_table.display_contents();	
 			frame_counter.display_contents();
 
+			//uint8_t test_id = 0x00;
+			//std::cout << "OAM 0: x: " << (uint16_t)nes_ppu.debug_read_oam(test_id).x << ", y: " << (uint16_t)nes_ppu.debug_read_oam(test_id).y << ", 0x" << std::hex << (uint16_t)nes_ppu.debug_read_oam(test_id).id << std::dec << std::endl;
+
 			display_output.draw();				// draw the main screen
 		
 			// update the display with new info from renderer

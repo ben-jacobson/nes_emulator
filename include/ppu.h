@@ -109,6 +109,8 @@ public:
 	//bool get_address_latch(void);
 	bool get_vertical_blank(void);
 
+	oam_entry debug_read_oam(uint8_t relative_address);
+
 	uint16_t get_clock_pulses(void);
 	uint16_t get_x(void);
 	int get_y(void);
