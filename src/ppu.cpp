@@ -788,3 +788,7 @@ void ppu::clear_frame_complete_flag(void) {
 oam_entry ppu::debug_read_oam(uint8_t relative_address) {
     return _oam_data[relative_address];
 }
+
+uint8_t ppu::debug_read_oam_ptr(uint8_t relative_address) {
+    return _ptr_oam_data[relative_address];
+}
