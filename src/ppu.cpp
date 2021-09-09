@@ -695,7 +695,6 @@ void ppu::write(uint16_t address, uint8_t data) {
             break;            
         case OAMDATA:
             _ptr_oam_data[_oam_addr] = data;
-            _oam_addr++;
             break;     
         case PPUSCROLL: 
             if (_write_toggle == 0) {
