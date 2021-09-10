@@ -439,10 +439,17 @@ void ppu::cycle(void) {
         }
 
         //...and reset the x position, transferring the temp into vram
-        if (_clock_pulse_x == 257 && bg_rendering_enabled()) {
-            bg_load_shifters();
-            _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
-            _current_vram_address.coarse_x    = _temp_vram_address.coarse_x;
+        if (_clock_pulse_x == 257) {
+            if (bg_rendering_enabled()) {
+                bg_load_shifters();
+                _current_vram_address.nametable_x = _temp_vram_address.nametable_x;
+                _current_vram_address.coarse_x    = _temp_vram_address.coarse_x;
+            }
+
+            if (_scanline_y >= 0) {
+                // at clock 257, clear our sprite cache
+                build_sprite_cache_next_scanline();
+            }
         }
 
         if (_clock_pulse_x >= 257 && _clock_pulse_x <= 320) { // (the sprite tile loading interval)
@@ -539,6 +546,36 @@ void ppu::cycle(void) {
 
     // lastly, manage the DMA event if that's what's happening at the time
     handle_dma();
+}
+
+void ppu::build_sprite_cache_next_scanline(void) {
+    // start by clearing the sprite cache and resetting the count to zero
+    for (auto& entry : _sprite_cache) {
+        entry.y = 0xFF;
+        entry.id = 0xFF;
+        entry.attr = 0xFF;
+        entry.x = 0xFF;                    
+    }
+    _sprite_count = 0;
+
+    // seeing as the sprite count is now zero, clear the sprite overflow bit in case it was ever set
+    _PPU_status_register &= ~(1 << PPUSTATUS_SPRITE_OVERFLOW);
+
+    // Then check every sprite in the OAM to see which sprites are going to be visible on the next scanline
+    for (uint8_t i = 0; i < MAX_OAM_SPRITES; i++) {
+        int y_check = _scanline_y - _oam_data[i].y;
+
+        if (y_check >= 0 && y_check < _sprite_height) { // are we within the boundaries of the sprites height?
+            _sprite_cache[i] = _oam_data[i];
+
+            _sprite_count++;
+
+            if (_sprite_count >= MAX_SPRITES_SCANLINE) { // max this out at 8 sprites, much like the actual nes does
+                _PPU_status_register |= (1 << PPUSTATUS_SPRITE_OVERFLOW);   // set the overflow bit
+                break; // we can jump out of our for loop for now, we won't be rendering any more sprites
+            }
+        }
+    }
 }
 
 void ppu::handle_dma(void) {

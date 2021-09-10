@@ -61,6 +61,9 @@ constexpr uint8_t SPRITE_WIDTH						= 8;		// tile width is fixed, while tile hei
 constexpr uint8_t BACKGROUND_PALETTES				= 16;
 constexpr uint8_t FOREGROUND_PALETTES				= 16;
 
+constexpr uint8_t MAX_OAM_SPRITES					= 64;
+constexpr uint8_t MAX_SPRITES_SCANLINE				= 8;
+
 constexpr uint8_t R = 0;
 constexpr uint8_t G = 1;
 constexpr uint8_t B = 2;
@@ -205,10 +208,13 @@ private:
 
 	// Object Attribute Memory items
 	uint8_t _oam_addr;	// we only need an 8 bit addres for this, seeing as the oam memory only ranges from 0-255
-	oam_entry _oam_data[64]; // our total OAM data store is 256 bytes, the structure has 4 bytes in it, 64 * 4 = 256
+	oam_entry _oam_data[MAX_OAM_SPRITES]; // our total OAM data store is 256 bytes, the structure has 4 bytes in it, 64 * 4 = 256
 	uint8_t* _ptr_oam_data = (uint8_t* )_oam_data;		// using a pointer, we can access this serially, rather than needing to use the structure addresses. 
 	uint8_t _dma_page, _dma_addr, _dma_data; 	// and we can't have OAM without some DMA!
 	bool _dma_transfer_status, _dma_requested;
+
+	oam_entry _sprite_cache[8]; // we can only render 8 sprites per scanline
+	uint8_t _sprite_count;
 
 	// ppu clock and scanline
 	uint32_t _ppu_system_clock, _ppu_clock_at_start_of_dma;
@@ -239,17 +245,24 @@ private:
 	void bg_update_shifters(void);
 
 	// ppu helper functions
+
+	// background rendering
 	void bg_set_pixel(void);
 	bool bg_left_eight_pixels_enabled(void);
 
 	bool bg_rendering_enabled(void);
 	bool fg_rendering_enabled(void);
 
-	void cache_nametable_row(void);
-    void cache_pattern_row(void);
-	void cache_attribute_table_row(void);
-	void cache_bg_palettes(void);
+	//void cache_nametable_row(void);
+    //void cache_pattern_row(void);
+	//void cache_attribute_table_row(void);
+	//void cache_bg_palettes(void);
+
+	// foreground rendering
+	void build_sprite_cache_next_scanline(void);
 
 	uint8_t _bg_next_tile_id,_bg_next_tile_attrib, _bg_next_tile_lsb, _bg_next_tile_msb;
 	uint16_t _bg_shifter_pattern_lo, _bg_shifter_pattern_hi, _bg_shifter_attrib_lo, _bg_shifter_attrib_hi;
+	uint8_t _fg_shifter_pattern_lo[MAX_SPRITES_SCANLINE], _fg_shifter_pattern_hi[MAX_SPRITES_SCANLINE];
+
 };
