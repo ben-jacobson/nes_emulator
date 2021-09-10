@@ -547,8 +547,8 @@ void ppu::handle_dma(void) {
         // on even clock cycles, read data
         if (_ppu_system_clock % 2 == 0) {
             uint16_t dma_abs_address = (_dma_page << 8) + _dma_addr;  // form a 16 bit address from the page and addr offset
-            _ppu_bus_ptr->set_address(dma_abs_address);
-            _dma_data = _ppu_bus_ptr->read_data();            
+            _cpu_bus_ptr->set_address(dma_abs_address);
+            _dma_data = _cpu_bus_ptr->read_data();            
         }
 
         // then on odd clock cycles, write data
@@ -560,7 +560,18 @@ void ppu::handle_dma(void) {
         // then when finished, continue the cpu execution
         if (_ppu_system_clock - _ppu_clock_at_start_of_dma >= 512) {    // once we've completed enough cycles to fill the 255 buffer, we can finish up.
             _cpu_ptr->DMA_continue();
-            _dma_transfer_status = false;      
+            _dma_transfer_status = false;   
+
+            // debug output
+			/*for (uint8_t test_id = 0; test_id < 64; test_id++) {
+				std::cout << "OAM " << std::hex << (uint16_t)test_id * 4 << 
+					", y: " << (uint16_t)_ptr_oam_data[test_id * 4 + 0] << 
+					", ID: " << (uint16_t)_ptr_oam_data[test_id * 4 + 1] << 
+					", Attr: " << (uint16_t)_ptr_oam_data[test_id * 4 + 2] << 
+					", x: " << (uint16_t)_ptr_oam_data[test_id * 4 + 3] <<
+					std::dec << std::endl;
+			}
+			std::cout << std::endl << std::endl; */        
         } 
     }
 

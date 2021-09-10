@@ -332,16 +332,6 @@ int main(int argc, char *argv[])
 			//debug_pattern_table.display_contents();	
 			frame_counter.display_contents();
 
-			for (uint8_t test_id = 0; test_id < 64; test_id++) {
-				std::cout << "OAM " << std::hex << (uint16_t)test_id * 4 << 
-					", y: " << (uint16_t)nes_ppu.debug_read_oam_ptr(test_id * 4 + 0) << 
-					", ID: " << (uint16_t)nes_ppu.debug_read_oam_ptr(test_id * 4 + 1) << 
-					", Attr: " << (uint16_t)nes_ppu.debug_read_oam_ptr(test_id * 4 + 2) << 
-					", x: " << (uint16_t)nes_ppu.debug_read_oam_ptr(test_id * 4 + 3) <<
-					std::dec << std::endl;
-			}
-			std::cout << std::endl << std::endl;
-
 			display_output.draw();				// draw the main screen
 		
 			// update the display with new info from renderer
