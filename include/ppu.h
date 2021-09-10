@@ -213,7 +213,7 @@ private:
 	uint8_t _dma_page, _dma_addr, _dma_data; 	// and we can't have OAM without some DMA!
 	bool _dma_transfer_status, _dma_requested;
 
-	oam_entry _sprite_cache[8]; // we can only render 8 sprites per scanline
+	oam_entry _sprite_cache[MAX_SPRITES_SCANLINE]; // we can only render 8 sprites per scanline
 	uint8_t _sprite_count;
 
 	// ppu clock and scanline
@@ -260,6 +260,7 @@ private:
 
 	// foreground rendering
 	void build_sprite_cache_next_scanline(void);
+	void load_sprite_shifters(void);
 
 	uint8_t _bg_next_tile_id,_bg_next_tile_attrib, _bg_next_tile_lsb, _bg_next_tile_msb;
 	uint16_t _bg_shifter_pattern_lo, _bg_shifter_pattern_hi, _bg_shifter_attrib_lo, _bg_shifter_attrib_hi;

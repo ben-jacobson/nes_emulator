@@ -20,3 +20,4 @@ public:
 };
 
 uint8_t check_bit(uint8_t data, uint8_t bit);
+uint8_t flip_byte(uint8_t data);

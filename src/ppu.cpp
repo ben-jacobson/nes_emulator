@@ -461,6 +461,10 @@ void ppu::cycle(void) {
         if (_clock_pulse_x == 338 || _clock_pulse_x == 340) {
             _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));
             _bg_next_tile_id = _ppu_bus_ptr->read_data();
+
+            if (_clock_pulse_x == 340 && fg_rendering_enabled()) {
+                load_sprite_shifters();  
+            }
         }
 
         if (_scanline_y == -1 && _clock_pulse_x >= 280 && _clock_pulse_x < 305 && bg_rendering_enabled()) {
@@ -548,13 +552,78 @@ void ppu::cycle(void) {
     handle_dma();
 }
 
+void ppu::load_sprite_shifters(void) {
+    for (uint8_t i = 0; i < _sprite_count; i++) {
+        uint8_t sprite_pattern_bits_lo, sprite_pattern_bits_hi;
+        uint16_t sprite_pattern_addr_lo, sprite_pattern_addr_hi;
+
+        uint8_t pattern_table_in_use = check_bit(_PPU_control_register, PPUCTRL_FG_PATTERN_TABLE_ADDR) << 12;       // 0x0000 or 0x1000. 
+
+        if (_sprite_height == 8) {
+            // 8x8 sprite mode
+            // check the vertical orientation
+
+            if (check_bit(_sprite_cache[i].attr, 6) == 0) { // 0 is normal horizontal orientation
+                // read directly from the pattern table
+                sprite_pattern_addr_lo =    pattern_table_in_use | 
+                                            (_sprite_cache[i].id << 4) |            // mult 16 (each sprite is 16  bytes in size)
+                                            (_scanline_y - _sprite_cache[i].y);     // offset by our y position (MSB is the left most pixel, hence the scanline-y)
+            }            
+            else {    
+                // vertical flip
+                sprite_pattern_addr_lo =    pattern_table_in_use | 
+                                            (_sprite_cache[i].id << 4) |                // mult 16 (each sprite is 16  bytes in size)
+                                            (7 - _scanline_y - _sprite_cache[i].y);     // offset by our y position (MSB is the left most pixel, then flipped the 7-scanline-y)            
+            }
+            if (check_bit(_sprite_cache[i].attr, 7) == 0) { // 0 is normal vertical orientation
+                // read from the pattern table, but in reverse order
+            }
+            else { // flipped vertically
+
+            }
+        }
+        else if (_sprite_height == 16) {
+            // 8x16 sprite mode 
+            if (check_bit(_sprite_cache[i].attr, 6) == 0) { // 0 is normal horizontal orientation
+                // check, are we in the bottom half or top half of sprite?
+                if (_scanline_y - _sprite_cache[i].y < 8) {
+                    sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
+                                                ((_sprite_cache[i].id & 0xFE) << 4) | 
+                                                ((_scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                }
+                else {
+                    sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
+                                                ((_sprite_cache[i].id & 0xFE) + 1 << 4) | 
+                                                ((_scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                }
+            }            
+            else {    
+                // vertical flip
+                if (_scanline_y - _sprite_cache[i].y < 8) {
+                    sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
+                                                ((_sprite_cache[i].id & 0xFE) << 4) | 
+                                                ((7 - _scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                }
+                else {
+                    sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
+                                                ((_sprite_cache[i].id & 0xFE) + 1 << 4) | 
+                                                ((7 - _scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                }                
+            }
+            if (check_bit(_sprite_cache[i].attr, 7) == 0) { // 0 is normal vertical orientation
+                // read from the pattern table, but in reverse order
+            }
+            else { // flipped vertically
+
+            }
+        }   
+    }   
+}
+
 void ppu::build_sprite_cache_next_scanline(void) {
     // start by clearing the sprite cache and resetting the count to zero
-    for (auto& entry : _sprite_cache) {
-        entry.y = 0xFF;
-        entry.id = 0xFF;
-        entry.attr = 0xFF;
-        entry.x = 0xFF;                    
+    for (auto & entry : _sprite_cache) {
+        entry.y = 0xFF;     // this is good enough to disable the oam cache, because sprites in the y position of 255 will never be rendered                  
     }
     _sprite_count = 0;
 
@@ -563,18 +632,17 @@ void ppu::build_sprite_cache_next_scanline(void) {
 
     // Then check every sprite in the OAM to see which sprites are going to be visible on the next scanline
     for (uint8_t i = 0; i < MAX_OAM_SPRITES; i++) {
-        int y_check = _scanline_y - _oam_data[i].y;
+        int y_check = _scanline_y - _oam_data[i].y;  
 
-        if (y_check >= 0 && y_check < _sprite_height) { // are we within the boundaries of the sprites height?
+        if (y_check >= 0 && y_check < _sprite_height && i < MAX_SPRITES_SCANLINE) { // are we within the boundaries of the sprites height?
             _sprite_cache[i] = _oam_data[i];
-
             _sprite_count++;
-
-            if (_sprite_count >= MAX_SPRITES_SCANLINE) { // max this out at 8 sprites, much like the actual nes does
-                _PPU_status_register |= (1 << PPUSTATUS_SPRITE_OVERFLOW);   // set the overflow bit
-                break; // we can jump out of our for loop for now, we won't be rendering any more sprites
-            }
         }
+
+        if (_sprite_count >= MAX_SPRITES_SCANLINE) { // max this out at 8 sprites, much like the actual nes does
+            _PPU_status_register |= (1 << PPUSTATUS_SPRITE_OVERFLOW);   // set the overflow bit
+            break; // we can jump out of our for loop for now, we won't be rendering any more sprites, plus we don't want to go out of bounds for our _sprite_cache
+        }              
     }
 }
 
