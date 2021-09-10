@@ -56,7 +56,7 @@ constexpr uint8_t NAMETABLE_WIDTH					= 32;
 constexpr uint8_t NAMETABLE_HEIGHT					= 30;	
 constexpr uint8_t ATTRTABLE_WIDTH					= 8;
 constexpr uint8_t ATTRTABLE_HEIGHT					= 8;	
-constexpr uint8_t SPRITE_HEIGHT						= 8;		// tile width is variable, 8 or 16 px and is stored as a member variable
+constexpr uint8_t SPRITE_WIDTH						= 8;		// tile height is variable, 8 or 16 px and is stored as a member variable
 
 constexpr uint8_t BACKGROUND_PALETTES				= 16;
 constexpr uint8_t FOREGROUND_PALETTES				= 16;
@@ -221,7 +221,7 @@ private:
 
 	// details about the colour depth
 	uint8_t _colour_depth; 
-	uint8_t _sprite_width; 
+	uint8_t _sprite_height; 
 	
 	// variables and array caches for the PPU helper functions
 	uint8_t _result_pixel;
@@ -231,7 +231,7 @@ private:
 	std::array <uint8_t, FOREGROUND_PALETTES> _foreground_palette_cache;
 	std::array <uint8_t, NAMETABLE_WIDTH> _nametable_row_cache;
 	std::array <uint8_t, ATTRTABLE_WIDTH> _attribute_table_row_cache;
-	std::array <std::array<uint8_t, SPRITE_HEIGHT>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
+	std::array <std::array<uint8_t, SPRITE_WIDTH>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
 
 	void increment_video_memory_address(void);
 	void increment_scroll_x(void);

@@ -13,12 +13,12 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
 
 void ppu::bg_set_pixel(void) {
     // update our nametable x and y 
-    uint16_t cache_x = _clock_pulse_x / _sprite_width;
-    uint16_t cache_y = _scanline_y / SPRITE_HEIGHT;        
+    uint16_t cache_x = _clock_pulse_x / SPRITE_WIDTH;
+    uint16_t cache_y = _scanline_y / _sprite_height;        
 
     // boil down the scanline and clock to the x and y within the tile,
-    uint8_t pattern_table_row_x_index = _sprite_width - (_clock_pulse_x % _sprite_width) - 1;  // need to offset by sprite width as we read MSB as left most pixel
-    uint8_t pattern_table_row_y_index = _scanline_y % SPRITE_HEIGHT;
+    uint8_t pattern_table_row_x_index = SPRITE_WIDTH - (_clock_pulse_x % SPRITE_WIDTH) - 1;  // need to offset by sprite width as we read MSB as left most pixel
+    uint8_t pattern_table_row_y_index = _scanline_y % _sprite_height;
 
     // extract the bit from the pattern table, in plane 0 and 1, 
     uint8_t plane_0_bit = (_pattern_row_plane_0_cache[cache_x][pattern_table_row_y_index] & (1 << pattern_table_row_x_index)) >> pattern_table_row_x_index;
@@ -64,7 +64,7 @@ void ppu::cache_nametable_row(void) {
         Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
     */
 
-    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+    if (_scanline_y % _sprite_height == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_nametable_address = NAMETABLE_0_START; // failsafe
         uint8_t nametable_select = (_current_vram_address.nametable_y << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
 
@@ -84,7 +84,7 @@ void ppu::cache_nametable_row(void) {
         }
 
         // boil down the scanline and clock to determined nametable x and y position
-        _nametable_y = _scanline_y / SPRITE_HEIGHT;            
+        _nametable_y = _scanline_y / _sprite_height;            
         uint16_t nametable_index = base_nametable_address + (_nametable_y * NAMETABLE_WIDTH) + _current_vram_address.coarse_x;  
 
         for (uint8_t i = 0; i < NAMETABLE_WIDTH; i++) {  // todo - add 1 for allow room for scrolling
@@ -99,7 +99,7 @@ void ppu::cache_pattern_row(void) {
         Cache entire row of the patterns from the nametable
         Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
     */
-    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+    if (_scanline_y % _sprite_height == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         // update our nametable x as needed
         //_nametable_x = _clock_pulse_x / _sprite_width;
         _nametable_x = _current_vram_address.coarse_x;
@@ -127,7 +127,7 @@ void ppu::cache_pattern_row(void) {
                 uint16_t _pattern_address = (_nametable_row_cache[i] << 4) + pattern_offset;        // convert to the actual tile address, e.g 0x0020 becomes 0x020     
 
                 // load in each byte representing a row.
-                for (uint8_t y = 0; y < SPRITE_HEIGHT; y++) {
+                for (uint8_t y = 0; y < _sprite_height; y++) {
                     _ppu_bus_ptr->set_address(_pattern_address + y);       
                     _pattern_row_plane_0_cache[i][y] = _ppu_bus_ptr->read_data();            // read bit plane 0
                     _ppu_bus_ptr->set_address(_pattern_address + y + 8);                    
@@ -148,7 +148,7 @@ void ppu::cache_attribute_table_row(void) {
         Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
     */
 
-    if (_scanline_y % SPRITE_HEIGHT == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
+    if (_scanline_y % _sprite_height == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_attribute_table_address;
         uint8_t nametable_select = (_current_vram_address.nametable_y << 1) | _current_vram_address.nametable_x; // should deliver a base name table index from 0-3
 
@@ -195,7 +195,7 @@ void ppu::increment_scroll_x(void) {
 
 void ppu::increment_scroll_y(void) {
     if (bg_rendering_enabled() || fg_rendering_enabled()) {
-        if (_current_vram_address.fine_y < SPRITE_HEIGHT - 1) {
+        if (_current_vram_address.fine_y < _sprite_height - 1) {
             _current_vram_address.fine_y++;
         }   
         else {
@@ -626,7 +626,7 @@ void ppu::reset(void) {
     _scanline_y = 0;
     _clock_pulse_x = 0;
 
-    _sprite_width = 8; // we'll default to 8x wide for safety, updating PPUCTRL will overwrite this
+    _sprite_height = 8; // we'll default to 8x wide for safety, updating PPUCTRL will overwrite this
 
     _frame_count = 0;
     _frame_complete_flag = false;
@@ -696,7 +696,7 @@ void ppu::write(uint16_t address, uint8_t data) {
             _PPU_control_register = data & 0xFC;             // Lop off the bottom two bits as they are not used in this register
             _temp_vram_address.nametable_x = check_bit(data, 0);
             _temp_vram_address.nametable_y = check_bit(data, 1);
-            _sprite_width = (check_bit(_PPU_control_register, PPUCTRL_SPRITE_SIZE) == 0 ? 8 : 16); // update the sprite width
+            _sprite_height = (check_bit(_PPU_control_register, PPUCTRL_SPRITE_SIZE) == 0 ? 8 : 16); // update the sprite width
             break;
         case PPUMASK:
             _PPU_mask_register = data;
