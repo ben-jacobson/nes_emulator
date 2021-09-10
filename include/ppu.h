@@ -56,7 +56,7 @@ constexpr uint8_t NAMETABLE_WIDTH					= 32;
 constexpr uint8_t NAMETABLE_HEIGHT					= 30;	
 constexpr uint8_t ATTRTABLE_WIDTH					= 8;
 constexpr uint8_t ATTRTABLE_HEIGHT					= 8;	
-constexpr uint8_t SPRITE_WIDTH						= 8;		// tile height is variable, 8 or 16 px and is stored as a member variable
+constexpr uint8_t SPRITE_WIDTH						= 8;		// tile width is fixed, while tile height is variable, 8 or 16 px and is stored as a member variable _sprite_height
 
 constexpr uint8_t BACKGROUND_PALETTES				= 16;
 constexpr uint8_t FOREGROUND_PALETTES				= 16;
@@ -190,8 +190,6 @@ public:
     std::vector<uint8_t> _raw_pixel_data;
 
 private:
-	//std::array <uint16_t, 9> ADDRESS_PORTS = {PPUCTRL, PPUMASK, PPUSTATUS, OAMADDR, OAMDATA, PPUSCROLL, PPUADDR, PPUDATA, OAMDMA};
-
 	bus* _cpu_bus_ptr; 
 	bus* _ppu_bus_ptr;
 	cpu* _cpu_ptr; 
@@ -227,11 +225,11 @@ private:
 	uint8_t _result_pixel;
 	uint16_t _nametable_x, _nametable_y;
 
-	std::array <uint8_t, BACKGROUND_PALETTES> _background_palette_cache;
-	std::array <uint8_t, FOREGROUND_PALETTES> _foreground_palette_cache;
-	std::array <uint8_t, NAMETABLE_WIDTH> _nametable_row_cache;
-	std::array <uint8_t, ATTRTABLE_WIDTH> _attribute_table_row_cache;
-	std::array <std::array<uint8_t, SPRITE_WIDTH>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
+	//std::array <uint8_t, BACKGROUND_PALETTES> _background_palette_cache;
+	//std::array <uint8_t, FOREGROUND_PALETTES> _foreground_palette_cache;
+	//std::array <uint8_t, NAMETABLE_WIDTH> _nametable_row_cache;
+	//std::array <uint8_t, ATTRTABLE_WIDTH> _attribute_table_row_cache;
+	//std::array <std::array<uint8_t, SPRITE_WIDTH>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
 
 	void increment_video_memory_address(void);
 	void increment_scroll_x(void);

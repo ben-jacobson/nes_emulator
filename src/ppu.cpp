@@ -11,7 +11,7 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     reset();
 }
 
-void ppu::bg_set_pixel(void) {
+/*void ppu::bg_set_pixel(void) {
     // update our nametable x and y 
     uint16_t cache_x = _clock_pulse_x / SPRITE_WIDTH;
     uint16_t cache_y = _scanline_y / _sprite_height;        
@@ -33,15 +33,15 @@ void ppu::bg_set_pixel(void) {
     uint8_t attribute_palette_index = (attribute_palette_y * 2) + attribute_palette_x;          // should generate an index between 0 and 3. but in order 3-0 
     uint8_t attribute_bits = (_attribute_table_row_cache[_clock_pulse_x / 32] >> (attribute_palette_index * 2)) & 0x03;   // shift right to get the lowest 2 bits, clear the upper 6 bits
     _result_pixel = _background_palette_cache[((attribute_bits * 4) + pattern_pixel) % BACKGROUND_PALETTES];
-}
+}*/
 
-void ppu::cache_bg_palettes(void) {
+/*void ppu::cache_bg_palettes(void) {
     // At the start of every frame, we'll cache the 16 palettes to avoid doing copious amounts of reads per frame
     for (uint8_t i = 0; i < BACKGROUND_PALETTES; i++) {
         _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + i);
         _background_palette_cache[i] = _ppu_bus_ptr->read_data();
     }
-}
+}*/
 
 bool ppu::bg_rendering_enabled(void) {
     return check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) == 0 ? false : true;
@@ -58,11 +58,11 @@ bool ppu::bg_left_eight_pixels_enabled(void) {
     return check_bit(_PPU_mask_register, PPUMASK_SHOWLEFT_BG) == 0 ? false : true;
 }
 
-void ppu::cache_nametable_row(void) {
-    /*
-        Cache entire row of the nametable
-        Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
-    */
+/*void ppu::cache_nametable_row(void) {
+    //
+    //    Cache entire row of the nametable
+    //    Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
+    //
 
     if (_scanline_y % _sprite_height == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_nametable_address = NAMETABLE_0_START; // failsafe
@@ -92,13 +92,13 @@ void ppu::cache_nametable_row(void) {
             _nametable_row_cache[i] = _ppu_bus_ptr->read_data();
         }
     }
-}
+}*/
 
-void ppu::cache_pattern_row(void) {
-    /*
-        Cache entire row of the patterns from the nametable
-        Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
-    */
+/*void ppu::cache_pattern_row(void) {
+    //
+    //    Cache entire row of the patterns from the nametable
+    //    Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
+    //
     if (_scanline_y % _sprite_height == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         // update our nametable x as needed
         //_nametable_x = _clock_pulse_x / _sprite_width;
@@ -140,13 +140,13 @@ void ppu::cache_pattern_row(void) {
             }
         }                  
     }
-}
+}*/
 
-void ppu::cache_attribute_table_row(void) {
-    /*
-        Cache entire row of the attribute table at end nametable
-        Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
-    */
+/*void ppu::cache_attribute_table_row(void) {
+    //
+    //    Cache entire row of the attribute table at end nametable
+    //    Running this again and again is safe as it will first check the scanline to see if it's ready to cache a new row
+    //
 
     if (_scanline_y % _sprite_height == 0 && _clock_pulse_x == 0) {    // Do this only once at the start of the scanline
         uint16_t base_attribute_table_address;
@@ -179,7 +179,7 @@ void ppu::cache_attribute_table_row(void) {
             _attribute_table_row_cache[i] = _ppu_bus_ptr->read_data();
         }
     }
-}
+}*/
 
 void ppu::increment_scroll_x(void) {
     if (bg_rendering_enabled() || fg_rendering_enabled()) {
@@ -626,7 +626,7 @@ void ppu::reset(void) {
     _scanline_y = 0;
     _clock_pulse_x = 0;
 
-    _sprite_height = 8; // we'll default to 8x wide for safety, updating PPUCTRL will overwrite this
+    _sprite_height = 8; // we'll default to 8x height for safety, updating PPUCTRL will overwrite this
 
     _frame_count = 0;
     _frame_complete_flag = false;
