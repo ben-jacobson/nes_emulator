@@ -35,13 +35,13 @@ ppu::ppu(bus* cpu_bus_ptr, bus* ppu_bus_ptr, cpu* cpu_ptr) {
     _result_pixel = _background_palette_cache[((attribute_bits * 4) + pattern_pixel) % BACKGROUND_PALETTES];
 }*/
 
-/*void ppu::cache_bg_palettes(void) {
+void ppu::cache_palettes(void) {
     // At the start of every frame, we'll cache the 16 palettes to avoid doing copious amounts of reads per frame
-    for (uint8_t i = 0; i < BACKGROUND_PALETTES; i++) {
+    for (uint8_t i = 0; i < ALL_PALETTES; i++) {
         _ppu_bus_ptr->set_address(PALETTE_RAM_INDEX_START + i);
-        _background_palette_cache[i] = _ppu_bus_ptr->read_data();
+        _palette_cache[i] = _ppu_bus_ptr->read_data();
     }
-}*/
+}
 
 bool ppu::bg_rendering_enabled(void) {
     return check_bit(_PPU_mask_register, PPUMASK_SHOW_BACKGROUND) == 0 ? false : true;
@@ -271,6 +271,10 @@ void ppu::bg_update_shifters(void) {
 void ppu::cycle(void) {   
     // A massive thank you to JavidX / OLC for working this out, we've used his code as the base for ours, with modification of course!
     // Most of the comments explaining this code is his work. 
+
+    if (_scanline_y == -1 && _clock_pulse_x == 0) {
+        cache_palettes(); // cache the palettes for the next frame, after vertical blank presuming that most ROMs will handle this sort of thing during vblank
+    }
 
     if (_scanline_y >= -1 && _scanline_y < 240) {      
         if (_scanline_y == 0 && _clock_pulse_x == 0) {
@@ -611,9 +615,12 @@ void ppu::cycle(void) {
     // of the current scanline. Let's at long last, draw the pixel
     // feed _result_pixel with the ID of the palette.
 
-    //_ppu_bus_ptr->set_address((0x3F00 + (bg_palette << 2) + bg_pixel));
-    _ppu_bus_ptr->set_address((0x3F00 + (palette << 2) + pixel));
-    _result_pixel = _ppu_bus_ptr->read_data() & 0x3F;    
+    // the old way where we read palette addresses from scratch
+    //_ppu_bus_ptr->set_address((0x3F00 + (palette << 2) + pixel));
+    //_result_pixel = _ppu_bus_ptr->read_data() & 0x3F;    
+
+    // this new way reads from a cache, meaning we aren't reading from the bus for every pixel
+    _result_pixel = _palette_cache[((palette << 2) + pixel) & 0x1F];
 
     // composite the image into actual pixel data
     uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + ((_clock_pulse_x - 1) * 4);

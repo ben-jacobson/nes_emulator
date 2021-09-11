@@ -66,6 +66,7 @@ constexpr uint8_t ATTRTABLE_HEIGHT					= 8;
 
 constexpr uint8_t BACKGROUND_PALETTES				= 16;
 constexpr uint8_t FOREGROUND_PALETTES				= 16;
+constexpr uint8_t ALL_PALETTES						= BACKGROUND_PALETTES + FOREGROUND_PALETTES;
 
 constexpr uint8_t MAX_OAM_SPRITES					= 64;
 constexpr uint8_t MAX_SPRITES_SCANLINE				= 8;
@@ -242,6 +243,7 @@ private:
 	//std::array <uint8_t, NAMETABLE_WIDTH> _nametable_row_cache;
 	//std::array <uint8_t, ATTRTABLE_WIDTH> _attribute_table_row_cache;
 	//std::array <std::array<uint8_t, SPRITE_WIDTH>, NAMETABLE_WIDTH> _pattern_row_plane_0_cache, _pattern_row_plane_1_cache;
+	std::array <uint8_t, ALL_PALETTES> _palette_cache;
 
 	void increment_video_memory_address(void);
 	void increment_scroll_x(void);
@@ -260,7 +262,7 @@ private:
 	//void cache_nametable_row(void);
     //void cache_pattern_row(void);
 	//void cache_attribute_table_row(void);
-	//void cache_bg_palettes(void);
+	void cache_palettes(void);
 
 	// foreground rendering
 	void build_sprite_cache_next_scanline(void);
