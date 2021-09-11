@@ -44,6 +44,13 @@ constexpr uint8_t PPUMASK_EMPHASISE_RED				= 5;
 constexpr uint8_t PPUMASK_EMPHASISE_GREEN			= 6; 
 constexpr uint8_t PPUMASK_EMPHASISE_BLUE			= 7; 
 
+// Sprite attribute flag bits
+constexpr uint8_t SPRITE_PRIORITY					= 5;
+constexpr uint8_t SPRITE_FLIPPED_HORIZONTAL			= 6;
+constexpr uint8_t SPRITE_FLIPPED_VERTICAL			= 7;
+constexpr uint8_t SPRITE_FLIPPED					= 1;
+constexpr uint8_t SPRITE_WIDTH						= 8;		// tile width is fixed, while tile height is variable, 8 or 16 px and is stored as a member variable _sprite_height
+
 // details about rendering surface
 constexpr uint16_t FRAME_WIDTH						= 256;
 constexpr uint16_t FRAME_HEIGHT						= 240;
@@ -56,7 +63,6 @@ constexpr uint8_t NAMETABLE_WIDTH					= 32;
 constexpr uint8_t NAMETABLE_HEIGHT					= 30;	
 constexpr uint8_t ATTRTABLE_WIDTH					= 8;
 constexpr uint8_t ATTRTABLE_HEIGHT					= 8;	
-constexpr uint8_t SPRITE_WIDTH						= 8;		// tile width is fixed, while tile height is variable, 8 or 16 px and is stored as a member variable _sprite_height
 
 constexpr uint8_t BACKGROUND_PALETTES				= 16;
 constexpr uint8_t FOREGROUND_PALETTES				= 16;
@@ -243,8 +249,6 @@ private:
 
 	void bg_load_shifters(void);
 	void bg_update_shifters(void);
-
-	// ppu helper functions
 
 	// background rendering
 	void bg_set_pixel(void);

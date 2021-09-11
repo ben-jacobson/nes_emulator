@@ -203,16 +203,16 @@ void ppu::increment_scroll_y(void) {
             _current_vram_address.fine_y = 0;
 
             // do we need to swap the vertical name table addresses?
-                if (_current_vram_address.coarse_y == NAMETABLE_HEIGHT - 1) {   // are we on the last row? 
-                    _current_vram_address.coarse_y = 0;
-                    _current_vram_address.nametable_y = ~_current_vram_address.nametable_y; // And flip the target nametable bits, being a 2x2 grid, we pretty much wrap from 0 -> 1 -> 0 
-                }
-                else if (_current_vram_address.coarse_y == NAMETABLE_HEIGHT + 1) {// check to make sure we haven't gone beyond the nametable region and entered into attribute memory territory
-                    _current_vram_address.coarse_y = 0;
-                }
-                else {  
-                    _current_vram_address.coarse_y++; // only if safe to do so
-                }
+            if (_current_vram_address.coarse_y == NAMETABLE_HEIGHT - 1) {   // are we on the last row? 
+                _current_vram_address.coarse_y = 0;
+                _current_vram_address.nametable_y = ~_current_vram_address.nametable_y; // And flip the target nametable bits, being a 2x2 grid, we pretty much wrap from 0 -> 1 -> 0 
+            }
+            else if (_current_vram_address.coarse_y == NAMETABLE_HEIGHT + 1) {// check to make sure we haven't gone beyond the nametable region and entered into attribute memory territory
+                _current_vram_address.coarse_y = 0;
+            }
+            else {  
+                _current_vram_address.coarse_y++; // only if safe to do so
+            }
         }
     }
 }
@@ -251,6 +251,20 @@ void ppu::bg_update_shifters(void) {
         _bg_shifter_pattern_hi <<= 1;
         _bg_shifter_attrib_lo <<= 1;                     // Shifting palette attributes by 1
         _bg_shifter_attrib_hi <<= 1;
+    }
+
+    if (fg_rendering_enabled() && _clock_pulse_x >= 1 && _clock_pulse_x < 258) {
+        // render our sprites from the cache
+
+        for (uint8_t i = 0; i < MAX_SPRITES_SCANLINE; i++) {
+            if (_sprite_cache[i].x > 0) {
+                _sprite_cache[i].x--;
+            }
+            else {
+                _fg_shifter_pattern_lo[i] <<= 1;
+                _fg_shifter_pattern_hi[i] <<= 1;
+            }
+        }    
     }
 }
 
@@ -446,8 +460,8 @@ void ppu::cycle(void) {
                 _current_vram_address.coarse_x    = _temp_vram_address.coarse_x;
             }
 
-            if (_scanline_y >= 0) {
-                // at clock 257, clear our sprite cache
+            if (_scanline_y >= 0 && fg_rendering_enabled()) {
+                // at clock 257, build our sprite cache for the next scanline
                 build_sprite_cache_next_scanline();
             }
         }
@@ -514,16 +528,69 @@ void ppu::cycle(void) {
         // Get palette
         uint8_t bg_pal0 = (_bg_shifter_attrib_lo & bit_mux) > 0;
         uint8_t bg_pal1 = (_bg_shifter_attrib_hi & bit_mux) > 0;
-        bg_palette = (bg_pal1 << 1) | bg_pal0;
+        bg_palette = (bg_pal1 << 1) | bg_pal0;       
     }
+
+    // foreground rendering
+    
+    uint8_t fg_pixel = 0x00;
+    uint8_t fg_palette = 0x00;
+    uint8_t fg_priority = 0x00;
+
+    if (fg_rendering_enabled()) {
+        for (uint8_t i = 0; i < MAX_SPRITES_SCANLINE; i++) {
+            if (_sprite_cache[i].x == 0) {
+                uint8_t fg_pixel_lo = (_fg_shifter_pattern_lo[i] & 0x80) > 0; // just the MSB please
+                uint8_t fg_pixel_hi = (_fg_shifter_pattern_hi[i] & 0x80) > 0; // just the MSB please
+                fg_pixel = (fg_pixel_hi << 1) | fg_pixel_lo;
+                fg_palette = (_sprite_cache[i].attr & 0x03) + 0x04; // & 0x03 = lop off top 6 bits, as we only want to read the bottom two bits off the attr representing the palette id, + 0x04 is to generate the paletter index from the FB palettes (last 4 of the 8 palettes)
+                fg_priority = check_bit(_sprite_cache[i].attr, SPRITE_PRIORITY);   // keep in mind sprites can go behind the background
+
+                if (fg_pixel != 0) {
+                    break; // if we have reached a pixel lower than the background priority, we can break out of this loop. Not totally necessary but can help to speed things up a bit
+                }
+            }
+        }
+    }
+    
+    uint8_t pixel = 0x00;
+    uint8_t palette = 0x00;
+
+    if (bg_pixel == 0 && fg_pixel == 0) {
+        pixel = 0x00;
+        palette = 0x00;        
+    }
+
+    else if (bg_pixel == 0 && fg_pixel > 0) {
+        pixel = fg_pixel;
+        palette = fg_palette;        
+    }
+
+    else if (bg_pixel > 0 && fg_pixel == 0) {
+        pixel = bg_pixel;
+        palette = bg_palette;        
+    }    
+
+    else if (bg_pixel > 0 && fg_pixel > 0) {
+        if (fg_priority) {
+            pixel = fg_pixel;
+            palette = fg_palette;        
+        }
+        else {
+            pixel = bg_pixel;
+            palette = bg_palette;        
+        }
+    }          
 
     // Now we have a final pixel colour, and a palette for this cycle
     // of the current scanline. Let's at long last, draw that ^&%*er :P
     // feed _result_pixel with the ID of the palette.
 
-    _ppu_bus_ptr->set_address((0x3F00 + (bg_palette << 2) + bg_pixel));
-    _result_pixel = _ppu_bus_ptr->read_data() & 0x3F;
+    //_ppu_bus_ptr->set_address((0x3F00 + (bg_palette << 2) + bg_pixel));
+    _ppu_bus_ptr->set_address((0x3F00 + (palette << 2) + pixel));
+    _result_pixel = _ppu_bus_ptr->read_data() & 0x3F;    
 
+    // composite the image into actual pixel data
     uint32_t pixel_index = (FRAME_WIDTH * 4 * _scanline_y) + ((_clock_pulse_x - 1) * 4);
     
     if (pixel_index + 3 <= FRAME_ARRAY_SIZE * 4) {
@@ -553,100 +620,112 @@ void ppu::cycle(void) {
 }
 
 void ppu::load_sprite_shifters(void) {
-    for (uint8_t i = 0; i < _sprite_count; i++) {
+    for (uint8_t i = 0; i < MAX_SPRITES_SCANLINE; i++) {
         uint8_t sprite_pattern_bits_lo, sprite_pattern_bits_hi;
         uint16_t sprite_pattern_addr_lo, sprite_pattern_addr_hi;
+        uint8_t pattern_table_in_use = check_bit(_PPU_control_register, PPUCTRL_FG_PATTERN_TABLE_ADDR) << 12;       // 0x0000 or 0x1000. pattern table left or right
 
-        uint8_t pattern_table_in_use = check_bit(_PPU_control_register, PPUCTRL_FG_PATTERN_TABLE_ADDR) << 12;       // 0x0000 or 0x1000. 
-
-        if (_sprite_height == 8) {
-            // 8x8 sprite mode
-            // check the vertical orientation
-
-            if (check_bit(_sprite_cache[i].attr, 6) == 0) { // 0 is normal horizontal orientation
+        if (_sprite_height == 8) {             // 8x8 sprite mode
+            // check the VERTICAL orientation
+            if (check_bit(_sprite_cache[i].attr, SPRITE_FLIPPED_VERTICAL) != SPRITE_FLIPPED) {
                 // read directly from the pattern table
                 sprite_pattern_addr_lo =    pattern_table_in_use | 
-                                            (_sprite_cache[i].id << 4) |            // mult 16 (each sprite is 16  bytes in size)
+                                            (_sprite_cache[i].id << 4) |            // << 4 = mult 16 (each sprite is 16 bytes in size taking into account both 8 bit planes)
                                             (_scanline_y - _sprite_cache[i].y);     // offset by our y position (MSB is the left most pixel, hence the scanline-y)
             }            
             else {    
-                // vertical flip
+                // vertically fliped
                 sprite_pattern_addr_lo =    pattern_table_in_use | 
-                                            (_sprite_cache[i].id << 4) |                // mult 16 (each sprite is 16  bytes in size)
-                                            (7 - _scanline_y - _sprite_cache[i].y);     // offset by our y position (MSB is the left most pixel, then flipped the 7-scanline-y)            
-            }
-            if (check_bit(_sprite_cache[i].attr, 7) == 0) { // 0 is normal vertical orientation
-                // read from the pattern table, but in reverse order
-            }
-            else { // flipped vertically
-
+                                            (_sprite_cache[i].id << 4) |                
+                                            (7 - _scanline_y - _sprite_cache[i].y);     // like above, but flipped vertically, hence 7-scanline-y            
             }
         }
-        else if (_sprite_height == 16) {
-            // 8x16 sprite mode 
-            if (check_bit(_sprite_cache[i].attr, 6) == 0) { // 0 is normal horizontal orientation
+
+        else if (_sprite_height == 16) {                    // 8x16 sprite mode 
+
+            if (check_bit(_sprite_cache[i].attr, SPRITE_FLIPPED_VERTICAL) != SPRITE_FLIPPED) {
                 // check, are we in the bottom half or top half of sprite?
                 if (_scanline_y - _sprite_cache[i].y < 8) {
-                    sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
-                                                ((_sprite_cache[i].id & 0xFE) << 4) | 
-                                                ((_scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                    sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) |          // & 0x01 = discard top 7 bits, only wanting to see lsb, << 12 means address will either be 0x0000 or 0x1000 for left or right pattern table
+                                                ((_sprite_cache[i].id & 0xFE) << 4) |           // & 0xFE discards lsb, 
+                                                ((_scanline_y - _sprite_cache[i].y) & 0x07);    // & 0x07 discard top 5 bits. similar to above, except we reject some of the higher bits
                 }
                 else {
                     sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
-                                                ((_sprite_cache[i].id & 0xFE) + 1 << 4) | 
-                                                ((_scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                                                (((_sprite_cache[i].id & 0xFE) + 1) << 4) |       // offset by 1, shifting down by 1 pattern table row (move forward 8 pixels)
+                                                ((_scanline_y - _sprite_cache[i].y) & 0x07); 
                 }
             }            
             else {    
-                // vertical flip
+                // vertically fliped
                 if (_scanline_y - _sprite_cache[i].y < 8) {
                     sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
                                                 ((_sprite_cache[i].id & 0xFE) << 4) | 
-                                                ((7 - _scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                                                ((7 - _scanline_y - _sprite_cache[i].y) & 0x07); 
                 }
                 else {
                     sprite_pattern_addr_lo  =   ((_sprite_cache[i].id & 0x01) << 12) | 
-                                                ((_sprite_cache[i].id & 0xFE) + 1 << 4) | 
-                                                ((7 - _scanline_y - _sprite_cache[i].y) & 0x07); // similar to above, except we reject some of the higher bits
+                                                (((_sprite_cache[i].id & 0xFE) + 1) << 4) | 
+                                                ((7 - _scanline_y - _sprite_cache[i].y) & 0x07); 
                 }                
             }
-            if (check_bit(_sprite_cache[i].attr, 7) == 0) { // 0 is normal vertical orientation
-                // read from the pattern table, but in reverse order
-            }
-            else { // flipped vertically
-
-            }
         }   
+        sprite_pattern_addr_hi = sprite_pattern_addr_lo + 8; // this is convenient, whatever calculation we took to get to the lo, the hi is always 8 addresses away        
+        
+        _ppu_bus_ptr->set_address(sprite_pattern_addr_lo);
+        sprite_pattern_bits_lo = _ppu_bus_ptr->read_data();
+        _ppu_bus_ptr->set_address(sprite_pattern_addr_hi);
+        sprite_pattern_bits_hi = _ppu_bus_ptr->read_data();
+
+        // we can check for horizontal flip after we read in the data, and adjust our shifting behaviour accordingly
+        if (check_bit(_sprite_cache[i].attr, SPRITE_FLIPPED_HORIZONTAL) == SPRITE_FLIPPED) {
+            sprite_pattern_bits_lo = flip_byte(sprite_pattern_bits_lo);
+            sprite_pattern_bits_hi = flip_byte(sprite_pattern_bits_hi);
+        }
+
+        // now that's all out of the way, load these into our shift registers
+        _fg_shifter_pattern_lo[i] = sprite_pattern_bits_lo;
+        _fg_shifter_pattern_hi[i] = sprite_pattern_bits_hi;
     }   
 }
 
 void ppu::build_sprite_cache_next_scanline(void) {
     // start by clearing the sprite cache and resetting the count to zero
     for (auto & entry : _sprite_cache) {
-        entry.y = 0xFF;     // this is good enough to disable the oam cache, because sprites in the y position of 255 will never be rendered                  
+        entry.x = 0xFF;     // sprites in the x and y position of 255 will never be rendered                 
+        entry.y = 0xFF;                     
     }
+
+    // clear out our shifters for good measure
+    for (uint8_t i = 0; i < MAX_SPRITES_SCANLINE; i++) {
+        _fg_shifter_pattern_lo[i] = 0;
+        _fg_shifter_pattern_hi[i] = 0;
+    }
+
+    // and reset the sprite count
     _sprite_count = 0;
 
-    // seeing as the sprite count is now zero, clear the sprite overflow bit in case it was ever set
-    _PPU_status_register &= ~(1 << PPUSTATUS_SPRITE_OVERFLOW);
+    // no need to clear the sprite overflow flag, we will manually clear the sprite overflow at vertical blank
 
     // Then check every sprite in the OAM to see which sprites are going to be visible on the next scanline
     for (uint8_t i = 0; i < MAX_OAM_SPRITES; i++) {
-        int y_check = _scanline_y - _oam_data[i].y;  
+        int y_check = (uint16_t)_scanline_y - _oam_data[i].y;  
 
-        if (y_check >= 0 && y_check < _sprite_height && i < MAX_SPRITES_SCANLINE) { // are we within the boundaries of the sprites height?
-            _sprite_cache[i] = _oam_data[i];
-            _sprite_count++;
+        if (y_check >= 0 && y_check < _sprite_height) { // are we within the boundaries of the sprites height?
+            if (_sprite_count < MAX_SPRITES_SCANLINE) {
+                _sprite_cache[_sprite_count] = _oam_data[i];     // copy the sprite data into our cache, only up to 8 sprites though
+            }
+            _sprite_count++;    // continue the count however, seeing as we need to use this to set our overflow flag         
         }
-
-        if (_sprite_count >= MAX_SPRITES_SCANLINE) { // max this out at 8 sprites, much like the actual nes does
+        
+        if (_sprite_count > MAX_SPRITES_SCANLINE) { // max this out at 8 sprites, much like the actual nes does
             _PPU_status_register |= (1 << PPUSTATUS_SPRITE_OVERFLOW);   // set the overflow bit
-            break; // we can jump out of our for loop for now, we won't be rendering any more sprites, plus we don't want to go out of bounds for our _sprite_cache
-        }              
+            break; // we can jump out of our for loop for now, no point caching any more sprites for this scanline
+        }                 
     }
 }
 
-void ppu::handle_dma(void) {
+void ppu::handle_dma(void) { 
     // on to handling the DMA request
     if (_dma_transfer_status) {
         // on even clock cycles, read data
@@ -865,6 +944,15 @@ void ppu::vertical_blank(void) {
     // set the vertical blank bit in the Status register, indicating to the rest of the system that we are okay to start writing pixel data
     _PPU_status_register |= (1 << PPUSTATUS_VERTICAL_BLANK);
 
+    // clear the sprite overflow for the next frame
+    _PPU_status_register &= ~(1 << PPUSTATUS_SPRITE_OVERFLOW);
+
+    // clear our sprite shifters, in case we get something left over from the last frame. 0 = transparent pixel anyway
+    for (uint8_t i = 0; i < MAX_SPRITES_SCANLINE; i++) {
+        _fg_shifter_pattern_lo[i] = 0;
+        _fg_shifter_pattern_hi[i] = 0;
+    }
+    
     // trigger the NMI on Vblank if that PPUCTRL register was set
     if (check_bit(_PPU_control_register, PPUCTRL_VERTICAL_BLANK_NMI) == 1) {
         trigger_cpu_NMI(); 
