@@ -475,7 +475,7 @@ void ppu::cycle(void) {
             _oam_addr = 0; 
         }
 
-        // Superfluous reads of tile id at end of scanline
+        // Reads of tile id at end of scanline
         if (_clock_pulse_x == 338 || _clock_pulse_x == 340) {
             _ppu_bus_ptr->set_address(0x2000 | (_current_vram_address.reg & 0x0FFF));
             _bg_next_tile_id = _ppu_bus_ptr->read_data();

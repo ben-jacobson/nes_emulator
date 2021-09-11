@@ -162,6 +162,7 @@ int main(int argc, char *argv[])
 	bool frame_complete = false; 
 	bool instruction_complete = false; 
 	bool run_mode = true; 		// can be changed to false to pause on initial frame if needs be
+	bool debug_displays = true;
 
 	frame_counter.get_frame_start_time();
 
@@ -323,13 +324,15 @@ int main(int argc, char *argv[])
 				instruction_trace_log.update();
 			}
 
-			debug_instr_trace.display_contents();	
-			debug_processor_status.display_contents();
-			debug_ram_display.display_contents();
-			debug_rom_display.display_contents(); 	
-			debug_cpu_memory_peek.display_contents();
-			debug_ppu_memory_peek.display_contents();
-			//debug_pattern_table.display_contents();	
+			if (debug_displays) {
+				debug_instr_trace.display_contents();	
+				debug_processor_status.display_contents();
+				debug_ram_display.display_contents();
+				debug_rom_display.display_contents(); 	
+				debug_cpu_memory_peek.display_contents();
+				debug_ppu_memory_peek.display_contents();
+				//debug_pattern_table.display_contents();	
+			}
 			frame_counter.display_contents();
 
 			display_output.draw();				// draw the main screen
