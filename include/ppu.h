@@ -270,4 +270,5 @@ private:
 	uint16_t _bg_shifter_pattern_lo, _bg_shifter_pattern_hi, _bg_shifter_attrib_lo, _bg_shifter_attrib_hi;
 	uint8_t _fg_shifter_pattern_lo[MAX_SPRITES_SCANLINE], _fg_shifter_pattern_hi[MAX_SPRITES_SCANLINE];
 
+	bool sprite_zero_hit_init, sprite_zero_render_in_process;
 };

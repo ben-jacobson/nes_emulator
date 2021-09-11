@@ -549,6 +549,9 @@ void ppu::cycle(void) {
                 fg_priority = check_bit(_sprite_cache[i].attr, SPRITE_PRIORITY);   // keep in mind sprites can go behind the background
                 
                 if (fg_pixel != 0) {
+                    if (i == 0) {
+                        sprite_zero_render_in_process = true; // prime for sprite zero hit event
+                    }
                     break; // if we have reached a pixel lower than the background priority, we can break out of this loop. Not totally necessary but can help to speed things up a bit
                 }
             }
@@ -581,6 +584,26 @@ void ppu::cycle(void) {
         else {
             pixel = bg_pixel;
             palette = bg_palette;        
+        }
+
+        if (sprite_zero_hit_init && sprite_zero_render_in_process) {
+            if (bg_rendering_enabled() && fg_rendering_enabled()) {
+                if (~(check_bit(_PPU_mask_register, PPUMASK_SHOWLEFT_BG) | check_bit(_PPU_mask_register, PPUMASK_SHOWLEFT_SPRITES))) {
+                    // sprite zero is only set if we are currently rendering the first sprite in OAM,
+                    // the bg and fg rendering are both enabled
+                    // and if either of the mask registers PPUMASK_SHOWLEFT_BG or PPUMASK_SHOWLEFT_SPRITES are inverted
+                    // and lastly if we are within a set of x coordinates
+
+                    if (_clock_pulse_x >= 9 && _clock_pulse_x < 258) {     // offset by 8 pixels, as we are not doing anything with the first 8 pixels worth of sprites
+                        _PPU_status_register |= (1 << PPUSTATUS_SPRITE_ZERO_HIT);                        
+                    }
+                }
+                else {
+                    if (_clock_pulse_x >= 1 && _clock_pulse_x < 258) {
+                        _PPU_status_register |= (1 << PPUSTATUS_SPRITE_ZERO_HIT);                        
+                    }
+                }
+            }
         }
     }          
 
@@ -706,6 +729,7 @@ void ppu::build_sprite_cache_next_scanline(void) {
 
     // and reset the sprite count
     _sprite_count = 0;
+    sprite_zero_hit_init = false; 
 
     // no need to clear the sprite overflow flag, we will manually clear the sprite overflow at vertical blank
 
@@ -715,6 +739,10 @@ void ppu::build_sprite_cache_next_scanline(void) {
 
         if (y_check >= 0 && y_check < _sprite_height) { // are we within the boundaries of the sprites height?
             if (_sprite_count < MAX_SPRITES_SCANLINE) {
+
+                if (i == 0) {   // check if we should set our sprite zero flag
+                    sprite_zero_hit_init = true;
+                }
                 _sprite_cache[_sprite_count] = _oam_data[i];     // copy the sprite data into our cache, only up to 8 sprites though
             }
             _sprite_count++;    // continue the count however, seeing as we need to use this to set our overflow flag         
@@ -746,7 +774,7 @@ void ppu::handle_dma(void) {
         // then when finished, continue the cpu execution
         if (_ppu_system_clock - _ppu_clock_at_start_of_dma >= 512) {    // once we've completed enough cycles to fill the 255 buffer, we can finish up.
             _cpu_ptr->DMA_continue();
-            _dma_transfer_status = false;   
+            _dma_transfer_status = false;    
 
             // debug output
 			/*for (uint8_t test_id = 0; test_id < 64; test_id++) {
@@ -825,6 +853,10 @@ void ppu::reset(void) {
     _result_pixel = 0;
 
     _dma_transfer_status = false; 
+
+    sprite_zero_hit_init = false;
+    sprite_zero_render_in_process = false;
+    _PPU_status_register &= ~(1 << PPUSTATUS_SPRITE_ZERO_HIT); // clear sprite zero hit
 }
 
 void ppu::trigger_cpu_NMI(void) {
@@ -948,6 +980,9 @@ void ppu::vertical_blank(void) {
 
     // clear the sprite overflow for the next frame
     _PPU_status_register &= ~(1 << PPUSTATUS_SPRITE_OVERFLOW);
+
+    // clear the sprite zero hit
+    _PPU_status_register &= ~(1 << PPUSTATUS_SPRITE_ZERO_HIT);
 
     // clear our sprite shifters, in case we get something left over from the last frame. 0 = transparent pixel anyway
     for (uint8_t i = 0; i < MAX_SPRITES_SCANLINE; i++) {
