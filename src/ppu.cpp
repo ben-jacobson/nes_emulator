@@ -544,8 +544,10 @@ void ppu::cycle(void) {
                 uint8_t fg_pixel_hi = (_fg_shifter_pattern_hi[i] & 0x80) > 0; // just the MSB please
                 fg_pixel = (fg_pixel_hi << 1) | fg_pixel_lo;
                 fg_palette = (_sprite_cache[i].attr & 0x03) + 0x04; // & 0x03 = lop off top 6 bits, as we only want to read the bottom two bits off the attr representing the palette id, + 0x04 is to generate the paletter index from the FB palettes (last 4 of the 8 palettes)
-                fg_priority = check_bit(_sprite_cache[i].attr, SPRITE_PRIORITY);   // keep in mind sprites can go behind the background
-
+                
+                // this might be a cause for a bug later, but it seems that the priority bit is flipped. Not sure if this is supposed to be the case. 
+                fg_priority = ~(check_bit(_sprite_cache[i].attr, SPRITE_PRIORITY));   // keep in mind sprites can go behind the background
+                
                 if (fg_pixel != 0) {
                     break; // if we have reached a pixel lower than the background priority, we can break out of this loop. Not totally necessary but can help to speed things up a bit
                 }
