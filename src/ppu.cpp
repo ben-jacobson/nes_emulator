@@ -608,7 +608,7 @@ void ppu::cycle(void) {
     }          
 
     // Now we have a final pixel colour, and a palette for this cycle
-    // of the current scanline. Let's at long last, draw that ^&%*er :P
+    // of the current scanline. Let's at long last, draw the pixel
     // feed _result_pixel with the ID of the palette.
 
     //_ppu_bus_ptr->set_address((0x3F00 + (bg_palette << 2) + bg_pixel));
