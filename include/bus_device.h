@@ -1,6 +1,5 @@
 #pragma once
 
-#include "bus.h"
 #include <functional>
 
 class bus_device    
