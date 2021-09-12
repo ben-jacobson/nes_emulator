@@ -36,14 +36,7 @@ struct status_flags {
     uint8_t n : 1;          // negative flag, 1 = negative.
 };
 
-struct opcode {
-    std::string name;
-    std::function<uint8_t(void)> instruction;
-    std::function<uint8_t(void)> address_mode;
-    std::string address_mode_name;
-    uint8_t instruction_bytes;
-    uint8_t cycles_needed;
-};
+typedef struct opcode opcode;   // we need this since our struct references static members of cpu and the cpu has ownership of this
 
 class cpu : public bus_device
 {
@@ -215,7 +208,7 @@ public:
 
 private:
     void init_opcode_decoder_lookup(void);
-    void set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
+    void set_opcode(uint16_t index, uint8_t (cpu::*instruction)(void), std::string name, uint8_t (cpu::*address_mode)(void), std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed);
 
     bus* _bus_ptr = nullptr;  
 
@@ -229,4 +222,15 @@ private:
     uint8_t _x_index_reg, _y_index_reg;     
     uint8_t _stack_pointer;      
     status_flags _status_flags_reg;     
+};
+
+struct opcode {
+    std::string name;
+    //std::function<uint8_t(void)> instruction;
+    //std::function<uint8_t(void)> address_mode;
+    uint8_t (cpu::*instruction)(void);      // function pointers to instruction and address mode
+    uint8_t (cpu::*address_mode)(void);    
+    std::string address_mode_name;
+    uint8_t instruction_bytes;
+    uint8_t cycles_needed;
 };

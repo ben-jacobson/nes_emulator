@@ -2,8 +2,13 @@
 
 // a huge thank you to https://github.com/kpmiller for his emulator101 repo, containing an easy to copy matrix of opcodes
 
-#define instr(fn)   std::bind(&cpu::fn, this)
-#define addr(fn)    std::bind(&cpu::fn, this)
+// #define instr(fn)   std::bind(&cpu::fn, this)
+// #define addr(fn)    std::bind(&cpu::fn, this)
+
+// convenience wrappers, allows us to refactor the code later to experiment with different styles of function pointers, e.g c style, std::function, ect
+#define instr(fn)   &cpu::fn
+#define addr(fn)    &cpu::fn
+
 
 void cpu::init_opcode_decoder_lookup(void) {
     // start by filling out the illegal opcodes
@@ -200,7 +205,7 @@ void cpu::init_opcode_decoder_lookup(void) {
 
 }   
 
-void cpu::set_opcode(uint16_t index, std::function<uint8_t(void)> instruction, std::string name, std::function<uint8_t(void)> address_mode, std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed) {
+void cpu::set_opcode(uint16_t index, uint8_t (cpu::*instruction)(void), std::string name, uint8_t (cpu::*address_mode)(void), std::string address_mode_name, uint8_t instruction_bytes, uint8_t cycles_needed) {
     if (index < OPCODE_COUNT) {
         _opcode_decoder_lookup[index].name = name;
         _opcode_decoder_lookup[index].instruction = instruction;

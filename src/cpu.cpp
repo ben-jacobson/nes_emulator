@@ -32,8 +32,10 @@ void cpu::cycle(void) {
             // Decode the data retrieved at PGMCounter, then run this through our decoded addres mode
             _instr_cycles = _opcode_decoder_lookup[_instr_opcode].cycles_needed; 
             _program_counter++; // the address mode function will need to read from the PC location after the opcode
-            _instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
-            _instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
+            //_instr_cycles += _opcode_decoder_lookup[_instr_opcode].address_mode();     // call the address mode, it will tell you if you need more clock cycles        
+            //_instr_cycles += _opcode_decoder_lookup[_instr_opcode].instruction();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
+            _instr_cycles += (this->*_opcode_decoder_lookup[_instr_opcode].address_mode)();     // call the address mode, it will tell you if you need more clock cycles        
+            _instr_cycles += (this->*_opcode_decoder_lookup[_instr_opcode].instruction)();      // call the instruction function, it will tell you if you need more clock cycles (Likely just zero or one)
             _accumulator_addressing_mode = false; // this flag is used to morph instruction behaviour of accumulator addressing mode. 
         }
         _instr_cycles--;
