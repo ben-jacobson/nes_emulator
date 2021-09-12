@@ -2,9 +2,6 @@
 
 // a huge thank you to https://github.com/kpmiller for his emulator101 repo, containing an easy to copy matrix of opcodes
 
-// #define instr(fn)   std::bind(&cpu::fn, this)
-// #define addr(fn)    std::bind(&cpu::fn, this)
-
 // convenience wrappers, allows us to refactor the code later to experiment with different styles of function pointers, e.g c style, std::function, ect
 #define instr(fn)   &cpu::fn
 #define addr(fn)    &cpu::fn
@@ -16,7 +13,6 @@ void cpu::init_opcode_decoder_lookup(void) {
         set_opcode(i, instr(instr_ZZZ), "ZZZ", addr(addr_mode_IMP), "ZZZ", 1, 2); 
     }
     
-
     // then we'll build out the ones we want
     // I built this code in Excel, my second favourite IDE :)
 

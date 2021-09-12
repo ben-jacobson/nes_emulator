@@ -27,24 +27,24 @@ public:
         test_ppu_bus.clear_bus_devices();
 
         // register some test devices on the bus
-        test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, test_ram._read_function_ptr, test_ram._write_function_ptr);    
-        test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, test_cart._read_function_ptr);    
-    	test_bus.register_new_bus_device(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END, test_apu_io._read_function_ptr, test_apu_io._write_function_ptr);
+        test_bus.register_new_bus_device(RAM_ADDRESS_SPACE_START, RAM_ADDRESS_SPACE_END, &test_ram); // test_ram._read_function_ptr, test_ram._write_function_ptr);    
+        test_bus.register_new_bus_device(CART_ADDRESS_SPACE_START, CART_ADDRESS_SPACE_END, &test_cart);//, test_cart._read_function_ptr);    
+    	test_bus.register_new_bus_device(APUIO_ADDRESS_SPACE_START, APUIO_ADDRESS_SPACE_END, &test_apu_io); //test_apu_io._read_function_ptr, test_apu_io._write_function_ptr);
 
          // register the PPU to the CPU bus
-        test_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, test_ppu._read_function_ptr, test_ppu._write_function_ptr);
+        test_bus.register_new_bus_device(PPU_ADDRESS_SPACE_START, PPU_MIRROR_SPACE_END, &test_ppu); // test_ppu._read_function_ptr, test_ppu._write_function_ptr);
 
         // register our ppu bus devices
         test_ppu_bus.register_new_bus_device(CHR_ROM_START, CHR_ROM_END, test_cart._ppu_read_function_ptr, test_cart._ppu_write_function_ptr);
-        test_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, test_palette_ram._read_function_ptr, test_palette_ram._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(PALETTE_RAM_INDEX_START, PALETTE_RAM_MIRROR_END, &test_palette_ram); //test_palette_ram._read_function_ptr, test_palette_ram._write_function_ptr);
 
-        test_ppu_bus.register_new_bus_device(NAMETABLE_0_START, NAMETABLE_0_END, test_nametable_0_memory._read_function_ptr, test_nametable_0_memory._write_function_ptr);
-        test_ppu_bus.register_new_bus_device(NAMETABLE_1_START, NAMETABLE_1_END, test_nametable_1_memory._read_function_ptr, test_nametable_1_memory._write_function_ptr);
-        test_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, test_nametable_2_memory._read_function_ptr, test_nametable_2_memory._write_function_ptr);
-        test_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, test_nametable_3_memory._read_function_ptr, test_nametable_3_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_0_START, NAMETABLE_0_END, &test_nametable_0_memory); //test_nametable_0_memory._read_function_ptr, test_nametable_0_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_1_START, NAMETABLE_1_END, &test_nametable_1_memory); //test_nametable_1_memory._read_function_ptr, test_nametable_1_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_2_START, NAMETABLE_2_END, &test_nametable_2_memory); //test_nametable_2_memory._read_function_ptr, test_nametable_2_memory._write_function_ptr);
+        test_ppu_bus.register_new_bus_device(NAMETABLE_3_START, NAMETABLE_3_END, &test_nametable_3_memory); //test_nametable_3_memory._read_function_ptr, test_nametable_3_memory._write_function_ptr);
 
         // we have a special case use case for the OAMDMA, this needs to be accessible by the CPU in one memory location alone
-        test_bus.register_new_bus_device(OAMDMA, OAMDMA, test_ppu._read_function_ptr, test_ppu._write_function_ptr);
+        test_bus.register_new_bus_device(OAMDMA, OAMDMA, &test_ppu); //test_ppu._read_function_ptr, test_ppu._write_function_ptr);
 
         test_ppu.reset();
 

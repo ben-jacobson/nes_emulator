@@ -226,8 +226,6 @@ private:
 
 struct opcode {
     std::string name;
-    //std::function<uint8_t(void)> instruction;
-    //std::function<uint8_t(void)> address_mode;
     uint8_t (cpu::*instruction)(void);      // function pointers to instruction and address mode
     uint8_t (cpu::*address_mode)(void);    
     std::string address_mode_name;
