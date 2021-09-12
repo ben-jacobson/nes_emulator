@@ -11,7 +11,7 @@ constexpr uint8_t MAX_BUS_DEVICES = 16; // just to keep our memory consumption d
 
 struct connected_device {
 	uint16_t _address_range_start, _address_range_end;
-	bus_device* _device_ptr;
+	bus_device* _device_ptr = nullptr;
 	std::function<uint8_t(uint16_t)> _read_function_ptr = nullptr;
 	std::function<void(uint16_t, uint8_t)> _write_function_ptr = nullptr;  	
 };

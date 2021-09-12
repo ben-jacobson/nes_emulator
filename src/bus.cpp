@@ -13,22 +13,32 @@ uint16_t bus::read_address(void) {
 }
 
 void bus::write_data(uint8_t data) {
-    // _data = data; // ensure written data is placed onto bus
     int device_index = get_index_of_connected_device(_address);
     
-    if (device_index != -1 && devices_connected_to_bus[device_index]._write_function_ptr != nullptr) {
-        devices_connected_to_bus[device_index]._write_function_ptr(_address, data);
+    if (device_index != -1 && devices_connected_to_bus[device_index]._device_ptr != nullptr) {
+        if (devices_connected_to_bus[device_index]._write_function_ptr == nullptr) {
+            devices_connected_to_bus[device_index]._device_ptr->write(_address, data);
+        }
+        else {
+            devices_connected_to_bus[device_index]._device_ptr->write(_address, data);
+        }
     }
 }
 
 uint8_t bus::read_data(void) {
     int device_index = get_index_of_connected_device(_address);
 
-    if (device_index != -1) {
-        if (devices_connected_to_bus[device_index]._read_function_ptr != nullptr) {
-            _data = devices_connected_to_bus[device_index]._read_function_ptr(_address); 
-            return _data;
+    if (device_index != -1 && devices_connected_to_bus[device_index]._device_ptr != nullptr) {
+        // our preference is to call the function pointer via it's device pointer so as to bypass the overhead from std::function. 
+        // I know this is a contentious issue, but this makes a noticable difference to our frame rate, we call these pointers tens of thousands of times per frame
+        // nano second savings add up to substaintial framerate improvements        
+        if (devices_connected_to_bus[device_index]._read_function_ptr == nullptr) {
+            _data = devices_connected_to_bus[device_index]._device_ptr->read(_address);
         }
+        else {
+            _data = devices_connected_to_bus[device_index]._read_function_ptr(_address);             
+        }
+        return _data;
     }
     return 0; 
 }
@@ -37,11 +47,14 @@ uint8_t bus::debug_read_data(uint16_t address) {
     // read data from the bus without the need to alter the address, used for debugging displays where it's important not to interfere with the address, e.g reading from the PPU which increments VRAM address
     int device_index = get_index_of_connected_device(address);
 
-    if (device_index != -1) {
-        if (devices_connected_to_bus[device_index]._read_function_ptr != nullptr) {
-            _data = devices_connected_to_bus[device_index]._read_function_ptr(address); 
-            return _data;
+    if (device_index != -1 && devices_connected_to_bus[device_index]._device_ptr != nullptr) {
+        if (devices_connected_to_bus[device_index]._read_function_ptr == nullptr) {
+            _data = devices_connected_to_bus[device_index]._device_ptr->read(address);
         }
+        else {
+            _data = devices_connected_to_bus[device_index]._read_function_ptr(address);             
+        }
+        return _data;
     }
     return 0;     
 }
