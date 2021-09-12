@@ -47,10 +47,11 @@ uint8_t bus::debug_read_data(uint16_t address) {
 }
 
 
-void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr) {
+void bus::register_new_bus_device(uint16_t address_range_start, uint16_t address_range_end, bus_device* device_ptr, std::function<uint8_t(uint16_t)> read_function_ptr, std::function<void(uint16_t, uint8_t)> write_function_ptr) {
     if (_device_index < MAX_BUS_DEVICES) {
         devices_connected_to_bus[_device_index]._address_range_start = address_range_start;
         devices_connected_to_bus[_device_index]._address_range_end = address_range_end;
+        devices_connected_to_bus[_device_index]._device_ptr = device_ptr;
         devices_connected_to_bus[_device_index]._read_function_ptr = read_function_ptr;
         devices_connected_to_bus[_device_index]._write_function_ptr = write_function_ptr;                
         _device_index++;
