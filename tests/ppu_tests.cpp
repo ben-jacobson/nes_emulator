@@ -189,10 +189,3 @@ TEST_CASE_METHOD(emulator_test_fixtures, "ppu - test status reads clears vertica
     vertical_blank = test_ppu.get_vertical_blank();
     CHECK(vertical_blank == false);
 }
-
-TEST_CASE_METHOD(emulator_test_fixtures, "ppu - test DMA registration", "[ppu]") {
-    test_bus.set_address(OAMDMA);
-    uint8_t test_result = test_bus.read_data();
-    test_bus.write_data(test_result);
-    CHECK(1 != 1);    // TODO - finish this test
-}

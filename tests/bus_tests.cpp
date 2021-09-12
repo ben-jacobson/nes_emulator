@@ -7,10 +7,11 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test for correct registration or
     test_bus.register_new_bus_device(0x0000, 0xFFFF, nullptr);
     REQUIRE(test_bus.devices_connected_to_bus[0]._address_range_start == RAM_ADDRESS_SPACE_START);
     REQUIRE(test_bus.devices_connected_to_bus[1]._address_range_start == CART_ADDRESS_SPACE_START);
-    REQUIRE(test_bus.devices_connected_to_bus[2]._address_range_start == APUIO_ADDRESS_SPACE_START);
+    REQUIRE(test_bus.devices_connected_to_bus[2]._address_range_start == IO_ADDRESS_SPACE_START);
     REQUIRE(test_bus.devices_connected_to_bus[3]._address_range_start == PPU_ADDRESS_SPACE_START);
-    REQUIRE(test_bus.devices_connected_to_bus[4]._address_range_start == 0x0000);
-    REQUIRE(test_bus._device_index == 5);
+    REQUIRE(test_bus.devices_connected_to_bus[4]._address_range_start == OAMDMA);
+    REQUIRE(test_bus.devices_connected_to_bus[5]._address_range_start == 0x0000);
+    REQUIRE(test_bus._device_index == 6);
 }
 
 TEST_CASE_METHOD(emulator_test_fixtures, "bus - test that reading any given address doesn't cause crash") {
@@ -72,7 +73,7 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test if we can implement a secon
 
     bus second_test_bus;
     ram second_test_ram(0xFF, 0x0000, 0x00FF);
-    second_test_bus.register_new_bus_device(0x0000, 0x00FF, second_test_ram._read_function_ptr, second_test_ram._write_function_ptr);
+    second_test_bus.register_new_bus_device(0x0000, 0x00FF, &second_test_ram);
 
     second_test_bus.set_address(0x0000);
     second_test_bus.write_data(0xFE);
@@ -93,8 +94,8 @@ TEST_CASE_METHOD(emulator_test_fixtures, "bus - Test if two buses can use the sa
     bus second_test_bus;
     ram second_test_ram(0xFF, 0x0000, 0x00FF);
     ram third_test_ram(0xFF, 0x00FF, 0x01FF);
-    second_test_bus.register_new_bus_device(0x0000, 0x00FF, second_test_ram._read_function_ptr, second_test_ram._write_function_ptr);    
-    second_test_bus.register_new_bus_device(0x00FF, 0x01FF, std::bind(alternative_read, std::placeholders::_1));    
+    second_test_bus.register_new_bus_device(0x0000, 0x00FF, &second_test_ram);    
+    second_test_bus.register_new_bus_device(0x00FF, 0x01FF, &third_test_ram, std::bind(alternative_read, std::placeholders::_1));    
     second_test_bus.set_address(0x0000);
     second_test_bus.write_data(0xBB);
 
