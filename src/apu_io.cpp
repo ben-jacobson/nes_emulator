@@ -21,21 +21,16 @@ uint8_t apu_io::read(uint16_t address) {
 
     if (address == PLAYER_ONE_CONTROLLER_REG || address == PLAYER_TWO_CONTROLLER_REG) {
         uint8_t* controller_reg_ptr = (address == PLAYER_ONE_CONTROLLER_REG ? &controller_register_one : &controller_register_two);
-
-        if (_strobe_sequence && _strobe_count < 8) {
+        
+        //if (_strobe_sequence && _strobe_count < 8) {
             data = (check_bit(*controller_reg_ptr, _strobe_count) == 1 ? BUTTON_DOWN : BUTTON_UP); // 0 not pressed, 1 for pressed)
-
-            /*std::cout << "Key: " << (uint16_t)_strobe_count << ", value: " << (uint16_t)data << std::endl;
-            if (_strobe_count == 7) 
-                std::cout << std::endl;*/
-
             _strobe_count++;   
-        }
+        /*}
         else {            
             // the NES would continually return the A key status if we haven't written our strobe value yet
             data = (check_bit(*controller_reg_ptr, 0) == 1 ? BUTTON_DOWN : BUTTON_UP);   
             _strobe_sequence = false; // reset so that we can kick this off once again soon.
-        }
+        }*/
     }
     return data;
 }

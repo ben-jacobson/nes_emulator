@@ -1,5 +1,9 @@
 # nes_emulator
-This will eventually be worked into a nes emulator, in due time. For the mean time, this is just a simple 6502 emulator, designed to output the virtual machines memory and allow you to step through code, displaying the output to screen.
+A basic nes emulator. Not by any means accurate or even fast for that matter. The purpose of this was purely to learn a bit more about how computers work. I wanted to learn the inner workings of a CPU so I started this as a 6502 emulator, and got this to the point where I could run test roms. From there I started working on the PPU code, but quickly realised I was out of my depth. Most of the PPU code comes from OneLoneCoder who has an awesome youtube series on his nes emulator. 
+
+The emulator has only one mapper (emulating the extra circruity found on the cartridge). Therefore it is only compatible with a select few games. I've managed to get Donkey Kong and Super Mario Bros working on this but both games have some glitches which can be worked out. There is no sound at the moment. 
+
+The state of the code isn't great, it could be tidied up a lot, made more efficient. But that wasn't the purpose of this project so maybe one day this will get a refactor. Maybe later if sound and more mappers get added.
 
 # Prerequisites
 
@@ -37,4 +41,7 @@ Simply execute the nes_emulator binary in the output folder. Make sure that you 
 
 Thanks to the team of dedicated developers who maintain SDL and the various add on libraries,
 
+Thanks to OLC for the awesome tutorials on how to build the PPU
+
 Also thanks to Style64 for their amazing Commodore 64 style font. Found here: https://style64.org/c64-truetype
+
